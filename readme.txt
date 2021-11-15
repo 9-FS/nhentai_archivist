@@ -1,1 +1,1 @@
-Lädt mit ID spezifiziertes Kunstwerk herunter und konvert zu PDF. Programm aus dem Internet heruntergeladen.
+Enter nHentai ID to download and convert to jpg. You can enter multiple ID separated by space.
