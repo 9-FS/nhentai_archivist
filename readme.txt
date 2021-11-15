@@ -1,1 +1,1 @@
-Enter nHentai ID to download and convert to jpg. You can enter multiple ID separated by space.
+Enter nHentai ID to download and convert to PDF. You can enter multiple ID separated by space.
