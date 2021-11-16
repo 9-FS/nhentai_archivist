@@ -18,7 +18,6 @@ def main():
     
     i=0
     while i<len(h_ID_list): #work through all desired hentai
-        print("--------------------------------------------------")
         print(f"Downloading {h_ID_list[i]}...", end="", flush=True)
         title, pages=download_hentai(h_ID_list[i])  #download hentai and save images, returns number of pages and title in hentai
         print("\r                                                                                                    ", end="")
@@ -26,6 +25,7 @@ def main():
         
         print(f"Converting {h_ID_list[i]} to PDF...", end="", flush=True)
         if convert_jpg_to_pdf(h_ID_list[i], title, pages)==False:   #convert and merge images to pdf, return bool indicates success
+            print("")
             continue    #if converting unsuccessful: corrupted image somewhere, retrying download
         print("\r                                                                                                    ", end="")
         print(f"\rConverted and saved {h_ID_list[i]} as PDF.")
@@ -35,4 +35,5 @@ def main():
         except PermissionError:                 #if impossible: leave behind
             pass
         
+        print("--------------------------------------------------")
         i+=1
