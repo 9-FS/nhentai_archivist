@@ -7,7 +7,7 @@ from get_h_ID_list import get_h_ID_list
 
 
 def main():
-    h_ID_list=list()    #hentai ID to download
+    h_ID_list=[]    #hentai ID to download
 
 
     DT_now=dt.datetime.now(dt.timezone.utc)
