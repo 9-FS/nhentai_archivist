@@ -30,6 +30,9 @@ def main():
         print("\r                                                                                                    ", end="")
         print(f"\rConverted and saved {h_ID_list[i]} as PDF.")
         
-        shutil.rmtree(f"./{h_ID_list[i]}/")             #remove temp .jpg folder
+        try:
+            shutil.rmtree(f"./{h_ID_list[i]}/") #remove temp .jpg folder
+        except PermissionError:                 #if impossible: leave behind
+            pass
         
         i+=1
