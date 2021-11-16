@@ -20,6 +20,9 @@ def convert_jpg_to_pdf(h_ID, title, pages):
             print("\r                                                                                                    ", end="")
             print(f"\rRemoved corrupted image {h_ID}-{page_nr}.jpg to redownload later.")
             conversion_success=False    #converting unsuccessful
+        except FileNotFoundError:
+            print(f"\n{h_ID}-{page_nr}.jpg not found, converting to pdf failed. Redownloading later.")
+            conversion_success=False    #converting unsuccessful
     
     if conversion_success==False:   #if converting unsuccessful: don't create corrupt PDF
         return conversion_success 

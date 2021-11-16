@@ -3,6 +3,7 @@ import datetime as dt
 from lxml import html #HTML parsing
 import os   #image folder
 import requests
+from all_threads_done import all_threads_done
 from download_page import download_page
 
 
@@ -39,7 +40,7 @@ def download_hentai(h_ID):
             threads.append(thread_manager.submit(download_page, h_ID, page_nr)) #download and save page in worker thread
             #download_page(h_ID, page_nr)
 
-        while pages_downloaded<pages:   #progess display, as long as pages still need to be downloaded:
+        while all_threads_done(threads)==False: #progess display, as long as threads still running:
             pages_downloaded_new=len([entry for entry in os.listdir(f"./{h_ID}/") if os.path.isfile(f"./{h_ID}/{entry}")])  #pages already downloaded by counting image files
             if(pages_downloaded==pages_downloaded_new): #if number hasn't changed: don't write on console
                 continue
