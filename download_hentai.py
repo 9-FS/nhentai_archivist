@@ -24,7 +24,7 @@ def download_hentai(h_ID):
             title=str(gallery.xpath('//div[@id="info"]/h1/span[@class="pretty"]/text()')[0])    #title
         except IndexError:
             continue
-        title=title.replace("\\", "")                                                       #remove forbidden characters for filenames
+        title=title.replace("\\", "")   #remove forbidden characters for filenames
         title=title.replace("/", "")
         title=title.replace(":", "")
         title=title.replace("*", "")
@@ -33,6 +33,7 @@ def download_hentai(h_ID):
         title=title.replace("<", "")
         title=title.replace(">", "")
         title=title.replace("|", "")
+        title=title[:140]               #limit title length to 140 characters
         os.makedirs(f"{h_ID}", exist_ok=True)   #create image folder ./h_ID/
 
 

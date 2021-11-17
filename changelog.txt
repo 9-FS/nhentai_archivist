@@ -6,6 +6,7 @@
 +added changelog.txt
 #fixed index out of range errors
 +number of finished hentai / number of all hentais
+#limit title to 140 characters
 
 2021-11-16
 +timeouts
