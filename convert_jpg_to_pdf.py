@@ -1,4 +1,4 @@
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageFile, UnidentifiedImageError
 import os
 
 
@@ -6,6 +6,8 @@ def convert_jpg_to_pdf(h_ID, title, pages):
     conversion_success=True #conversion successful? default yes
     pdf=[]                  #images converted for saving as pdf
 
+
+    ImageFile.LOAD_TRUNCATED_IMAGES=True    #true setzen sonst wirft er beim Laden mancher Bilder eine unnötige Exception
 
     for page_nr in range(1, pages+1):   #convert all saved images
         print("\r                                                                                                    ", end="")

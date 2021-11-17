@@ -1,1 +1,1 @@
-Enter nHentai ID to download and convert to PDF. You can enter multiple ID separated by space.
+Enter nHentai ID to download and convert to PDF. You can either load ID from "./downloadme.txt" seperated by linebreaks or directly enter ID into the console separated by spaces.

@@ -1,6 +1,7 @@
 import datetime as dt
 import math
-import shutil
+import shutil   #remove tree
+import time
 from convert_jpg_to_pdf import convert_jpg_to_pdf
 from download_hentai import download_hentai
 from get_h_ID_list import get_h_ID_list
@@ -32,8 +33,21 @@ def main():
         
         try:
             shutil.rmtree(f"./{h_ID_list[i]}/") #remove temp .jpg folder
-        except PermissionError:                 #if impossible: leave behind
+        except FileNotFoundError:
+            pass
+        except PermissionError:                 #if impossible: leave behind for later
             pass
         
         print("--------------------------------------------------")
         i+=1
+
+    print("Waiting 5s...")
+    time.sleep(5)
+    print("Removing all remaining image folders...")
+    for h_ID in h_ID_list:  #work through all desired hentai
+        try:
+            shutil.rmtree(f"./{h_ID}/") #if left behind: retry to remove temp .jpg folder
+        except FileNotFoundError:
+            pass
+        except PermissionError:         #if impossible: leave behind
+            pass

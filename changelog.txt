@@ -1,0 +1,17 @@
+2021-11-17
++updated readme.txt
+#fixed frequent jumping between download and converting phase
+#fixed crash after loading certain images
++retry deleting temporary image folder after downloading and converting everything
++added changelog.txt
+
+2021-11-16
++timeouts
++if image file is corrupt, redownload
+#fixed freezing during image download
++load hentai ID from file ./downloadme.txt
+
+2021-11-15
++select 1 or multiple hentai by ID
++download jpg
++convert to PDF
