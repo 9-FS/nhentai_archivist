@@ -5,7 +5,6 @@
 +retry deleting temporary image folder after downloading and converting everything
 +added changelog.txt
 #fixed index out of range errors
-
 +number of finished hentai / number of all hentais
 
 2021-11-16
