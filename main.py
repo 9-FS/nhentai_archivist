@@ -19,6 +19,7 @@ def main():
     
     i=0
     while i<len(h_ID_list): #work through all desired hentai
+        print(f"---{i}/{len(h_ID_list)}---")
         print(f"Downloading {h_ID_list[i]}...", end="", flush=True)
         title, pages=download_hentai(h_ID_list[i])  #download hentai and save images, returns number of pages and title in hentai
         print("\r                                                                                                    ", end="")

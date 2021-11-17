@@ -6,6 +6,8 @@
 +added changelog.txt
 #fixed index out of range errors
 
++number of finished hentai / number of all hentais
+
 2021-11-16
 +timeouts
 +if image file is corrupt, redownload
