@@ -21,7 +21,14 @@ def main():
     while i<len(h_ID_list): #work through all desired hentai
         print(f"---{i+1}/{len(h_ID_list)}---")
         print(f"Downloading {h_ID_list[i]}...", end="", flush=True)
-        title, pages=download_hentai(h_ID_list[i])  #download hentai and save images, returns number of pages and title in hentai
+        try:
+            title, pages=download_hentai(h_ID_list[i])  #download hentai and save images, returns number of pages and title in hentai
+        except FileExistsError: #PDF already exists, don't download and convert, skip
+            print("\r                                                                                                    ", end="")
+            print(f"\r{h_ID_list[i]} has already been downloaded and converted. Skipped.")
+            print("--------------------------------------------------")
+            i+=1
+            continue
         print("\r                                                                                                    ", end="")
         print(f"\rDownloaded {h_ID_list[i]}.")
         
@@ -53,7 +60,7 @@ def main():
         except PermissionError:         #if impossible: leave behind
             pass
     try:
-        shutil.rmtree(f"./__pycache__/") #if left behind: retry to remove temp .jpg folder
+        shutil.rmtree(f"./__pycache__/") #remove ./__pycache__/
     except FileNotFoundError:
         pass
     except PermissionError:         #if impossible: leave behind
