@@ -19,7 +19,7 @@ def main():
     
     i=0
     while i<len(h_ID_list): #work through all desired hentai
-        print(f"---{i+1}/{len(h_ID_list)}---")
+        print(f"{i+1}/{len(h_ID_list)}")
         print(f"Downloading {h_ID_list[i]}...", end="", flush=True)
         try:
             title, pages=download_hentai(h_ID_list[i])  #download hentai and save images, returns number of pages and title in hentai
@@ -29,8 +29,7 @@ def main():
             print("--------------------------------------------------")
             i+=1
             continue
-        print("\r                                                                                                    ", end="")
-        print(f"\rDownloaded {h_ID_list[i]}.")
+        print("")
         
         print(f"Converting {h_ID_list[i]} to PDF...", end="", flush=True)
         if convert_jpg_to_pdf(h_ID_list[i], title, pages)==False:   #convert and merge images to pdf, return bool indicates success
