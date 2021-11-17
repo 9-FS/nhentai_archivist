@@ -4,6 +4,7 @@
 #fixed crash after loading certain images
 +retry deleting temporary image folder after downloading and converting everything
 +added changelog.txt
+#fixed index out of range errors
 
 2021-11-16
 +timeouts

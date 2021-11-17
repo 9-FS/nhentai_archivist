@@ -20,7 +20,10 @@ def download_hentai(h_ID):
         gallery=html.fromstring(gallery.text)                   #parse
         
         pages=int(len(gallery.xpath('//div[@class="thumb-container"]')))                    #number of pages
-        title=str(gallery.xpath('//div[@id="info"]/h1/span[@class="pretty"]/text()')[0])    #title
+        try:
+            title=str(gallery.xpath('//div[@id="info"]/h1/span[@class="pretty"]/text()')[0])    #title
+        except IndexError:
+            continue
         title=title.replace("\\", "")                                                       #remove forbidden characters for filenames
         title=title.replace("/", "")
         title=title.replace(":", "")

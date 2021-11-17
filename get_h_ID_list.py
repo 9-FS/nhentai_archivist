@@ -11,7 +11,10 @@ def get_h_ID_list():
             file_tried=True
             with open("downloadme.txt", "rt") as downloadme_file:
                 h_ID_list=[line for line in downloadme_file.read().split("\n") if line!=""] #seperate ID with linebreaks, remove empty lines
-            print("downloadme.txt loaded.")
+            if len(h_ID_list)!=0:
+                print("downloadme.txt loaded.")
+            else:
+                print("downloadme.txt loaded. Nothing found inside.")
         
         else:   #if ID list file not available: ask user for input
             print("Enter the holy numbers: ")

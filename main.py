@@ -43,7 +43,7 @@ def main():
 
     print("Waiting 5s...")
     time.sleep(5)
-    print("Removing all remaining image folders...")
+    print("Removing all remaining temporary folders...")
     for h_ID in h_ID_list:  #work through all desired hentai
         try:
             shutil.rmtree(f"./{h_ID}/") #if left behind: retry to remove temp .jpg folder
@@ -51,3 +51,9 @@ def main():
             pass
         except PermissionError:         #if impossible: leave behind
             pass
+    try:
+        shutil.rmtree(f"./__pycache__/") #if left behind: retry to remove temp .jpg folder
+    except FileNotFoundError:
+        pass
+    except PermissionError:         #if impossible: leave behind
+        pass

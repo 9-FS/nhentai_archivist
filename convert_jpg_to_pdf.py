@@ -27,9 +27,12 @@ def convert_jpg_to_pdf(h_ID, title, pages):
             conversion_success=False    #converting unsuccessful
     
     if conversion_success==False:   #if converting unsuccessful: don't create corrupt PDF
-        return conversion_success 
+        return False
     
     print("\r                                                                                                    ", end="")
     print(f"\rSaving {h_ID}.pdf...", end="", flush=True)
-    pdf[0].save(f"./{h_ID} {title}.pdf", save_all=True, append_images=pdf[1:])  #save
-    return conversion_success                                                   #conversion success
+    try:
+        pdf[0].save(f"./{h_ID} {title}.pdf", save_all=True, append_images=pdf[1:])  #save
+    except IndexError:
+        return False
+    return True         #conversion success
