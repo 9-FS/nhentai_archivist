@@ -10,7 +10,7 @@ def download_page(h_ID, page_nr):
     for i in range(10): #repeat if no image because access denied (rate limit)
         try:
             page=requests.get(f'https://nhentai.net/g/{h_ID}/{page_nr}/', timeout=5)    #page gallery
-        except TimeoutError:    #if timeout: try again
+        except requests.exceptions.ReadTimeout: #if timeout: try again
             continue
         except ConnectionError:
             continue
@@ -19,7 +19,7 @@ def download_page(h_ID, page_nr):
         img_link=page.xpath('//section[@id="image-container"]/a/img/@src')  #parse direct image link
         try:
             image=requests.get(img_link[0], timeout=5).content  #download image
-        except TimeoutError:    #if timeout: try again
+        except requests.exceptions.ReadTimeout: #if timeout: try again
             continue
         except ConnectionError:
             continue

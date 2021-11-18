@@ -3,6 +3,7 @@ import datetime as dt
 from lxml import html #HTML parsing
 import os   #image folder
 import requests
+from requests.models import ReadTimeoutError
 from all_threads_done import all_threads_done
 from download_page import download_page
 
@@ -18,7 +19,7 @@ def download_hentai(h_ID):
     while pages_downloaded<pages:   #if not all images could be downloaded in first round: retry with new threadpool, new connection
         try:
             gallery=requests.get(f'https://nhentai.net/g/{h_ID}/', timeout=5)   #download gallery
-        except TimeoutError:
+        except requests.exceptions.ReadTimeout:
             continue
         except ConnectionError:
             continue

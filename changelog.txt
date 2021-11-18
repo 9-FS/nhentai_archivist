@@ -1,3 +1,7 @@
+2021-11-18
+#catched ConnectionError
+#fixed timeout exception catching
+
 2021-11-17
 +updated readme.txt
 #fixed frequent jumping between download and converting phase
