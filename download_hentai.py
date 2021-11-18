@@ -16,7 +16,12 @@ def download_hentai(h_ID):
 
 
     while pages_downloaded<pages:   #if not all images could be downloaded in first round: retry with new threadpool, new connection
-        gallery=requests.get(f'https://nhentai.net/g/{h_ID}/')  #download gallery
+        try:
+            gallery=requests.get(f'https://nhentai.net/g/{h_ID}/', timeout=5)   #download gallery
+        except TimeoutError:
+            continue
+        except ConnectionError:
+            continue
         gallery=html.fromstring(gallery.text)                   #parse
         
         pages=int(len(gallery.xpath('//div[@class="thumb-container"]')))                    #number of pages
