@@ -1,6 +1,7 @@
 2021-11-18
 #catched ConnectionError
 #fixed timeout exception catching
++save PDF in ./hentai/ if more than 10 hentai in list to download
 
 2021-11-17
 +updated readme.txt

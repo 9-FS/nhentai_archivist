@@ -12,7 +12,7 @@ def download_page(h_ID, page_nr):
             page=requests.get(f'https://nhentai.net/g/{h_ID}/{page_nr}/', timeout=5)    #page gallery
         except requests.exceptions.ReadTimeout: #if timeout: try again
             continue
-        except ConnectionError:
+        except requests.exceptions.ConnectionError:
             continue
         page=html.fromstring(page.text) 
         
@@ -21,7 +21,7 @@ def download_page(h_ID, page_nr):
             image=requests.get(img_link[0], timeout=5).content  #download image
         except requests.exceptions.ReadTimeout: #if timeout: try again
             continue
-        except ConnectionError:
+        except requests.exceptions.ConnectionError:
             continue
         
         if len(image)==0 or image=="<html>\n<head><title>404 Not Found</title></head>\n<body>\n<center><h1>404 Not Found</h1></center>\n<hr><center>nginx</center>\n</body>\n</html>":   #if image download failed: try again in 1s, maximum 10 times

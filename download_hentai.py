@@ -21,7 +21,7 @@ def download_hentai(h_ID):
             gallery=requests.get(f'https://nhentai.net/g/{h_ID}/', timeout=5)   #download gallery
         except requests.exceptions.ReadTimeout:
             continue
-        except ConnectionError:
+        except requests.exceptions.ConnectionError:
             continue
         gallery=html.fromstring(gallery.text)                   #parse
         

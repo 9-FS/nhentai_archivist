@@ -1,5 +1,6 @@
 import datetime as dt
 import math
+import os
 import shutil   #remove tree
 import time
 from convert_jpg_to_pdf import convert_jpg_to_pdf
@@ -32,6 +33,8 @@ def main():
         print("")
         
         print(f"Converting {h_ID_list[i]} to PDF...", end="", flush=True)
+        if 10<len(h_ID_list):                       #if more than 10 hentais desired: save in extra folder
+            os.makedirs(f"hentai", exist_ok=True)
         if convert_jpg_to_pdf(h_ID_list[i], title, pages)==False:   #convert and merge images to pdf, return bool indicates success
             print("")
             continue    #if converting unsuccessful: corrupted image somewhere, retrying download
