@@ -40,6 +40,8 @@ def download_hentai(h_ID):
         title=title.replace("<", "")
         title=title.replace(">", "")
         title=title.replace("|", "")
+        title=title.replace("\t", "")
+        title=title.replace("\n", "")
         title=title[:140]               #limit title length to 140 characters
         if os.path.isfile(f"./{h_ID} {title}.pdf")==True:   #PDF already exists, don't download and convert, skip
             raise FileExistsError

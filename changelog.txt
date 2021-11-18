@@ -2,6 +2,7 @@
 #catched ConnectionError
 #fixed timeout exception catching
 +save PDF in ./hentai/ if more than 10 hentai in list to download
+#forbid tabulator and newline in titles
 
 2021-11-17
 +updated readme.txt
