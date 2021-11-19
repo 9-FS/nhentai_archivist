@@ -3,6 +3,7 @@
 +updated readme.txt
 #fixed frequent jumping between download and converting phase
 #also find existing hentai in ./hentai/
+#fixed datetime printout not refreshing
 
 2021-11-18
 #catched ConnectionError

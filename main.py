@@ -11,9 +11,9 @@ from get_h_ID_list import get_h_ID_list
 def main():
     h_ID_list=[]    #hentai ID to download
 
-
-    DT_now=dt.datetime.now(dt.timezone.utc)
+    
     print("--------------------------------------------------")
+    DT_now=dt.datetime.now(dt.timezone.utc)
     print(f"{DT_now.strftime('%Y-%m-%dT%H:%M:%S')} | {math.floor(DT_now.timestamp()):,.0f}".replace(",", "."))
     
     h_ID_list=get_h_ID_list()                   #get desired hentai ID
@@ -23,6 +23,7 @@ def main():
     while i<len(h_ID_list): #work through all desired hentai
         if i_changed==True:
             print("--------------------------------------------------")
+            DT_now=dt.datetime.now(dt.timezone.utc)
             print(f"{DT_now.strftime('%Y-%m-%dT%H:%M:%S')} | {math.floor(DT_now.timestamp()):,.0f}".replace(",", "."))
             print(f"{i+1:,.0f}/{len(h_ID_list):,.0f}".replace(",", "."))
         
