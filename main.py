@@ -11,7 +11,7 @@ from get_h_ID_list import get_h_ID_list
 def main():
     h_ID_list=[]    #hentai ID to download
 
-    
+
     print("--------------------------------------------------")
     DT_now=dt.datetime.now(dt.timezone.utc)
     print(f"{DT_now.strftime('%Y-%m-%dT%H:%M:%S')} | {math.floor(DT_now.timestamp()):,.0f}".replace(",", "."))
@@ -74,3 +74,7 @@ def main():
         pass
     except PermissionError:         #if impossible: leave behind
         pass
+
+    print("Press any key to close program.")
+    input() #pause
+    return  #close program
