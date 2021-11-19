@@ -1,1 +1,3 @@
-Enter nHentai ID to download and convert to PDF. You can either load ID from "./downloadme.txt" seperated by linebreaks or directly enter ID into the console separated by spaces.
+Choose hentai by nHentai ID to download and convert to PDF. You can either load ID from "./downloadme.txt" seperated by linebreaks or directly enter ID into the console separated by spaces.
+
+I'm happy about anyone who finds my software useful and I don't mind if you use my source code for your own projects, but give credit where credit is due. I for example copied some functions from https://github.com/TacoAnime69/nh-pdf-downloader for the core functionality, like some of the HTML scraping and the conversion to PDF. I'd be happy about a similar shoutout in your projects. Happy downloading~

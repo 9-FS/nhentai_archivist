@@ -31,11 +31,8 @@ def convert_jpg_to_pdf(h_ID, title, pages):
     
     print("\r                                                                                                    ", end="")
     print(f"\rSaving {h_ID}.pdf...", end="", flush=True)
-    try:
-        if os.path.isdir("./hentai/")==True:
-            pdf[0].save(f"./hentai/{h_ID} {title}.pdf", save_all=True, append_images=pdf[1:])  #if exists: save in extra folder
-        else:
-            pdf[0].save(f"./{h_ID} {title}.pdf", save_all=True, append_images=pdf[1:])  #save
-    except IndexError:
-        return False
+    if os.path.isdir("./hentai/")==True:
+        pdf[0].save(f"./hentai/{h_ID} {title}.pdf", save_all=True, append_images=pdf[1:])  #if exists: save in extra folder
+    else:
+        pdf[0].save(f"./{h_ID} {title}.pdf", save_all=True, append_images=pdf[1:])  #save
     return True         #conversion success

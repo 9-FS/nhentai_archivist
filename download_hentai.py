@@ -26,6 +26,9 @@ def download_hentai(h_ID):
         gallery=html.fromstring(gallery.text)                   #parse
         
         pages=int(len(gallery.xpath('//div[@class="thumb-container"]')))                    #number of pages
+        if pages<=0:
+            pages=1
+            continue
         try:
             title=str(gallery.xpath('//div[@id="info"]/h1/span[@class="pretty"]/text()')[0])    #title
         except IndexError:

@@ -14,21 +14,26 @@ def main():
 
     DT_now=dt.datetime.now(dt.timezone.utc)
     print("--------------------------------------------------")
-    print(f"{DT_now.strftime('%Y-%m-%dT%H:%M:%S')} | {math.floor(DT_now.timestamp()):,.0f}\n".replace(",", "."))
+    print(f"{DT_now.strftime('%Y-%m-%dT%H:%M:%S')} | {math.floor(DT_now.timestamp()):,.0f}".replace(",", "."))
     
     h_ID_list=get_h_ID_list()                   #get desired hentai ID
     
     i=0
+    i_changed=True  #i changed since last iteration, for console printouts -------
     while i<len(h_ID_list): #work through all desired hentai
-        print(f"{i+1}/{len(h_ID_list)}")
+        if i_changed==True:
+            print("--------------------------------------------------")
+            print(f"{DT_now.strftime('%Y-%m-%dT%H:%M:%S')} | {math.floor(DT_now.timestamp()):,.0f}".replace(",", "."))
+            print(f"{i+1:,.0f}/{len(h_ID_list):,.0f}".replace(",", "."))
+        
         print(f"Downloading {h_ID_list[i]}...", end="", flush=True)
         try:
             title, pages=download_hentai(h_ID_list[i])  #download hentai and save images, returns number of pages and title in hentai
         except FileExistsError: #PDF already exists, don't download and convert, skip
             print("\r                                                                                                    ", end="")
             print(f"\r{h_ID_list[i]} has already been downloaded and converted. Skipped.")
-            print("--------------------------------------------------")
             i+=1
+            i_changed=True
             continue
         print("")
         
@@ -37,6 +42,7 @@ def main():
             os.makedirs(f"hentai", exist_ok=True)
         if convert_jpg_to_pdf(h_ID_list[i], title, pages)==False:   #convert and merge images to pdf, return bool indicates success
             print("")
+            i_changed=False
             continue    #if converting unsuccessful: corrupted image somewhere, retrying download
         print("\r                                                                                                    ", end="")
         print(f"\rConverted and saved {h_ID_list[i]} as PDF.")
@@ -48,8 +54,8 @@ def main():
         except PermissionError:                 #if impossible: leave behind for later
             pass
         
-        print("--------------------------------------------------")
         i+=1
+        i_changed=True
 
     print("Waiting 5s...")
     time.sleep(5)
