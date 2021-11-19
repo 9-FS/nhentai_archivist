@@ -75,6 +75,6 @@ def main():
     except PermissionError:         #if impossible: leave behind
         pass
 
-    print("Press any key to close program.")
+    print("Press enter to close program.")
     input() #pause
     return  #close program
