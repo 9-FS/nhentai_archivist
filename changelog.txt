@@ -2,6 +2,7 @@
 +improved console outputs
 +updated readme.txt
 #fixed frequent jumping between download and converting phase
+#also find existing hentai in ./hentai/
 
 2021-11-18
 #catched ConnectionError

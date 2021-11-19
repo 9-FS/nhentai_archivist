@@ -46,7 +46,7 @@ def download_hentai(h_ID):
         title=title.replace("\t", "")
         title=title.replace("\n", "")
         title=title[:140]               #limit title length to 140 characters
-        if os.path.isfile(f"./{h_ID} {title}.pdf")==True:   #PDF already exists, don't download and convert, skip
+        if os.path.isfile(f"./{h_ID} {title}.pdf")==True or os.path.isfile(f"./hentai/{h_ID} {title}.pdf")==True:   #PDF already exists, don't download and convert, skip
             raise FileExistsError
         
         os.makedirs(f"{h_ID}", exist_ok=True)   #create image folder ./h_ID/
