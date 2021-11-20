@@ -25,7 +25,7 @@ def main():
             print("--------------------------------------------------")
             DT_now=dt.datetime.now(dt.timezone.utc)
             print(f"{DT_now.strftime('%Y-%m-%dT%H:%M:%S')} | {math.floor(DT_now.timestamp()):,.0f}".replace(",", "."))
-            print(f"{i+1:,.0f}/{len(h_ID_list):,.0f}".replace(",", "."))
+            print(f"{i+1:,.0f}/{len(h_ID_list):,.0f} ({(i+1)/(len(h_ID_list)):.2f})".replace(",", "%TEMP%").replace(".", ",").replace("%TEMP%", "."))
         
         print(f"Downloading {h_ID_list[i]}...", end="", flush=True)
         try:

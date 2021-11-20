@@ -9,25 +9,28 @@ from download_page import download_page
 
 
 def download_hentai(h_ID):
-    gallery=None        #hentai gallery from requests.get
-    pages=1             #number of pages
-    pages_downloaded=0  #number of pages currently existing in folder, including already existing pages not downloaded
-    title=""            #hentai title
-    threads=list()      #worker threads, downloads 1 image each
+    force_loop_entry=True   #force to enter loop? necessary because number of pages may become 0 if HTML parsing is erroneous and loop will then be left
+    gallery=None            #hentai gallery from requests.get
+    pages=0                 #number of pages, initialised with invalid number
+    pages_downloaded=0      #number of pages currently existing in folder, including already existing pages not downloaded
+    title=""                #hentai title
+    threads=list()          #worker threads, downloads 1 image each
 
 
-    while pages_downloaded<pages:   #if not all images could be downloaded in first round: retry with new threadpool, new connection
+    while pages_downloaded<pages or force_loop_entry==True: #if not all images could be downloaded in first round: retry with new threadpool, new connection
+        force_loop_entry=False  #fall back to false after entering
+        
         try:
             gallery=requests.get(f'https://nhentai.net/g/{h_ID}/', timeout=5)   #download gallery
         except requests.exceptions.ReadTimeout:
             continue
         except requests.exceptions.ConnectionError:
             continue
-        gallery=html.fromstring(gallery.text)                   #parse
+        gallery=html.fromstring(gallery.text)   #parse
         
-        pages=int(len(gallery.xpath('//div[@class="thumb-container"]')))                    #number of pages
+        pages=int(len(gallery.xpath('//div[@class="thumb-container"]')))    #number of pages
         if pages<=0:
-            pages=1
+            force_loop_entry=True   #get number of pages again
             continue
         try:
             title=str(gallery.xpath('//div[@id="info"]/h1/span[@class="pretty"]/text()')[0])    #title

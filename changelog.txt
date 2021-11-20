@@ -2,6 +2,8 @@
 #fixed console sometimes not showing all pages downloaded
 #replaced system call in main_outer.py for cross-platform compability
 +updated readme.txt
++added relative progress indicator next to absolute f"{number of finished hentai} / {number of all hentais}"
+#If scraping number of pages fails, changed error page amount from 1 to 0 and a bool. Used to be 1 to stay in the loop and force a retry, but that can sometimes lead to page amount 1 being used later during conversion and only getting a PDF with page 1.
 
 2021-11-19
 +improved console outputs
@@ -24,7 +26,7 @@
 +retry deleting temporary image folder after downloading and converting everything
 +added changelog.txt
 #catched index out of range errors
-+number of finished hentai / number of all hentais
++added progress indicator f"{number of finished hentai} / {number of all hentais}"
 #limit title to 140 characters
 +don't redownload and convert already existing hentai
 
