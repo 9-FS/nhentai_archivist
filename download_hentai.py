@@ -60,7 +60,6 @@ def download_hentai(h_ID):
                 threads.append(thread_manager.submit(download_page, h_ID, page_nr)) #download and save page in worker thread
                 #download_page(h_ID, page_nr)
 
-            pages_downloaded=len([entry for entry in os.listdir(f"./{h_ID}/") if os.path.isfile(f"./{h_ID}/{entry}")])          #pages already downloaded by counting image files, in case of everything already downloaded progress display loop will not be executed, to leave outer loop pages_downloaded needs initial value
             while all_threads_done(threads)==False:                                                                             #progess display, as long as threads still running:
                 pages_downloaded_new=len([entry for entry in os.listdir(f"./{h_ID}/") if os.path.isfile(f"./{h_ID}/{entry}")])  #pages already downloaded by counting image files
                 if(pages_downloaded==pages_downloaded_new):                                                                     #if number hasn't changed: don't write on console
@@ -69,5 +68,8 @@ def download_hentai(h_ID):
                 pages_downloaded=pages_downloaded_new   #refresh pages downloaded counter
                 print("\r                                                                                                    ", end="")
                 print(f"\rDownloaded {h_ID} page {pages_downloaded}/{pages}.", end="", flush=True)
+            pages_downloaded=len([entry for entry in os.listdir(f"./{h_ID}/") if os.path.isfile(f"./{h_ID}/{entry}")])  #refresh pages downloaded counter one last time after threads are finished and in case of everything already downloaded progress display loop will not be executed, to leave outer loop pages_downloaded needs initial value
+            print("\r                                                                                                    ", end="")
+            print(f"\rDownloaded {h_ID} page {pages_downloaded}/{pages}.", end="", flush=True)
 
     return title, pages
