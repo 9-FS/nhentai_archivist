@@ -16,4 +16,6 @@ except:
     with open(DT_now.strftime("%Y-%m-%d Crash Reports.txt"), "at", encoding="utf-8") as Crash_File:
         Crash_File.write(Crash_Report)
     print("\n\n"+Crash_Report)
-    os.system("pause")
+    
+    print("Press enter to close program.")
+    input() #pause

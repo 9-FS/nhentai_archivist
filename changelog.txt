@@ -1,5 +1,6 @@
 2021-11-20
 #fixed console sometimes not showing all pages downloaded
+#replaced system call in main_outer.py for cross-platform compability
 
 2021-11-19
 +improved console outputs
