@@ -23,8 +23,10 @@ def download_hentai(h_ID):
         try:
             gallery=requests.get(f'https://nhentai.net/g/{h_ID}/', timeout=5)   #download gallery
         except requests.exceptions.ReadTimeout:
+            force_loop_entry=True
             continue
         except requests.exceptions.ConnectionError:
+            force_loop_entry=True
             continue
         gallery=html.fromstring(gallery.text)   #parse
         
@@ -35,6 +37,7 @@ def download_hentai(h_ID):
         try:
             title=str(gallery.xpath('//div[@id="info"]/h1/span[@class="pretty"]/text()')[0])    #title
         except IndexError:
+            force_loop_entry=True
             continue
         
         title=title.replace("\\", "")   #remove forbidden characters for filenames
