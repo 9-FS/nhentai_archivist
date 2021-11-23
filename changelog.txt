@@ -1,9 +1,13 @@
+2021-11-22
+#fixed endless loop if nHentai returns error 404 because hentai got deleted
+
 2021-11-20
 #fixed console sometimes not showing all pages downloaded
 #replaced system call in main_outer.py for cross-platform compability
 +updated readme.txt
 +added relative progress indicator next to absolute f"{number of finished hentai} / {number of all hentais}"
 #If scraping number of pages fails, changed error page amount from 1 to 0 and a bool. Used to be 1 to stay in the loop and force a retry, but that can sometimes lead to page amount 1 being used later during conversion and only getting a PDF with page 1.
+#fixed leaving download loop if gotten 0 as number of pages and then connection times out or gets refused
 
 2021-11-19
 +improved console outputs

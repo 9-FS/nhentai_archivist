@@ -28,6 +28,8 @@ def download_hentai(h_ID):
         except requests.exceptions.ConnectionError:
             force_loop_entry=True
             continue
+        if gallery.status_code==404:
+            raise FileNotFoundError #if error 404 because gallery got deleted
         gallery=html.fromstring(gallery.text)   #parse
         
         pages=int(len(gallery.xpath('//div[@class="thumb-container"]')))    #number of pages

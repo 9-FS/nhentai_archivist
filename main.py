@@ -36,6 +36,12 @@ def main():
             i+=1
             i_changed=True
             continue
+        except FileNotFoundError:   #gallery got deleted and returned error 404, don't download and convert, skip
+            print("\r                                                                                                    ", end="")
+            print(f"\rnHentai returned error 404 for {h_ID_list[i]}. Skipped.")
+            i+=1
+            i_changed=True
+            continue
         print("")
         
         print(f"Converting {h_ID_list[i]} to PDF...", end="", flush=True)
