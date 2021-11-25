@@ -1,3 +1,6 @@
+2021-11-25
+#floored relative progress
+
 2021-11-22
 #fixed endless loop if nHentai returns error 404 because hentai got deleted
 
