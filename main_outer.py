@@ -1,6 +1,5 @@
 import datetime as dt
 import math
-import os
 import traceback    #Exceptionnachricht vollständig wenn Programm als .exe abschmiert
 from main import main
 
