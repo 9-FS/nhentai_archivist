@@ -1,55 +1,56 @@
 2022-02-07
-+dedicated logging function instead of print
++ dedicated logging function instead of print
+# added decimal comma to page amount
 
 2021-11-27
-#removed unncessary import
+# removed unncessary import
 
 2021-11-25
 #floored relative progress
 
 2021-11-22
-#fixed endless loop if nHentai returns error 404 because hentai got deleted
+# fixed endless loop if nHentai returns error 404 because hentai got deleted
 
 2021-11-20
-#fixed console sometimes not showing all pages downloaded
-#replaced system call in main_outer.py for cross-platform compability
-+updated readme.txt
-+added relative progress indicator next to absolute f"{number of finished hentai} / {number of all hentais}"
-#If scraping number of pages fails, changed error page amount from 1 to 0 and a bool. Used to be 1 to stay in the loop and force a retry, but that can sometimes lead to page amount 1 being used later during conversion and only getting a PDF with page 1.
-#fixed leaving download loop if gotten 0 as number of pages and then connection times out or gets refused
+# fixed console sometimes not showing all pages downloaded
+# replaced system call in main_outer.py for cross-platform compability
++ updated readme.txt
++ added relative progress indicator next to absolute f"{number of finished hentai} / {number of all hentais}"
+# If scraping number of pages fails, changed error page amount from 1 to 0 and a bool. Used to be 1 to stay in the loop and force a retry, but that can sometimes lead to page amount 1 being used later during conversion and only getting a PDF with page 1.
+# fixed leaving download loop if gotten 0 as number of pages and then connection times out or gets refused
 
 2021-11-19
-+improved console outputs
-+updated readme.txt
-#fixed frequent jumping between download and converting phase
-#also find existing hentai in ./hentai/
-#fixed datetime printout not refreshing
-+added pause at program end so window doesn't close automatically
++ improved console outputs
++ updated readme.txt
+# fixed frequent jumping between download and converting phase
+# also find existing hentai in ./hentai/
+# fixed datetime printout not refreshing
++ added pause at program end so window doesn't close automatically
 
 2021-11-18
-#catched ConnectionError
-#fixed timeout exception catching
-+save PDF in ./hentai/ if more than 10 hentai in list to download
-#forbid tabulator and newline in titles
+# catched ConnectionError
+# fixed timeout exception catching
++ save PDF in ./hentai/ if more than 10 hentai in list to download
+# forbid tabulator and newline in titles
 
 2021-11-17
-+updated readme.txt
-#fixed frequent jumping between download and converting phase
-#fixed crash after loading certain images
-+retry deleting temporary image folder after downloading and converting everything
-+added changelog.txt
-#catched index out of range errors
-+added progress indicator f"{number of finished hentai} / {number of all hentais}"
-#limit title to 140 characters
-+don't redownload and convert already existing hentai
++ updated readme.txt
+# fixed frequent jumping between download and converting phase
+# fixed crash after loading certain images
++ retry deleting temporary image folder after downloading and converting everything
++ added changelog.txt
+# catched index out of range errors
++ added progress indicator f"{number of finished hentai} / {number of all hentais}"
+# limit title to 140 characters
++ don't redownload and convert already existing hentai
 
 2021-11-16
-+timeouts
-+if image file is corrupt, redownload
-#fixed freezing during image download
-+load hentai ID from file ./downloadme.txt
++ timeouts
++ if image file is corrupt, redownload
+# fixed freezing during image download
++ load hentai ID from file ./downloadme.txt
 
 2021-11-15
-+select 1 or multiple hentai by ID
-+download jpg
-+convert to PDF
++ select 1 or multiple hentai by ID
++ download jpg
++ convert to PDF
