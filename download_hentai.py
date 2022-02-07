@@ -71,8 +71,8 @@ def download_hentai(h_ID):
                     continue
                 
                 pages_downloaded=pages_downloaded_new   #refresh pages downloaded counter
-                log.write(f"\rDownloaded {h_ID} page {pages_downloaded}/{pages}.")
+                log.write(f"\rDownloaded {h_ID} page {pages_downloaded:,.0f}/{pages:,.0f}.".replace(",", "."))
             pages_downloaded=len([entry for entry in os.listdir(f"./{h_ID}/") if os.path.isfile(f"./{h_ID}/{entry}")])  #refresh pages downloaded counter one last time after threads are finished and in case of everything already downloaded progress display loop will not be executed, to leave outer loop pages_downloaded needs initial value
-            log.write(f"\rDownloaded {h_ID} page {pages_downloaded}/{pages}.")
+            log.write(f"\rDownloaded {h_ID} page {pages_downloaded:,.0f}/{pages:,.0f}.".replace(",", "."))
 
     return title, pages
