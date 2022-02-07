@@ -1,11 +1,11 @@
 import concurrent.futures
-import datetime as dt
 from lxml import html #HTML parsing
 import os   #image folder
 import requests
 from requests.models import ReadTimeoutError
 from all_threads_done import all_threads_done
 from download_page import download_page
+from KFS import log
 
 
 def download_hentai(h_ID):
@@ -22,10 +22,7 @@ def download_hentai(h_ID):
         
         try:
             gallery=requests.get(f'https://nhentai.net/g/{h_ID}/', timeout=5)   #download gallery
-        except requests.exceptions.ReadTimeout:
-            force_loop_entry=True
-            continue
-        except requests.exceptions.ConnectionError:
+        except(requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             force_loop_entry=True
             continue
         if gallery.status_code==404:
@@ -74,10 +71,8 @@ def download_hentai(h_ID):
                     continue
                 
                 pages_downloaded=pages_downloaded_new   #refresh pages downloaded counter
-                print("\r                                                                                                    ", end="")
-                print(f"\rDownloaded {h_ID} page {pages_downloaded}/{pages}.", end="", flush=True)
+                log.write(f"\rDownloaded {h_ID} page {pages_downloaded}/{pages}.")
             pages_downloaded=len([entry for entry in os.listdir(f"./{h_ID}/") if os.path.isfile(f"./{h_ID}/{entry}")])  #refresh pages downloaded counter one last time after threads are finished and in case of everything already downloaded progress display loop will not be executed, to leave outer loop pages_downloaded needs initial value
-            print("\r                                                                                                    ", end="")
-            print(f"\rDownloaded {h_ID} page {pages_downloaded}/{pages}.", end="", flush=True)
+            log.write(f"\rDownloaded {h_ID} page {pages_downloaded}/{pages}.")
 
     return title, pages

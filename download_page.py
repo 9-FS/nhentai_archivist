@@ -1,5 +1,4 @@
 from lxml import html   #HTML parsing
-from PIL import Image   #jpg to pdf
 import requests
 import time
 
@@ -18,13 +17,11 @@ def download_page(h_ID, page_nr):
         
         img_link=page.xpath('//section[@id="image-container"]/a/img/@src')  #parse direct image link
         try:
-            image=requests.get(img_link[0], timeout=5).content  #download image
-        except requests.exceptions.ReadTimeout: #if timeout: try again
-            continue
-        except requests.exceptions.ConnectionError:
+            image=requests.get(img_link[0], timeout=5)  #download image
+        except(requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):   #if connection error or timeout: try again
             continue
         
-        if len(image)==0 or image=="<html>\n<head><title>404 Not Found</title></head>\n<body>\n<center><h1>404 Not Found</h1></center>\n<hr><center>nginx</center>\n</body>\n</html>":   #if image download failed: try again in 1s, maximum 10 times
+        if len(image.content)==0 or image.status_code==404:   #if image download failed: try again in 1s, maximum 10 times
             time.sleep(1)
         else:               #downloaded successfully
             break
@@ -32,4 +29,4 @@ def download_page(h_ID, page_nr):
         return
 
     with open(f"./{h_ID}/{h_ID}-{page_nr}.jpg", "wb") as img_file:  #save image
-        img_file.write(image)
+        img_file.write(image.content)

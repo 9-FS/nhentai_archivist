@@ -1,3 +1,6 @@
+2022-02-07
++dedicated logging function instead of print
+
 2021-11-27
 #removed unncessary import
 
