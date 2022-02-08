@@ -1,5 +1,6 @@
 import datetime as dt
 import math
+import os
 
 
 line_last_len=0 #Zeile letzte Länge um evt. zu überschreiben
@@ -21,6 +22,7 @@ def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) 
 
 
     DT_now=dt.datetime.now(dt.timezone.utc) #Zeitpunkt aktuell
+    os.makedirs("./Log/", exist_ok=True)    #Log-Ordner erstellen
 
     if text[0:1]=="\r":             #wenn Zeichen [0] Carriage Return: Zeile letzte überschreiben, Inhalte vorher löschen
         overwrite_line_current=True #Zeile letzte überschreiben
@@ -30,9 +32,12 @@ def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) 
         text=text[1:]               #\r entfernen
 
     if overwrite_line_current==False and append_to_line_current==False: #wenn Zeile aktuell nicht überschreiben und nicht an Zeile aktuell angehangen werden soll:
-        print("\n", end="", flush=True)                     #Zeilenumbruch
+        print("\n", end="", flush=True)                                 #in Konsole Zeilenumbruch
     
     if append_to_line_current==False:                                               #wenn nicht einfach an Zeile angehangen werden soll:
+        with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at") as log_file:
+            log_file.write(f"\n")                                                   #in Datei Zeilenumbruch, in Datei kein Zeile überschreiben gewollt
+        
         if UNIX_time==False:                                                        #wenn nicht im Unix-Format:
             timestamp=f"[{DT_now.strftime('%Y-%m-%dT%H:%M:%SZ')}]"                  #Zeitstempel nach ISO8601
         else:
@@ -45,10 +50,10 @@ def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) 
     
     line_last_len=len(text) #Zeilenlänge merken um nächstes Mal evt. zu überschreiben
     
-
-    if overwrite_line_current==True:
+    
+    if overwrite_line_current==True:        #wenn Zeile überschrieben werden soll: in Konsole Carriage Return
         print("\r", end="")
-    print(f"{text}", end="", flush=True)    #Text drucken
-    with open(f"{DT_now.strftime('%Y-%m-%d Log.txt')}", "at") as log_file:
-        log_file.write(f"{text}\n")         #in Datei schreiben
+    print(f"{text}", end="", flush=True)    #in Konsole Text drucken
+    with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at") as log_file:
+        log_file.write(f"{text}")           #in Datei Text schreiben
     return
