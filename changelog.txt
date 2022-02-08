@@ -1,3 +1,6 @@
+2022-02-08
+# minor bug fixes for logging function
+
 2022-02-07
 + dedicated logging function instead of print
 # added decimal comma to page amount
