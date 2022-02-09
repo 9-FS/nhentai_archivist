@@ -1,6 +1,7 @@
 import datetime as dt
 import math
 import os
+from PIL import UnidentifiedImageError
 import shutil   #remove tree
 import time
 from convert_jpg_to_pdf import convert_jpg_to_pdf
@@ -10,12 +11,13 @@ from KFS                import log
 
 
 def main():
-    h_ID_list=[]    #hentai ID to download
+    h_ID_list=[]        #hentai ID to download
+    conversion_fails=[] #for every page in hentai how many times conversion failed? only allow 10 times before giving up on hentai
 
 
-    log.write("--------------------------------------------------")
-    
-    h_ID_list=get_h_ID_list()                   #get desired hentai ID
+    h_ID_list=get_h_ID_list()   #get desired hentai ID
+    if 10<len(h_ID_list):       #if more than 10 hentais desired: save in extra folder
+        os.makedirs("./hentai/", exist_ok=True)
     
     i=0
     i_changed=True  #i changed since last iteration, for console printouts -------
@@ -37,20 +39,29 @@ def main():
             i+=1
             i_changed=True
             continue
+
+        if i_changed==True: #since page number now known, if first iteration: initialise conversion fails list
+            for j in range(pages):
+                conversion_fails.append(0)
         
+
         log.write(f"Converting {h_ID_list[i]} to PDF...")
-        if 10<len(h_ID_list):                       #if more than 10 hentais desired: save in extra folder
-            os.makedirs(f"hentai", exist_ok=True)
-        if convert_jpg_to_pdf(h_ID_list[i], title, pages)==False:   #convert and merge images to pdf, return bool indicates success
+        try:
+            convert_jpg_to_pdf(h_ID_list[i], title, pages, conversion_fails)    #convert and merge images to pdf
+        except (FileNotFoundError, UnidentifiedImageError):                     #if converting unsuccessful: corrupted image somewhere, retrying download
             i_changed=False
-            continue    #if converting unsuccessful: corrupted image somewhere, retrying download
+            continue    
+        except (PermissionError, RuntimeError):         #corrupt image could not be converted or deleted after 10 times, giving hentai up, not cleaning up
+            with open("Fails.txt", "at") as fails_file: #save fails in file
+                fails_file.write(f"{h_ID_list[i]}\n")
+            i+=1
+            i_changed=True
+            continue
         log.write(f"\rConverted and saved {h_ID_list[i]} as PDF.")
         
         try:
-            shutil.rmtree(f"./{h_ID_list[i]}/") #remove temp .jpg folder
-        except FileNotFoundError:
-            pass
-        except PermissionError:                 #if impossible: leave behind for later
+            shutil.rmtree(f"./{h_ID_list[i]}/")         #remove temp .jpg folder
+        except (FileNotFoundError, PermissionError):    #if impossible: leave behind for later
             pass
         
         i+=1
@@ -62,11 +73,11 @@ def main():
     for h_ID in h_ID_list:  #work through all desired hentai
         try:
             shutil.rmtree(f"./{h_ID}/") #if left behind: retry to remove temp .jpg folder
-        except(FileNotFoundError, PermissionError):
+        except (FileNotFoundError, PermissionError):
             pass
     try:
         shutil.rmtree(f"./__pycache__/") #remove ./__pycache__/
-    except(FileNotFoundError, PermissionError):
+    except (FileNotFoundError, PermissionError):
         pass
 
     log.write("Press enter to close program.")

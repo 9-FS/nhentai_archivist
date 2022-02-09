@@ -2,7 +2,7 @@ import os
 from KFS import log
 
 
-def get_h_ID_list():
+def get_h_ID_list() -> list([int]):
     h_ID_list=[]    #hentai ID list
     user_input=""
 

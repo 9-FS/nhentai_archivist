@@ -8,13 +8,17 @@ from download_page import download_page
 from KFS import log
 
 
-def download_hentai(h_ID):
+def download_hentai(h_ID: int) -> tuple((str, int)):
     force_loop_entry=True   #force to enter loop? necessary because number of pages may become 0 if HTML parsing is erroneous and loop will then be left
     gallery=None            #hentai gallery from requests.get
     pages=0                 #number of pages, initialised with invalid number
     pages_downloaded=0      #number of pages currently existing in folder, including already existing pages not downloaded
     title=""                #hentai title
-    threads=list()          #worker threads, downloads 1 image each
+    threads=[]              #worker threads, downloads 1 image each
+
+
+    if type(h_ID)!=int:
+        raise TypeError("Error in \"download_hentai(...)\": h_ID must be of type int.")
 
 
     while pages_downloaded<pages or force_loop_entry==True: #if not all images could be downloaded in first round: retry with new threadpool, new connection
