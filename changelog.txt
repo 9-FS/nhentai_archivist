@@ -1,3 +1,6 @@
+2022-02-11
+# in log function changed timestamp behaviour
+
 2022-02-09
 # fix endless loop if image can't be converted to pdf no matter how often it is tried
 # handle case if corrupt image can't be removed
