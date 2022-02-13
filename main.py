@@ -15,6 +15,7 @@ def main():
     conversion_fails=[] #for every page in hentai how many times conversion failed? only allow 10 times before giving up on hentai
 
 
+    log.write("--------------------------------------------------")
     h_ID_list=get_h_ID_list()   #get desired hentai ID
     if 10<len(h_ID_list):       #if more than 10 hentais desired: save in extra folder
         os.makedirs("./hentai/", exist_ok=True)
@@ -40,7 +41,8 @@ def main():
             i_changed=True
             continue
 
-        if i_changed==True: #since page number now known, if first iteration: initialise conversion fails list
+        if i_changed==True:     #since page number now known, if first iteration: initialise conversion fails list
+            conversion_fails=[] #reset first
             for j in range(pages):
                 conversion_fails.append(0)
         

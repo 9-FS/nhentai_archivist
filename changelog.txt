@@ -1,3 +1,6 @@
+2022-02-13
+# fixed conversion fail list not resetting before downloading new hentai
+
 2022-02-11
 # in log function changed timestamp behaviour
 

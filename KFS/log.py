@@ -40,7 +40,7 @@ def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) 
         overwrite_line_current=True #Zeile letzte überschreiben
         print("\r", end="", flush=True)
         for i in range(math.ceil(line_last_len/100)):
-            print("                                                                                                    ", end="", flush=True)
+            print("                                                                                                    ", end="")
         text=text[1:]               #\r entfernen
 
     for i in range(len(timestamp_new)+1):           #Einrückungsbreite
