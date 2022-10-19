@@ -9,9 +9,31 @@ from get_h_ID_list      import get_h_ID_list
 import KFS.log
 
 
+@KFS.log.timeit
 def main():
-    h_ID_list=[]        #hentai ID to download
-    conversion_fails=[] #for every page in hentai how many times conversion failed? only allow 10 times before giving up on hentai
+    COOKIES={
+        "cf_clearance": "afTl2NklqVKffBHIW79GzoY17.225NeI1GyzkbBG7hM-1666187336-0-150",
+        "csrftoken": "8totk9uDfE7KeRCQqWERl7uIZxYLn0udn8kk9POqTjlJJDdpc92TYD4e3iB8wUtx"
+    }                       #for requests.get to bypass cloudflare
+    conversion_fails=[]     #for every page in hentai how many times conversion failed? only allow 10 times before giving up on hentai
+    h_ID_list=[]            #hentai ID to download
+    HEADERS={
+        'authority': 'nhentai.net',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'accept-language': 'en-US,en;q=0.9',
+        'cache-control': 'max-age=0', 
+        'referer': 'https://nhentai.net/',
+        'sec-ch-ua': '"Chromium";v="106", "Google Chrome";v="106", "Not;A=Brand";v="99"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'document',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-site': 'same-origin',
+        'sec-fetch-user': '?1',
+        'upgrade-insecure-requests': '1',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
+    }                       #for requests.get to bypass clouflare
+    MULTITHREADING=True    #use multithreading to download several pages at once?
 
 
     KFS.log.write("--------------------------------------------------")
@@ -21,7 +43,7 @@ def main():
     
     
     i=0
-    i_changed=True  #i changed since last iteration, for console printouts -------
+    i_changed=True          #i changed since last iteration, for console printouts -------
     while i<len(h_ID_list): #work through all desired hentai
         if i_changed==True:
             KFS.log.write("--------------------------------------------------")
@@ -29,7 +51,7 @@ def main():
         
         KFS.log.write(f"Downloading {h_ID_list[i]}...")
         try:
-            title, pages=download_hentai(h_ID_list[i])  #download hentai and save images, returns number of pages and title in hentai
+            title, pages=download_hentai(h_ID_list[i], COOKIES, HEADERS, MULTITHREADING)    #download hentai and save images, returns number of pages and title in hentai
         except FileExistsError: #PDF already exists, don't download and convert, skip
             KFS.log.write(f"\r{h_ID_list[i]} has already been downloaded and converted. Skipped.")
             i+=1
@@ -83,6 +105,7 @@ def main():
     except (FileNotFoundError, PermissionError):
         pass
 
-    KFS.log.write("Press enter to close program.")
-    input() #pause
     return  #close program
+
+
+#bypass cloudflare: https://github.com/Charlzk05/NHentai-Downloader-2022/blob/main/main.py

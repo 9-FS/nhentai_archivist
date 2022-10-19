@@ -4,11 +4,11 @@ import time
 import KFS.log, KFS.typecheck
 
 
-def convert_jpg_to_pdf(h_ID: int, title: str, pages: int, conversion_fails: list([int])) -> None:
+def convert_jpg_to_pdf(h_ID: int, title: str, pages: int, conversion_fails: list) -> None:
     pdf=[]                  #images converted for saving as pdf
 
 
-    KFS.typecheck.check(convert_jpg_to_pdf, locals(), KFS.typecheck.Mode.strict, KFS.typecheck.Mode.strict, KFS.typecheck.Mode.strict)
+    KFS.typecheck.check(convert_jpg_to_pdf, locals(), KFS.typecheck.Mode.instance, KFS.typecheck.Mode.instance, KFS.typecheck.Mode.instance, KFS.typecheck.Mode.instance)
 
 
     PIL.ImageFile.LOAD_TRUNCATED_IMAGES=True    #set true or raises unnecessary exception sometimes
