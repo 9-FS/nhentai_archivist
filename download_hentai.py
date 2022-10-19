@@ -1,11 +1,10 @@
 import concurrent.futures
-from lxml import html #HTML parsing
-import os   #image folder
+import lxml.html    #HTML parsing
+import os           #image folder
 import requests
-from requests.models import ReadTimeoutError
 from all_threads_done import all_threads_done
 from download_page import download_page
-from KFS import log
+import KFS.log, KFS.typecheck
 
 
 def download_hentai(h_ID: int) -> tuple((str, int)):
@@ -17,8 +16,7 @@ def download_hentai(h_ID: int) -> tuple((str, int)):
     threads=[]              #worker threads, downloads 1 image each
 
 
-    if type(h_ID)!=int:
-        raise TypeError("Error in \"download_hentai(...)\": h_ID must be of type int.")
+    KFS.typecheck.check(download_hentai, locals(), KFS.typecheck.Mode.strict)
 
 
     while pages_downloaded<pages or force_loop_entry==True: #if not all images could be downloaded in first round: retry with new threadpool, new connection
@@ -31,7 +29,7 @@ def download_hentai(h_ID: int) -> tuple((str, int)):
             continue
         if gallery.status_code==404:
             raise FileNotFoundError #if error 404 because gallery got deleted
-        gallery=html.fromstring(gallery.text)   #parse
+        gallery=lxml.html.fromstring(gallery.text)   #parse
         
         pages=int(len(gallery.xpath('//div[@class="thumb-container"]')))    #number of pages
         if pages<=0:
@@ -75,8 +73,8 @@ def download_hentai(h_ID: int) -> tuple((str, int)):
                     continue
                 
                 pages_downloaded=pages_downloaded_new   #refresh pages downloaded counter
-                log.write(f"\rDownloaded {h_ID} page {pages_downloaded:,.0f}/{pages:,.0f}.".replace(",", "."))
+                KFS.log.write(f"\rDownloaded {h_ID} page {pages_downloaded:,.0f}/{pages:,.0f}.".replace(",", "."))
             pages_downloaded=len([entry for entry in os.listdir(f"./{h_ID}/") if os.path.isfile(f"./{h_ID}/{entry}")])  #refresh pages downloaded counter one last time after threads are finished and in case of everything already downloaded progress display loop will not be executed, to leave outer loop pages_downloaded needs initial value
-            log.write(f"\rDownloaded {h_ID} page {pages_downloaded:,.0f}/{pages:,.0f}.".replace(",", "."))
+            KFS.log.write(f"\rDownloaded {h_ID} page {pages_downloaded:,.0f}/{pages:,.0f}.".replace(",", "."))
 
     return title, pages
