@@ -4,14 +4,14 @@ import time
 import KFS.typecheck
 
 
-def download_page(h_ID: int, page_nr: int, COOKIES: dict, HEADERS: dict):
+def download_page(h_ID: int, page_nr: int, cookies: dict, HEADERS: dict):
     image=""
 
     KFS.typecheck.check(download_page, locals(), KFS.typecheck.Mode.instance, KFS.typecheck.Mode.instance, KFS.typecheck.Mode.strict, KFS.typecheck.Mode.strict)
 
     for i in range(10): #repeat if no image because access denied (rate limit)
         try:
-            page=requests.get(f'https://nhentai.net/g/{h_ID}/{page_nr}/', cookies=COOKIES, headers=HEADERS, timeout=5)  #page gallery
+            page=requests.get(f'https://nhentai.net/g/{h_ID}/{page_nr}/', cookies=cookies, headers=HEADERS, timeout=5)  #page gallery
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):  #if timeout: try again
             continue    
         if page.status_code==503:   #if cloudflare protection kicked: try again in 1s, maximum 10 times
@@ -21,7 +21,7 @@ def download_page(h_ID: int, page_nr: int, COOKIES: dict, HEADERS: dict):
         
         img_link=page.xpath('//section[@id="image-container"]/a/img/@src')  #parse direct image link
         try:
-            image=requests.get(img_link[0], cookies=COOKIES, headers=HEADERS, timeout=5)    #download image
+            image=requests.get(img_link[0], cookies=cookies, headers=HEADERS, timeout=5)    #download image
         except(requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):       #if connection error or timeout: try again
             continue
         

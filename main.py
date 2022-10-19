@@ -1,3 +1,4 @@
+import json
 import math
 import os
 import PIL
@@ -11,10 +12,7 @@ import KFS.log
 
 @KFS.log.timeit
 def main():
-    COOKIES={
-        "cf_clearance": "afTl2NklqVKffBHIW79GzoY17.225NeI1GyzkbBG7hM-1666187336-0-150",
-        "csrftoken": "8totk9uDfE7KeRCQqWERl7uIZxYLn0udn8kk9POqTjlJJDdpc92TYD4e3iB8wUtx"
-    }                       #for requests.get to bypass cloudflare
+    cookies=""              #for requests.get to bypass cloudflare
     conversion_fails=[]     #for every page in hentai how many times conversion failed? only allow 10 times before giving up on hentai
     h_ID_list=[]            #hentai ID to download
     HEADERS={
@@ -37,8 +35,10 @@ def main():
 
 
     KFS.log.write("--------------------------------------------------")
-    h_ID_list=get_h_ID_list()   #get desired hentai ID
-    if 10<len(h_ID_list):       #if more than 10 hentais desired: save in extra folder
+    with open("cookies.json") as cookies_file:  #load cookies
+        cookies=json.loads(cookies_file.read())
+    h_ID_list=get_h_ID_list()                   #get desired hentai ID
+    if 10<len(h_ID_list):                       #if more than 10 hentais desired: save in extra folder
         os.makedirs("./hentai/", exist_ok=True)
     
     
@@ -51,7 +51,7 @@ def main():
         
         KFS.log.write(f"Downloading {h_ID_list[i]}...")
         try:
-            title, pages=download_hentai(h_ID_list[i], COOKIES, HEADERS, MULTITHREADING)    #download hentai and save images, returns number of pages and title in hentai
+            title, pages=download_hentai(h_ID_list[i], cookies, HEADERS, MULTITHREADING)    #download hentai and save images, returns number of pages and title in hentai
         except FileExistsError: #PDF already exists, don't download and convert, skip
             KFS.log.write(f"\r{h_ID_list[i]} has already been downloaded and converted. Skipped.")
             i+=1

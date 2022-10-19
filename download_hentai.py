@@ -8,7 +8,7 @@ from download_page import download_page
 import KFS.log, KFS.typecheck
 
 
-def download_hentai(h_ID: int, COOKIES: dict, HEADERS: dict, MULTITHREADING: bool) -> tuple((str, int)):
+def download_hentai(h_ID: int, cookies: dict, HEADERS: dict, MULTITHREADING: bool) -> tuple((str, int)):
     force_loop_entry=True   #force to enter loop? necessary because number of pages may become 0 if HTML parsing is erroneous and loop will then be left
     gallery=None            #hentai gallery from requests.get
     pages=0                 #number of pages, initialised with invalid number
@@ -24,7 +24,7 @@ def download_hentai(h_ID: int, COOKIES: dict, HEADERS: dict, MULTITHREADING: boo
         force_loop_entry=False  #fall back to false after entering
         
         try:
-            gallery=requests.get(f'https://nhentai.net/g/{h_ID}/', cookies=COOKIES, headers=HEADERS, timeout=5) #download gallery
+            gallery=requests.get(f'https://nhentai.net/g/{h_ID}/', cookies=cookies, headers=HEADERS, timeout=5) #download gallery
         except(requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             force_loop_entry=True
             time.sleep(5)
@@ -71,9 +71,9 @@ def download_hentai(h_ID: int, COOKIES: dict, HEADERS: dict, MULTITHREADING: boo
                     continue
                 
                 if MULTITHREADING==True:
-                    threads.append(thread_manager.submit(download_page, h_ID, page_nr, COOKIES, HEADERS))   #download and save page in worker thread
+                    threads.append(thread_manager.submit(download_page, h_ID, page_nr, cookies, HEADERS))   #download and save page in worker thread
                 elif MULTITHREADING==False:
-                    download_page(h_ID, page_nr, COOKIES, HEADERS)
+                    download_page(h_ID, page_nr, cookies, HEADERS)
                     KFS.log.write(f"\rDownloaded {h_ID} page {page_nr:,.0f}/{pages:,.0f}.".replace(",", "."))   #refresh pages downloaded counter
                 else:
                     raise RuntimeError("Error in download_hentai(...): Invalid MULTITHREADING value.")
