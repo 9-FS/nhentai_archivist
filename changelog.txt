@@ -1,3 +1,8 @@
+2022-10-19
++ CloudFlare bypass
+# updated readme
+# source code updates
+
 2022-02-13
 # fixed conversion fail list not resetting before downloading new hentai
 
