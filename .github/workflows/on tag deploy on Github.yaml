@@ -1,0 +1,177 @@
+name: On Tag Deploy on Github
+env:
+  PROJECT_NAME: nHentai to PDF
+  PYTHON_VERSION: ^3.11.0
+on:
+  push: 
+    tags:
+      # - "[0-9]+.[0-9]+.[0-9]+"
+      - "*" # execute every time tag is pushed
+
+jobs:
+  datetime:
+    name: Get Current Datetime
+    env:
+      working-directory: ${{github.workspace}}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: NOW
+        id: now
+        run: echo "NOW=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_OUTPUT  # get datetime, save in NOW, push to output
+
+      - name: TODAY
+        id: today
+        run: echo "TODAY=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT # get date, save in TODAY, push to output
+    
+    outputs:  # set step output as job output so other jobs can access
+      NOW: ${{steps.now.outputs.NOW}}
+      TODAY: ${{steps.today.outputs.TODAY}}
+
+
+  create_release:
+    name: Create Release
+    env:
+      working-directory: ${{github.workspace}}
+    needs: datetime
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4 # makes repository structure available
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{env.PYTHON_VERSION}}
+     
+      - name: Install Poetry
+        run: |
+          pip install poetry 
+          poetry config virtualenvs.in-project true
+          poetry config repositories.test-pypi https://test.pypi.org/legacy/
+          poetry install
+      
+      - name: Check Project Version and Tag Match
+        run: |
+          project_version=$(poetry version --no-ansi | awk '{print $NF}')
+          tag=${GITHUB_REF#refs/tags/*}
+          if [ "$project_version" == "$tag" ]; then
+            exit 0
+          else
+            exit 1
+          fi
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        id: create_release
+        uses: actions/create-release@v1                                                         # function that creates release
+        with:                                                                                   # parameters
+          body:                                                                                 # release text
+          draft: false
+          prerelease: false
+          release_name: ${{needs.datetime.outputs.TODAY}} ${{env.PROJECT_NAME}} ${{github.ref}} # release title
+          tag_name: ${{github.ref}}                                                             # release tag
+
+    outputs:
+      github_release: ${{steps.create_release.outputs.upload_url}}
+
+
+  build:
+    name: Build Executable for ${{matrix.os}}
+    env:
+      working-directory: ${{github.workspace}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4 # makes repository structure available
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{env.PYTHON_VERSION}}
+     
+      - name: Install Poetry
+        run: |
+          pip install poetry 
+          poetry config virtualenvs.in-project true
+          poetry config repositories.test-pypi https://test.pypi.org/legacy/
+          poetry install
+
+      - name: Install Pyinstaller
+        run: poetry run pip install pyinstaller # not `poetry add pyinstaller` because poetry will complain about pyinstaller's python dependency not being met
+
+      - name: Compile
+        run: poetry run pyinstaller --onefile "./src/main_outer.py" --clean --name "program"
+      
+      - name: Cache Ubuntu Executable
+        if: ${{matrix.os=='ubuntu-latest'}}
+        uses: actions/cache/save@v3
+        with:
+          key: program.sh
+          path: ./dist/program
+
+      - name: Cache Windows Executable
+        if: ${{matrix.os=='windows-latest'}}
+        uses: actions/cache/save@v3
+        with:
+          key: program.exe
+          path: ./dist/program.exe
+
+
+  deploy:
+    name: Deploy on Github
+    env:
+      working-directory: ${{github.workspace}}
+    needs: [build, create_release, datetime]
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - name: Load Ubuntu Executable
+      if: ${{matrix.os=='ubuntu-latest'}}
+      uses: actions/cache/restore@v3
+      with:
+        key: program.sh
+        path: ./dist/program
+    
+    - name: Load Windows Executable
+      if: ${{matrix.os=='windows-latest'}}
+      uses: actions/cache/restore@v3
+      with:
+        key: program.exe
+        path: ./dist/program.exe
+      
+    - name: Parse Tag
+      id: parse_tag
+      run: echo "tag=${GITHUB_REF#refs/tags/*}" >> $GITHUB_OUTPUT # parse tag because github.ref provides tag as f"refs/tags/{tag}", in create_release it is parsed automatically idk
+      shell: bash                                                 # must be bash even on windows, because command to apply value to variable works differently in powershell
+    
+    - name: Attach Ubuntu Executable to Release
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      if: ${{matrix.os=='ubuntu-latest'}}
+      uses: actions/upload-release-asset@v1
+      with:
+        asset_content_type: application
+        asset_name: ${{needs.datetime.outputs.TODAY}} ${{env.PROJECT_NAME}} ${{steps.parse_tag.outputs.tag}}.sh
+        asset_path: ./dist/program
+        upload_url: ${{needs.create_release.outputs.github_release}}
+    
+    - name: Attach Windows Executable to Release
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      if: ${{matrix.os=='windows-latest'}}
+      uses: actions/upload-release-asset@v1
+      with:
+        asset_content_type: application
+        asset_name: ${{needs.datetime.outputs.TODAY}} ${{env.PROJECT_NAME}} ${{steps.parse_tag.outputs.tag}}.exe
+        asset_path: ./dist/program.exe
+        upload_url: ${{needs.create_release.outputs.github_release}}

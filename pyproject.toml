@@ -1,0 +1,19 @@
+[tool.poetry]
+authors     = ["9FS <pray4spam@googlemail.com>"]
+description = ""
+license     = "MIT"
+name        = "x"                                                 # can't leave empty because of bug with `poetry install` from poetry.lock file
+readme      = "readme.md"
+repository  = "https://github.com/9-FS/2021-11-15-nHentai-to-PDF"
+version     = "1.0.0"
+
+[tool.poetry.dependencies]
+kfsconfig = "^1.0.0"
+kfsfstr   = "^1.0.0"
+kfslog    = "^1.0.0"
+kfsmedia  = "^2.0.0"
+python    = "^3.11.0"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires      = ["poetry-core"]

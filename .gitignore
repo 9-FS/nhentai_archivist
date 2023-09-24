@@ -1,0 +1,13 @@
+*.bat
+*.exe
+*.log
+*.pyc
+*.token
+/doc_templates/
+/hentai/
+/log/
+/src/test.py
+/supplements/
+cookies.json
+downloadme.txt
+headers.json
