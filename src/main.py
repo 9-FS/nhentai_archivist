@@ -4,12 +4,14 @@ from KFSconfig import KFSconfig
 from KFSfstr   import KFSfstr
 from KFSlog    import KFSlog
 import logging
+import os
 from get_hentai_ID_list import get_hentai_ID_list
 from Hentai             import Hentai
 
 
 @KFSlog.timeit
 def main():
+    cleanup_success: bool=True  #cleanup successful
     COOKIES_DEFAULT: str=json.dumps({
         "cf_clearance": "",
         "csrftoken": "",
@@ -37,5 +39,17 @@ def main():
 
         hentai.download()   # download hentai
     logging.info("--------------------------------------------------")
+
+
+    logging.info("Removing leftover image folders...")
+    for hentai_ID in hentai_ID_list:                                                                # attempt final cleanup
+        if os.path.isdir(f"./hentai/{hentai_ID}") and len(os.listdir(f"./hentai/{hentai_ID}"))==0:  # if cache folder still exists and is empty:
+            try:
+                os.rmdir(f"./hentai/{hentai_ID}")                                                   # try to clean up
+            except PermissionError:                                                                 # may fail if another process is still using directory like dropbox
+                logging.warning(f"Removing \"./hentai/{hentai_ID}\" failed with PermissionError.")
+                cleanup_success=False                                                               # cleanup unsuccessful
+    if cleanup_success==True:
+        logging.info("\rRemoved leftover image folders.")
 
     return
