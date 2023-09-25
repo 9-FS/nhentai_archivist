@@ -46,8 +46,8 @@ class Hentai:
         logging.info(f"Downloading gallery from \"{NHENTAI_API_URL}{self.ID}\"...")
         gallery_page=requests.get(f"{NHENTAI_API_URL}{self.ID}", cookies=cookies, headers=headers)
         if gallery_page.ok==False:
-            logging.error(f"Loading \"{NHENTAI_API_URL}{self.ID}\" resulted in status code {gallery_page.status_code}.")
-            raise requests.HTTPError(f"Error in {self.__init__.__name__}{inspect.signature(self.__init__)}: Loading \"{NHENTAI_API_URL}{self.ID}\" resulted in status code {gallery_page.status_code}.")
+            logging.error(f"Loading \"{NHENTAI_API_URL}{self.ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
+            raise requests.HTTPError(f"Error in {self.__init__.__name__}{inspect.signature(self.__init__)}: Loading \"{NHENTAI_API_URL}{self.ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
         self._gallery=json.loads(gallery_page.text)
         logging.info(f"\rDownloaded gallery from \"{NHENTAI_API_URL}{self.ID}\".")
 
