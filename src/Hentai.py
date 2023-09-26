@@ -57,7 +57,7 @@ class Hentai:
                 else:                                                                       # if failed 3 times: give up
                     raise
             if gallery_page.status_code==403:                                               # if status code 403 (forbidden): probably cookies and headers not set correctly
-                logging.error(f"Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
+                logging.critical(f"Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
                 raise requests.HTTPError(f"Error in {self.__init__.__name__}{inspect.signature(self.__init__)}: Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
             if gallery_page.status_code==404:                                               # if status code 404 (not found): hentai does not exist (anymore?)
                 logging.error(f"Hentai with ID \"{self.ID}\" does not exist.")
