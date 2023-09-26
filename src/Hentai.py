@@ -96,8 +96,8 @@ class Hentai:
         """
 
         PATTERNS: list[str]=[
-            r"^((?P<page_no>[0-9]+)\.(jpg|png))$",          # page URL pattern
-            r"^([0-9]+-(?P<page_no>[0-9]+)\.(jpg|png))$",   # image filepath pattern
+            r"^((?P<page_no>[0-9]+)\.[a-z]+)$",         # page URL pattern
+            r"^([0-9]+-(?P<page_no>[0-9]+)\.[a-z]+)$",  # image filepath pattern
         ]
         re_match: re.Match|None
 
@@ -123,25 +123,30 @@ class Hentai:
 
         Raises:
         - FileExistsError: File \"{PDF_filepath}\" already exists.
-        - Hentai.DownloadError:  \"{PDF_filepath}\" already exists as directory or tried to convert hentai \"{self}\" several times, but failed.
+        - Hentai.DownloadError:
+            - \"{PDF_filepath}\" already exists as directory.
+            - Can't generate page URL for {self} page {i+1}, because media type \"{page['t']}\" is unknown.
+            - Tried to download and convert hentai \"{self}\" several times, but failed.
         """
 
         images_filepath: list[str]=[]                       # where to cache downloaded images
+        MEDIA_TYPES: dict[str, str]={                       # parsed image type to file extension
+            "g": ".gif",
+            "j": ".jpg",
+            "p": ".png",
+        }
         pages_URL: list[str]=[]                             # URL to individual pages to download
         PDF_filepath: str                                   # where to save downloaded result, ID title pdf, but title maximum 140 characters and without illegal filename characters
         TITLE_CHARACTERS_FORBIDDEN: str="\\/:*?\"<>|\t\n"   # in title forbidden characters
 
 
         for i, page in enumerate(self._gallery["images"]["pages"]):
-            pages_URL.append(f"https://i{random.choice(['', '2', '3', '5', '7'])}.nhentai.net/galleries/{self._gallery['media_id']}/{i+1}") # general URL, use random image server instance to distribute load
-            images_filepath.append(f"./hentai/{self.ID}/{self.ID}-{i+1}")
-            match page["t"]:                # image type
-                case "p":                   # png
-                    pages_URL[-1]+=".png"   # append extension
-                    images_filepath[-1]+=".png"
-                case "j":                   #jpg
-                    pages_URL[-1]+=".jpg"   # append extension
-                    images_filepath[-1]+=".jpg"
+            if page["t"] not in MEDIA_TYPES.keys(): # if media type unknown:
+                logging.error(f"Can't generate page URL for {self} page {i+1}, because media type \"{page['t']}\" is unknown.")
+                raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Can't generate page URL for {self} page {i+1}, because media type \"{page['t']}\" is unknown.")
+
+            pages_URL.append(f"https://i{random.choice(['', '2', '3', '5', '7'])}.nhentai.net/galleries/{self._gallery['media_id']}/{i+1}{MEDIA_TYPES[page['t']]}") # URL, use random image server instance to distribute load
+            images_filepath.append(f"./hentai/{self.ID}/{self.ID}-{i+1}{MEDIA_TYPES[page['t']]}")                                                                   # media filepath, but usually image filepath
 
         PDF_filepath=self.title
         for c in TITLE_CHARACTERS_FORBIDDEN:                                                    # remove forbidden characters for filenames
