@@ -23,8 +23,8 @@ class Hentai:
 
         Arguments:
         - nhentai_ID: the hentai from nhentai.net found here: https://nhentai.net/g/{nhentai_ID}
-        - cookies: cookies to send with the request to bypass cloudflare
-        - headers: user agent to send with the request to bypass cloudflare
+        - cookies: cookies to send with the request to bypass bot protection
+        - headers: user agent to send with the request to bypass bot protection
 
         Raises:
         - requests.HTTPError: Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\" failed multiple times.

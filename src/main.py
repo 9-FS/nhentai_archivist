@@ -12,12 +12,12 @@ from Hentai             import Hentai
 @KFSlog.timeit
 def main():
     cleanup_success: bool=True          # cleanup successful
-    cookies: dict[str, str]             # for requests.get to bypass cloudflare
+    cookies: dict[str, str]             # for requests.get to bypass bot protection
     COOKIES_DEFAULT: str=json.dumps({   # cookies configuration default
         "cf_clearance": "",
         "csrftoken": "",
     }, indent=4)
-    headers: dict[str, str]             # for requests.get to bypass cloudflare
+    headers: dict[str, str]             # for requests.get to bypass bot protection
     HEADERS_DEFAULT: str=json.dumps({   # headers configuration default
         "User-Agent": "",
     }, indent=4)
@@ -26,8 +26,8 @@ def main():
 
 
     try:
-        cookies=json.loads(KFSconfig.load_config("cookies.json", COOKIES_DEFAULT))  # load cookies to bypass cloudflare
-        headers=json.loads(KFSconfig.load_config("headers.json", HEADERS_DEFAULT))  # load headers to bypass cloudflare
+        cookies=json.loads(KFSconfig.load_config("cookies.json", COOKIES_DEFAULT))  # load cookies to bypass bot protection
+        headers=json.loads(KFSconfig.load_config("headers.json", HEADERS_DEFAULT))  # load headers to bypass bot protection
     except FileNotFoundError:
         return
     hentai_ID_list=get_hentai_ID_list()         # get desired hentai ID
