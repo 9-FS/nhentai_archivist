@@ -1,4 +1,5 @@
 *.exe
+*.json
 *.log
 *.pyc
 *.token
@@ -7,6 +8,4 @@
 /log/
 /src/test.py
 /supplements/
-cookies.json
 downloadme.txt
-headers.json
