@@ -95,27 +95,24 @@ class Hentai:
         Takes list of filepaths that could not be downloaded or converted and increments appropiate failure counter.
         """
 
-        # re_match_1: re.Match|None
-        re_match_2: re.Match|None
+        PATTERNS: list[str]=[
+            r"^((?P<page_no>[0-9]+)\.(jpg|png))$",          # page URL pattern
+            r"^([0-9]+-(?P<page_no>[0-9]+)\.(jpg|png))$",   # image filepath pattern
+        ]
+        re_match: re.Match|None
 
 
-        for image in image_list:
-            # re_match_1=re.match("https://nhentai.net/g/[0-9]+/(?P<page_no>[0-9]+)/", image)                 # parse page number in URL
-            re_match_2=re.match("[0-9]+-(?P<page_no>[0-9]+)", os.path.splitext(os.path.basename(image))[0]) # parse page number in filepath
-            
-            # if re_match_1!=None:
-            #     self._fails[int(re_match_1.groupdict()["page_no"])-1]+=1         # increment appropiate counter
-            #     if 10<=self._fails[int(re_match_1.groupdict()["page_no"])-1]:    # if any counter 10 or above: give hentai up
-            #         self._give_up=True
-
-            if re_match_2!=None:
-                self._fails[int(re_match_2.groupdict()["page_no"])-1]+=1         # increment appropiate counter
-                if 10<=self._fails[int(re_match_2.groupdict()["page_no"])-1]:    # if any counter 10 or above: give hentai up
-                    self._give_up=True
-            
-            else:   # if naming unexpected: skip
-                logging.error(f"Incrementing fails counter of \"{image}\" failed.")
-                continue
+        for image in image_list:                                                        # for each image:
+            for pattern in PATTERNS:                                                    # with each pattern:
+                re_match=re.search(pattern, image.split("/")[-1])                       # try to parse page number, use only filename not path
+                if re_match!=None:                                                      # if page number could be parsed:
+                    self._fails[int(re_match.groupdict()["page_no"])-1]+=1              # increment appropiate fails counter
+                    if 10<=self._fails[int(re_match.groupdict()["page_no"])-1]:         # if any counter 10 or above:
+                        self._give_up=True                                              # give hentai up
+                    break
+            else:                                                                       # if page number can't be parsed:
+                logging.critical(f"Incrementing fails counter of \"{image}\" failed.")  # don't know which counter to increment, critical error because should not happen
+                raise RuntimeError(f"Error in {self._increment_fails.__name__}{inspect.signature(self._increment_fails)}: Incrementing fails counter of \"{image}\" failed.")
 
         return
     
@@ -156,23 +153,27 @@ class Hentai:
             raise FileExistsError(f"File \"{PDF_filepath}\" already exists. Skipped download.") # raise exception to skip upload in main
         if os.path.isdir(PDF_filepath)==True:                                                   # if PDF already exists as directory: skip download, append to failures
             logging.error(f"\"{PDF_filepath}\" already exists as directory. Skipped download.")
-            raise self.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: \"{PDF_filepath}\" already exists as directory. Skipped download.")
+            raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: \"{PDF_filepath}\" already exists as directory. Skipped download.")
 
 
-        while self._give_up==False:                                 # while not giving up: try to download and convert
-            KFSmedia.download_medias(pages_URL, images_filepath)    # download images # type:ignore
-            
+        while self._give_up==False:                                     # while not giving up: try to download and convert
+            try:
+                KFSmedia.download_medias(pages_URL, images_filepath)    # download images # type:ignore
+            except KFSmedia.DownloadError as e:
+                self._increment_fails(e.args[0])                        # increment fails, may trigger giving up
+                continue
+                
             try:
                 KFSmedia.convert_images_to_PDF(images_filepath, PDF_filepath)   # convert images to PDF
             except KFSmedia.ConversionError as e:
-                self._increment_fails(e.args[0])                                # increment conversion fails, may trigger giving up
+                self._increment_fails(e.args[0])                                # increment fails, may trigger giving up
                 continue
             else:                                                               # if conversion successful:
                 self.PDF_filepath=PDF_filepath                                  # save PDF filepath
                 break                                                           # break out
         else:                                                                   # if giving up:
-            logging.error(f"Tried to convert hentai \"{self}\" several times, but failed. Giving up.")
-            raise self.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Tried to convert hentai \"{self}\" several times, but failed. Giving up.")
+            logging.error(f"Tried to download and convert hentai \"{self}\" several times, but failed. Giving up.")
+            raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Tried to download and convert hentai \"{self}\" several times, but failed. Giving up.")
 
     
         if os.path.isdir(f"./hentai/{self.ID}") and len(os.listdir(f"./hentai/{self.ID}"))==0:  # if cache folder still exists and is empty:
@@ -182,11 +183,3 @@ class Hentai:
                 pass                                                                            # don't warn because will be retried in main
 
         return
-    
-
-    class DownloadError(Exception):
-        """
-        Raised when self.download(...) fails.
-        """
-
-        pass

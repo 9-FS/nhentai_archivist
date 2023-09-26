@@ -3,6 +3,7 @@ import json
 from KFSconfig import KFSconfig
 from KFSfstr   import KFSfstr
 from KFSlog    import KFSlog
+from KFSmedia  import KFSmedia
 import logging
 import os
 from get_hentai_ID_list import get_hentai_ID_list
@@ -48,7 +49,7 @@ def main():
             hentai.download()                               # download hentai
         except FileExistsError:                             # if hentai already exists:
             continue                                        # skip to next hentai
-        except Hentai.DownloadError:
+        except KFSmedia.DownloadError:
             with open("FAILURES.txt", "at") as fails_file:  # append in failure file
                 fails_file.write(f"{hentai.ID}\n")
     logging.info("--------------------------------------------------")
