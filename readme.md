@@ -15,7 +15,9 @@ Author: "구FS"
 
 ## 1. General
 
-This is the nHentai downloader I wrote to archive as much of the [english nHentai library](https://nhentai.net/language/english/popular) as I can. That's why from the beginning it has been designed with big data sizes in mind and, for example, uses multithreaded downloads to download more than 1 image at once. Still, I wanted to keep it as simple code-wise and as easy to use as I can; hope I succeeded with that. I'm happy about anyone who finds my software useful and feedback is also always welcome. Happy downloading~
+This is the nHentai downloader I wrote to archive as much of the [english nHentai library](https://nhentai.net/language/english/popular) as I can. That's why from the beginning it has been designed with big data sizes in mind and, for example, uses multithreaded downloads to download more than 1 image at once. Still, I wanted to keep it as simple code-wise and as easy to use as I can; hope I succeeded with that.  
+Big thanks go out to [h3nTa1m4st3r_xx69](https://github.com/sam-k0), who helped me using nhentai's completely undocumented API. Without him this project could not have been reactivated.  
+I'm happy about anyone who finds my software useful and feedback is also always welcome. Happy downloading~
 
 ## 2. How to Set Up (with Google Chrome)
 
