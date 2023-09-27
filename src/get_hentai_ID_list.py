@@ -16,13 +16,13 @@ def get_hentai_ID_list() -> list[int]:
 
     
     while True:
-        if os.path.isfile("./downloadme.txt")==True and file_tried==False:                                      # if ID list in file and not tried to load from file yet: load from file, only try once
+        if os.path.isfile("./downloadme.txt")==True and file_tried==False:                                              # if ID list in file and not tried to load from file yet: load from file, only try once
             file_tried=True
-            with open("downloadme.txt", "rt") as downloadme_file:
-                hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(downloadme_file.readlines())   # read all hentai ID from file, list[int] -> list[str], clean up data
-        else:                                                                                                   # if ID list file not available: ask user for input
+            with open("./downloadme.txt", "rt") as downloadme_file:
+                hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(downloadme_file.read().split("\n"))    # read all hentai ID from file, list[int] -> list[str], clean up data
+        else:                                                                                                           # if ID list file not available: ask user for input
             logging.info("Enter the holy numbers: ")
-            hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(input().split(" "))                # user input seperated at whitespace, list[int] -> list[str], clean up data
+            hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(input().split(" "))                        # user input seperated at whitespace, list[int] -> list[str], clean up data
         
         if len(hentai_ID_list)==0:  # if file or user input empty: retry
             continue
