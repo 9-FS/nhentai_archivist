@@ -31,7 +31,7 @@ def main():
         headers=json.loads(KFSconfig.load_config("headers.json", HEADERS_DEFAULT))  # load headers to bypass bot protection
     except FileNotFoundError:
         return
-    hentai_ID_list=get_hentai_ID_list()         # get desired hentai ID
+    hentai_ID_list=get_hentai_ID_list()                                             # get desired hentai ID
     
 
     for i, hentai_ID in enumerate(hentai_ID_list):  # work through all desired hentai

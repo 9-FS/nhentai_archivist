@@ -27,13 +27,49 @@ jobs:
     outputs:  # set step output as job output so other jobs can access
       NOW: ${{steps.now.outputs.NOW}}
       TODAY: ${{steps.today.outputs.TODAY}}
+  
+
+  test:
+    name: Run Tests
+    env:
+      working-directory: ${{github.workspace}}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4 # makes repository structure available
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{env.PYTHON_VERSION}}
+      
+      - name: Install Poetry
+        run: |
+          pip install poetry 
+          poetry config virtualenvs.in-project true
+          poetry config repositories.test-pypi https://test.pypi.org/legacy/
+          poetry install
+      
+      - name: Check Project Version and Tag Match
+        run: |
+          project_version=$(poetry version --no-ansi | awk '{print $NF}')
+          tag=${GITHUB_REF#refs/tags/*}
+          if [ "$project_version" == "$tag" ]; then
+            exit 0
+          else
+            exit 1
+          fi
+      
+      # - name: Run Tests
+      #   run: poetry run pytest
 
 
   create_release:
     name: Create Release
     env:
       working-directory: ${{github.workspace}}
-    needs: datetime
+    needs: [datetime, test]
     runs-on: ubuntu-latest
 
     steps:
@@ -51,16 +87,6 @@ jobs:
           poetry config virtualenvs.in-project true
           poetry config repositories.test-pypi https://test.pypi.org/legacy/
           poetry install
-      
-      - name: Check Project Version and Tag Match
-        run: |
-          project_version=$(poetry version --no-ansi | awk '{print $NF}')
-          tag=${GITHUB_REF#refs/tags/*}
-          if [ "$project_version" == "$tag" ]; then
-            exit 0
-          else
-            exit 1
-          fi
 
       - name: Create Release
         env:
@@ -128,7 +154,7 @@ jobs:
     name: Deploy on Github
     env:
       working-directory: ${{github.workspace}}
-    needs: [build, create_release, datetime]
+    needs: [build, create_release, datetime, test]
     runs-on: ${{matrix.os}}
     strategy:
       matrix:

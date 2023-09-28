@@ -5,6 +5,7 @@ from KFSmedia import KFSmedia
 import json
 import logging
 import os
+import PIL.Image
 import random
 import re
 import requests
@@ -17,12 +18,12 @@ class Hentai:
     represents an individual hentai
     """                    
 
-    def __init__(self, nhentai_ID: int, cookies: dict[str, str], headers: dict[str, str]):
+    def __init__(self, hentai_ID: int, cookies: dict[str, str], headers: dict[str, str]):
         """
         Constructs hentai object. Downloads data from the nhentai API.
 
         Arguments:
-        - nhentai_ID: the hentai from nhentai.net found here: https://nhentai.net/g/{nhentai_ID}
+        - hentai_ID: the hentai from nhentai.net found here: https://nhentai.net/g/{hentai_ID}
         - cookies: cookies to send with the request to bypass bot protection
         - headers: user agent to send with the request to bypass bot protection
 
@@ -43,14 +44,14 @@ class Hentai:
 
         logging.debug(f"Creating hentai object...")
 
-        self.ID=nhentai_ID
+        self.ID=hentai_ID
 
         logging.info(f"Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\"...")
         attempt_no: int=1
         while True:
             try:
                 gallery_page=requests.get(f"{NHENTAI_GALLERY_API_URL}/{self.ID}", cookies=cookies, headers=headers, timeout=10)
-            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):  # if connection error: try again
+            except (requests.exceptions.ConnectionError, requests.Timeout):                 # if connection error: try again
                 time.sleep(1)
                 if attempt_no<3:                                                            # try 3 times
                     continue
@@ -77,9 +78,7 @@ class Hentai:
 
         self.title=self._gallery["title"]["pretty"]
         
-        self._fails=[]
-        for _ in range(self.page_amount):   # initialise with amount of pages number of zeros
-            self._fails.append(0)
+        self._fails=[0 for _ in range(self.page_amount)]    # initialise with amount of pages number of zeros
 
         logging.debug(f"\rCreated hentai object.")
         logging.debug(self.__repr__())
@@ -117,9 +116,12 @@ class Hentai:
         return
     
 
-    def download(self) -> None:
+    def download(self) -> list[PIL.Image.Image]:
         """
-        Downloads the hentai and saves it at f"./{self.ID} {self.title}.pdf".
+        Downloads the hentai, saves it at f"./{self.ID} {self.title}.pdf", and also returns it in case needed.
+
+        Returns:
+        - PDF: finished PDF
 
         Raises:
         - FileExistsError: File \"{PDF_filepath}\" already exists.
@@ -136,6 +138,7 @@ class Hentai:
             "p": ".png",
         }
         pages_URL: list[str]=[]                             # URL to individual pages to download
+        PDF: list[PIL.Image.Image]                          # finished PDF
         PDF_filepath: str                                   # where to save downloaded result, ID title pdf, but title maximum 140 characters and without illegal filename characters
         TITLE_CHARACTERS_FORBIDDEN: str="\\/:*?\"<>|\t\n"   # in title forbidden characters
 
@@ -155,6 +158,7 @@ class Hentai:
         PDF_filepath=f"./hentai/{self.ID} {PDF_filepath}.pdf"
         if os.path.isfile(PDF_filepath)==True:                                                  # if PDF already exists: skip download
             logging.info(f"File \"{PDF_filepath}\" already exists. Skipped download.")
+            self.PDF_filepath=PDF_filepath                                                      # save PDF filepath
             raise FileExistsError(f"File \"{PDF_filepath}\" already exists. Skipped download.") # raise exception to skip upload in main
         if os.path.isdir(PDF_filepath)==True:                                                   # if PDF already exists as directory: skip download, append to failures
             logging.error(f"\"{PDF_filepath}\" already exists as directory. Skipped download.")
@@ -169,14 +173,14 @@ class Hentai:
                 continue
                 
             try:
-                KFSmedia.convert_images_to_PDF(images_filepath, PDF_filepath)   # convert images to PDF
+                PDF=KFSmedia.convert_images_to_PDF(images_filepath, PDF_filepath)   # convert images to PDF
             except KFSmedia.ConversionError as e:
-                self._increment_fails(e.args[0])                                # increment fails, may trigger giving up
+                self._increment_fails(e.args[0])                                    # increment fails, may trigger giving up
                 continue
-            else:                                                               # if conversion successful:
-                self.PDF_filepath=PDF_filepath                                  # save PDF filepath
-                break                                                           # break out
-        else:                                                                   # if giving up:
+            else:                                                                   # if conversion successful:
+                self.PDF_filepath=PDF_filepath                                      # save PDF filepath
+                break                                                               # break out
+        else:                                                                       # if giving up:
             logging.error(f"Tried to download and convert hentai \"{self}\" several times, but failed. Giving up.")
             raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Tried to download and convert hentai \"{self}\" several times, but failed. Giving up.")
 
@@ -187,4 +191,4 @@ class Hentai:
             except PermissionError:                                                             # may fail if another process is still using directory like dropbox
                 pass                                                                            # don't warn because will be retried in main
 
-        return
+        return PDF

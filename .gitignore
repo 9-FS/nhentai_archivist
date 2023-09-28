@@ -3,9 +3,12 @@
 *.log
 *.pyc
 *.token
-/doc_templates/
-/hentai/
-/log/
-/src/test.py
-/supplements/
+
+.hypothesis/
+.pytest_cache/
+doc_templates/
+hentai/
+log/
+
 downloadme.txt
+tests/test.py
