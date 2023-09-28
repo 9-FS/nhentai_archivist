@@ -29,6 +29,11 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 1. Execute the program again. This will create a default `headers.json`.
 1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
 
+> :information_source:  
+> This seems to be required daily nowadays.
+
+<div style="page-break-after: always;"></div>
+
 ## 3. How to Use
 
 Choose hentai by nHentai ID to download and convert to PDF. You can either load ID from a `./downloadme.txt` seperated by linebreaks or directly enter ID into the console separated by spaces.
