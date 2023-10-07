@@ -51,23 +51,23 @@ class Hentai:
         while True:
             try:
                 gallery_page=requests.get(f"{NHENTAI_GALLERY_API_URL}/{self.ID}", cookies=cookies, headers=headers, timeout=10)
-            except (requests.exceptions.ConnectionError, requests.Timeout):                 # if connection error: try again
+            except (requests.exceptions.ConnectionError, requests.Timeout): # if connection error: try again
                 time.sleep(1)
-                if attempt_no<3:                                                            # try 3 times
+                if attempt_no<3:                                            # try 3 times
                     continue
-                else:                                                                       # if failed 3 times: give up
+                else:                                                       # if failed 3 times: give up
                     raise
-            if gallery_page.status_code==403:                                               # if status code 403 (forbidden): probably cookies and headers not set correctly
+            if gallery_page.status_code==403:                               # if status code 403 (forbidden): probably cookies and headers not set correctly
                 logging.critical(f"Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
                 raise requests.HTTPError(f"Error in {self.__init__.__name__}{inspect.signature(self.__init__)}: Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
-            if gallery_page.status_code==404:                                               # if status code 404 (not found): hentai does not exist (anymore?)
+            if gallery_page.status_code==404:                               # if status code 404 (not found): hentai does not exist (anymore?)
                 logging.error(f"Hentai with ID \"{self.ID}\" does not exist.")
                 raise ValueError(f"Error in {self.__init__.__name__}{inspect.signature(self.__init__)}: Hentai with ID \"{self.ID}\" does not exist.")
-            if gallery_page.ok==False:                                                      # if status code not ok: try again
+            if gallery_page.ok==False:                                      # if status code not ok: try again
                 time.sleep(1)
-                if attempt_no<3:                                                            # try 3 times
+                if attempt_no<3:                                            # try 3 times
                     continue
-                else:                                                                       # if failed 3 times: give up
+                else:                                                       # if failed 3 times: give up
                     raise
 
             self._gallery=json.loads(gallery_page.text)
@@ -116,9 +116,9 @@ class Hentai:
         return
     
 
-    def download(self) -> list[PIL.Image.Image]:
+    def download(self, dest_path: str) -> list[PIL.Image.Image]:
         """
-        Downloads the hentai, saves it at f"./{self.ID} {self.title}.pdf", and also returns it in case needed.
+        Downloads the hentai, saves it at f"./{DEST_PATH}{self.ID} {self.title}.pdf", and also returns it in case needed.
 
         Returns:
         - PDF: finished PDF
@@ -149,13 +149,13 @@ class Hentai:
                 raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Can't generate page URL for {self} page {i+1}, because media type \"{page['t']}\" is unknown.")
 
             pages_URL.append(f"https://i{random.choice(['', '2', '3', '5', '7'])}.nhentai.net/galleries/{self._gallery['media_id']}/{i+1}{MEDIA_TYPES[page['t']]}") # URL, use random image server instance to distribute load
-            images_filepath.append(f"./hentai/{self.ID}/{self.ID}-{i+1}{MEDIA_TYPES[page['t']]}")                                                                   # media filepath, but usually image filepath
+            images_filepath.append(f"{dest_path}{self.ID}/{self.ID}-{i+1}{MEDIA_TYPES[page['t']]}")                                                                 # media filepath, but usually image filepath
 
         PDF_filepath=self.title
         for c in TITLE_CHARACTERS_FORBIDDEN:                                                    # remove forbidden characters for filenames
             PDF_filepath=PDF_filepath.replace(c, "")
         PDF_filepath=PDF_filepath[:140]                                                         # limit title length to 140 characters
-        PDF_filepath=f"./hentai/{self.ID} {PDF_filepath}.pdf"
+        PDF_filepath=f"{dest_path}{self.ID} {PDF_filepath}.pdf"
         if os.path.isfile(PDF_filepath)==True:                                                  # if PDF already exists: skip download
             logging.info(f"File \"{PDF_filepath}\" already exists. Skipped download.")
             self.PDF_filepath=PDF_filepath                                                      # save PDF filepath
@@ -185,10 +185,10 @@ class Hentai:
             raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Tried to download and convert hentai \"{self}\" several times, but failed. Giving up.")
 
     
-        if os.path.isdir(f"./hentai/{self.ID}") and len(os.listdir(f"./hentai/{self.ID}"))==0:  # if cache folder still exists and is empty:
+        if os.path.isdir(f"{dest_path}{self.ID}") and len(os.listdir(f"{dest_path}{self.ID}"))==0:  # if cache folder still exists and is empty:
             try:
-                os.rmdir(f"./hentai/{self.ID}")                                                 # try to clean up
-            except PermissionError:                                                             # may fail if another process is still using directory like dropbox
-                pass                                                                            # don't warn because will be retried in main
+                os.rmdir(f"{dest_path}{self.ID}")                                                   # try to clean up
+            except PermissionError:                                                                 # may fail if another process is still using directory like dropbox
+                pass                                                                                # don't warn because will be retried in main
 
         return PDF

@@ -12,23 +12,28 @@ from Hentai             import Hentai
 
 @KFSlog.timeit
 def main():
-    cleanup_success: bool=True          # cleanup successful
-    cookies: dict[str, str]             # for requests.get to bypass bot protection
-    COOKIES_DEFAULT: str=json.dumps({   # cookies configuration default
+    cleanup_success: bool=True              # cleanup successful
+    cookies: dict[str, str]                 # for requests.get to bypass bot protection
+    COOKIES_DEFAULT: str=json.dumps({       # cookies default
         "cf_clearance": "",
         "csrftoken": "",
     }, indent=4)
-    headers: dict[str, str]             # for requests.get to bypass bot protection
-    HEADERS_DEFAULT: str=json.dumps({   # headers configuration default
+    headers: dict[str, str]                 # for requests.get to bypass bot protection
+    HEADERS_DEFAULT: str=json.dumps({       # headers default
         "User-Agent": "",
     }, indent=4)
-    hentai: Hentai                      # individual hentai
-    hentai_ID_list: list[int]           # hentai ID to download
+    hentai: Hentai                          # individual hentai
+    hentai_ID_list: list[int]               # hentai ID to download
+    settings: dict[str, str]                # settings
+    SETTINGS_DEFAULT: str=json.dumps({      # settings default
+        "dest_path": "./hentai/",           # path to download hentai to
+    }, indent=4)
 
 
     try:
-        cookies=json.loads(KFSconfig.load_config("cookies.json", COOKIES_DEFAULT))  # load cookies to bypass bot protection
-        headers=json.loads(KFSconfig.load_config("headers.json", HEADERS_DEFAULT))  # load headers to bypass bot protection
+        cookies =json.loads(KFSconfig.load_config("cookies.json",  COOKIES_DEFAULT))   # load cookies to bypass bot protection
+        headers =json.loads(KFSconfig.load_config("headers.json",  HEADERS_DEFAULT))   # load headers to bypass bot protection
+        settings=json.loads(KFSconfig.load_config("settings.json", SETTINGS_DEFAULT))  # load settings
     except FileNotFoundError:
         return
     hentai_ID_list=get_hentai_ID_list()                                             # get desired hentai ID
@@ -46,7 +51,7 @@ def main():
             logging.info(hentai)
 
         try:
-            hentai.download()                               # download hentai
+            hentai.download(settings["dest_path"])          # download hentai
         except FileExistsError:                             # if hentai already exists:
             continue                                        # skip to next hentai
         except KFSmedia.DownloadError:
@@ -55,15 +60,15 @@ def main():
     logging.info("--------------------------------------------------")
 
 
-    logging.info("Deleting leftover image folders...")
-    for hentai_ID in hentai_ID_list:                                                                # attempt final cleanup
-        if os.path.isdir(f"./hentai/{hentai_ID}") and len(os.listdir(f"./hentai/{hentai_ID}"))==0:  # if cache folder still exists and is empty:
+    logging.info("Deleting leftover image directories...")
+    for hentai_ID in hentai_ID_list:                                                                                            # attempt final cleanup
+        if os.path.isdir(f"{settings['dest_path']}{hentai_ID}") and len(os.listdir(f"{settings['dest_path']}{hentai_ID}"))==0:  # if cache folder still exists and is empty:
             try:
-                os.rmdir(f"./hentai/{hentai_ID}")                                                   # try to clean up
-            except PermissionError:                                                                 # may fail if another process is still using directory like dropbox
-                logging.warning(f"Deleting \"./hentai/{hentai_ID}\" failed with PermissionError.")
-                cleanup_success=False                                                               # cleanup unsuccessful
+                os.rmdir(f"{settings['dest_path']}{hentai_ID}")                                                                 # try to clean up
+            except PermissionError:                                                                                             # may fail if another process is still using directory like dropbox
+                logging.warning(f"Deleting \"{settings['dest_path']}{hentai_ID}/\" failed with PermissionError.")
+                cleanup_success=False                                                                                           # cleanup unsuccessful
     if cleanup_success==True:
-        logging.info("\rDeleted leftover image folders.")
+        logging.info("\rDeleted leftover image directories.")
 
     return

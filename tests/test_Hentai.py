@@ -37,6 +37,7 @@ def test___init__(hentai_ID: int) -> None:
         assert bypass_bot_protection==False # check that bot protection was not supposed to be bypassed
         return
     else:
+        assert 1<=hentai_ID                 # check that hentai ID has a chance to be valid
         assert bypass_bot_protection==True  # check that bot protection was supposed to be bypassed
 
     assert isinstance(hentai._gallery, dict)                    # check that hentai._gallery is a dict
@@ -62,18 +63,21 @@ def test___init__(hentai_ID: int) -> None:
     return
 
 
-@hypothesis.settings(deadline=dt.timedelta(seconds=20))  # increase deadline for individual test because of web requests
+@hypothesis.settings(deadline=dt.timedelta(seconds=100))    # increase deadline for individual test because of web requests
 @hypothesis.given(hypothesis.strategies.integers())
 def test_download(hentai_ID: int) -> None:
     cookies: dict[str, str]     # for requests.get to bypass bot protection
     headers: dict[str, str]     # for requests.get to bypass bot protection
     PDF: list[PIL.Image.Image]  # PFD downloaded
+    settings: dict[str, str]    # settings
 
 
-    with open("./cookies.json", "rt") as cookies_file:  # load cookies to bypass bot protection
+    with open("./cookies.json", "rt") as cookies_file:      # load cookies to bypass bot protection
         cookies=json.loads(cookies_file.read())
-    with open("./headers.json", "rt") as headers_file:  # load headers to bypass bot protection
+    with open("./headers.json", "rt") as headers_file:      # load headers to bypass bot protection
         headers=json.loads(headers_file.read())
+    with open("./settings.json", "rt") as settings_file:    # load settings
+        settings=json.loads(settings_file.read())
 
     try:
         hentai=Hentai(hentai_ID, cookies, headers)  # create hentai object with cookies and headers
@@ -82,7 +86,7 @@ def test_download(hentai_ID: int) -> None:
 
 
     try:
-        PDF=hentai.download()                           # download hentai
+        PDF=hentai.download(settings["dest_path"])      # download hentai
     except FileExistsError:                             # if hentai already exists:
         assert isinstance(hentai.PDF_filepath, str)     # check that hentai.PDF_filepath is a str
         assert os.path.isfile(hentai.PDF_filepath)      # check that hentai.PDF_filepath is a file
