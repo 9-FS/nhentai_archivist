@@ -10,7 +10,9 @@ Author: "구FS"
 <br>
 
 - [1. General](#1-general)
-- [2. How to Set Up (with Google Chrome)](#2-how-to-set-up-with-google-chrome)
+- [2. How to Set Up](#2-how-to-set-up)
+  - [2.1. Firefox](#21-firefox)
+  - [2.2. Google Chrome](#22-google-chrome)
 - [3. How to Use](#3-how-to-use)
 
 ## 1. General
@@ -19,7 +21,22 @@ This is the nHentai downloader I wrote to archive as much of the [english nHenta
 Big thanks go out to [h3nTa1m4st3r_xx69](https://github.com/sam-k0), who helped me using nhentai's completely undocumented API. Without him this project could not have been reactivated.  
 I'm happy about anyone who finds my software useful and feedback is also always welcome. Happy downloading~
 
-## 2. How to Set Up (with Google Chrome)
+<div style="page-break-after: always;"></div>
+
+## 2. How to Set Up
+### 2.1. Firefox
+
+1. Execute the program once. This will create a default `cookies.json`.
+1. Go to https://nhentai.net/. Clear the cloudflare prompt.
+1. Open the developer console with F12.
+1. Go to the tab "Sotrage". On the left side expand "Cookies". Click on "https://nhentai.net".
+1. Copy the cookie values into the `cookies.json`.
+1. Execute the program again. This will create a default `headers.json`.
+1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
+1. Execute the program again. This will create a default `settings.json`.
+1. Set `dest_path` to the directory you want to download to. By default, it will download to `./hentai/`.
+
+### 2.2. Google Chrome
 
 1. Execute the program once. This will create a default `cookies.json`.
 1. Go to https://nhentai.net/. Clear the cloudflare prompt.
@@ -28,9 +45,11 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 1. Copy the cookie values into the `cookies.json`.
 1. Execute the program again. This will create a default `headers.json`.
 1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
+1. Execute the program again. This will create a default `settings.json`.
+1. Set `dest_path` to the directory you want to download to. By default, it will download to `./hentai/`.
 
 > :information_source:  
-> This seems to be required daily nowadays.
+> Setting cookies seems to be required daily nowadays.
 
 <div style="page-break-after: always;"></div>
 
