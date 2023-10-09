@@ -29,7 +29,7 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 1. Execute the program once. This will create a default `cookies.json`.
 1. Go to https://nhentai.net/. Clear the cloudflare prompt.
 1. Open the developer console with F12.
-1. Go to the tab "Sotrage". On the left side expand "Cookies". Click on "https://nhentai.net".
+1. Go to the tab "Storage". On the left side expand "Cookies". Click on "https://nhentai.net".
 1. Copy the cookie values into the `cookies.json`.
 1. Execute the program again. This will create a default `headers.json`.
 1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
