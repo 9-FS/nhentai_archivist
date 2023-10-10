@@ -250,17 +250,17 @@ files = [
 
 [[package]]
 name = "kfsmedia"
-version = "2.1.1"
+version = "2.1.2"
 description = ""
 optional = false
 python-versions = ">=3.11.0,<4.0.0"
 files = [
-    {file = "kfsmedia-2.1.1-py3-none-any.whl", hash = "sha256:38e81519a455e100d48a325e4ff9ee407f862e66a6b864deaa49541711bd949f"},
-    {file = "kfsmedia-2.1.1.tar.gz", hash = "sha256:c2e609b0f9c67a2b3cd0f1fa892df23b26d504d61cdc881e592db4c7b72dca0e"},
+    {file = "kfsmedia-2.1.2-py3-none-any.whl", hash = "sha256:db5dcbf71b695ec71e19deb96239a54e357979ff42c04c459a185fb7095d775f"},
+    {file = "kfsmedia-2.1.2.tar.gz", hash = "sha256:7573cbb17b19529e25ed344733b3578dcfea1c8b93d96e12a165c4cd9400ff1d"},
 ]
 
 [package.dependencies]
-kfsfstr = ">=1.0.0,<2.0.0"
+kfsfstr = ">=1.1.0,<2.0.0"
 kfslog = ">=1.0.0,<2.0.0"
 pillow = ">=10.0.1,<11.0.0"
 requests = ">=2.31.0,<3.0.0"

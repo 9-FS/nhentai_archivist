@@ -14,7 +14,7 @@ def test_get_hentai_ID_list(downloadme_content: list[int|str]) -> None:
 
 
     with open("./downloadme.txt", "wt", errors="ignore") as downloadme_file:            # save random downloadme.txt containing numbers (valid) and strings (invalid)
-        downloadme_file.write("\n".join([str(line) for line in downloadme_content]))    # list[int|str] -> list[str] -> std, write to file
+        downloadme_file.write("\n".join([str(line) for line in downloadme_content]))    # list[int|str] -> list[str] -> str, write to file
 
     hentai_ID_list=get_hentai_ID_list() # get hentai ID list from random downloadme.txt, load from downloadme.txt first, then if that is completely invalid and discarded correctly, use correct user input
     
