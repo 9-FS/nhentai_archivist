@@ -8,7 +8,6 @@ import logging
 import os
 from get_hentai_ID_list               import get_hentai_ID_list
 from Hentai                           import Hentai
-from remove_hentai_ID_from_downloadme import remove_hentai_ID_from_downloadme
 
 
 @KFSlog.timeit
@@ -54,13 +53,11 @@ def main():
         try:
             hentai.download(settings["dest_path"])          # download hentai
         except FileExistsError:                             # if hentai already exists:
-            remove_hentai_ID_from_downloadme(hentai.ID)     # remove hentai ID from downloadme.txt
             continue                                        # skip to next hentai
         except KFSmedia.DownloadError:
             with open("FAILURES.txt", "at") as fails_file:  # append in failure file
                 fails_file.write(f"{hentai.ID}\n")
-        else:                                               # if successful:
-            remove_hentai_ID_from_downloadme(hentai.ID)     # remove hentai ID from downloadme.txt
+            continue                                        # skip to next hentai
     logging.info("--------------------------------------------------")
 
 

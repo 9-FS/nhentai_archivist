@@ -18,12 +18,12 @@ class Hentai:
     represents an individual hentai
     """                    
 
-    def __init__(self, hentai_ID: int, cookies: dict[str, str], headers: dict[str, str]):
+    def __init__(self, nhentai_ID: int, cookies: dict[str, str], headers: dict[str, str]):
         """
         Constructs hentai object. Downloads data from the nhentai API.
 
         Arguments:
-        - hentai_ID: the hentai from nhentai.net found here: https://nhentai.net/g/{hentai_ID}
+        - nhentai_ID: the hentai from nhentai.net found here: https://nhentai.net/g/{hentai_ID}
         - cookies: cookies to send with the request to bypass bot protection
         - headers: user agent to send with the request to bypass bot protection
 
@@ -32,25 +32,72 @@ class Hentai:
         - ValueError: Hentai with ID \"{self.ID}\" does not exist.
         """
 
-        gallery_page: requests.Response
-        NHENTAI_GALLERY_API_URL: str="https://nhentai.net/api/gallery"  # URL to nhentai API
-        self._fails: list[int]                                          # list of how many times individual page has failed to be downloaded or converted to PDF
-        self._gallery: dict                                             # gallery from nhentai API, saved to extract data for download later
-        self._give_up: bool=False                                       # give this hentai up? after failing to download or convert numerous times
-        self.ID: int                                                    # nhentai ID
-        self.page_amount: int                                           # number of pages
-        self.title: str                                                 # title (unchanged)
+        self._fails: list[int]      # list of how many times individual page has failed to be downloaded or converted to PDF
+        self._gallery: dict         # gallery from nhentai API, saved to extract data for download later
+        self._give_up: bool=False   # give this hentai up? after failing to download or convert numerous times
+        self.ID: int                # nhentai ID
+        self.page_amount: int       # number of pages
+        self.title: str             # title (unchanged)
         
 
         logging.debug(f"Creating hentai object...")
+        self.ID=nhentai_ID
+        self._gallery=self._get_gallery(self.ID, cookies, headers)        
+        self.page_amount=int(self._gallery["num_pages"])
+        self.title=self._gallery["title"]["pretty"]
+        self._fails=[0 for _ in range(self.page_amount)]    # initialise with amount of pages number of zeros
+        logging.debug(f"Created hentai object.")
+        logging.debug(self.__repr__())
+        
+        return
+    
 
-        self.ID=hentai_ID
+    def __str__(self) -> str:
+        return f"{self.ID}: \"{self.title}\""
+    
 
-        logging.info(f"Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\"...")
+    @staticmethod
+    def _get_gallery(nhentai_ID: int, cookies: dict[str, str], headers: dict[str, str]) -> dict:
+        """
+        Tries to load nhentai API gallery from file first, if not found downloads it from nhentai API.
+
+        Arguments:
+        - nhentai_ID: the hentai from nhentai.net found here: https://nhentai.net/g/{hentai_ID}
+        - cookies: cookies to send with the request to bypass bot protection
+        - headers: user agent to send with the request to bypass bot protection
+
+        Returns:
+        - gallery: gallery from nhentai API
+
+        Raises:
+        - requests.HTTPError: Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\" failed multiple times.
+        - ValueError: Hentai with ID \"{self.ID}\" does not exist.
+        """
+
+        galleries: list[dict]=[]                                        # list of already downloaded galleries
+        gallery: dict                                                   # gallery to return
+        gallery_page: requests.Response
+        NHENTAI_GALLERY_API_URL: str="https://nhentai.net/api/gallery"  # URL to nhentai API
+        
+        
+        if os.path.isfile("./galleries.json")==True:        # if galleries file exists:
+            logging.info("Loading gallery from \"galleries.json\"...")
+            with open("./galleries.json", "rt") as galleries_file:       
+                galleries=json.loads(galleries_file.read()) # load already downloaded gallers
+        
+            gallery=next((gallery for gallery in galleries if gallery["id"]==nhentai_ID), {})   # try to find gallery with same ID
+            if gallery=={}:                                                                     # if gallery not found: download it
+                logging.info(f"\rLoaded \"./gallery.json\", but gallery with nhentai ID {nhentai_ID} was not found.")
+            else:                                                                               # if gallery found: use that
+                logging.info("\rLoaded gallery from \"./galleries.json\".")
+                return gallery
+        
+
+        logging.info(f"Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\"...") # if gallery not loaded from file: download it
         attempt_no: int=1
         while True:
             try:
-                gallery_page=requests.get(f"{NHENTAI_GALLERY_API_URL}/{self.ID}", cookies=cookies, headers=headers, timeout=10)
+                gallery_page=requests.get(f"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}", cookies=cookies, headers=headers, timeout=10)
             except (requests.exceptions.ConnectionError, requests.Timeout): # if connection error: try again
                 time.sleep(1)
                 if attempt_no<3:                                            # try 3 times
@@ -58,11 +105,11 @@ class Hentai:
                 else:                                                       # if failed 3 times: give up
                     raise
             if gallery_page.status_code==403:                               # if status code 403 (forbidden): probably cookies and headers not set correctly
-                logging.critical(f"Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
-                raise requests.HTTPError(f"Error in {self.__init__.__name__}{inspect.signature(self.__init__)}: Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
+                logging.critical(f"Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
+                raise requests.HTTPError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
             if gallery_page.status_code==404:                               # if status code 404 (not found): hentai does not exist (anymore?)
-                logging.error(f"Hentai with ID \"{self.ID}\" does not exist.")
-                raise ValueError(f"Error in {self.__init__.__name__}{inspect.signature(self.__init__)}: Hentai with ID \"{self.ID}\" does not exist.")
+                logging.error(f"Hentai with ID \"{nhentai_ID}\" does not exist.")
+                raise ValueError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Hentai with ID \"{nhentai_ID}\" does not exist.")
             if gallery_page.ok==False:                                      # if status code not ok: try again
                 time.sleep(1)
                 if attempt_no<3:                                            # try 3 times
@@ -70,23 +117,17 @@ class Hentai:
                 else:                                                       # if failed 3 times: give up
                     raise
 
-            self._gallery=json.loads(gallery_page.text)
+            gallery=json.loads(gallery_page.text)
+            galleries.append(gallery)
             break
-        logging.info(f"\rDownloaded gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\".")
+        logging.info(f"\rDownloaded gallery from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\".")
 
-        self.page_amount=int(self._gallery["num_pages"])
-
-        self.title=self._gallery["title"]["pretty"]
         
-        self._fails=[0 for _ in range(self.page_amount)]    # initialise with amount of pages number of zeros
+        galleries=sorted(galleries, key=lambda gallery: int(gallery["id"])) # sort galleries by ID
+        with open("./galleries.json", "wt") as galleries_file:
+            galleries_file.write(json.dumps(galleries, indent=4))           # write galleries to file
 
-        logging.debug(f"\rCreated hentai object.")
-        logging.debug(self.__repr__())
-        return
-    
-
-    def __str__(self) -> str:
-        return f"{self.ID}: \"{self.title}\""
+        return gallery
     
 
     def _increment_fails(self, image_list: list[str]) -> None:
