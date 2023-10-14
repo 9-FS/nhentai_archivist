@@ -1,6 +1,7 @@
 # Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
 import inspect
 import dataclasses
+from KFSfstr  import KFSfstr
 from KFSmedia import KFSmedia
 import json
 import logging
@@ -10,13 +11,17 @@ import random
 import re
 import requests
 import time
+import typing
 
 
 @dataclasses.dataclass
 class Hentai:
     """
     represents an individual hentai
-    """                    
+    """
+
+    galleries: typing.ClassVar[list[dict]]=[]   # list of already downloaded galleries
+
 
     def __init__(self, nhentai_ID: int, cookies: dict[str, str], headers: dict[str, str]):
         """
@@ -56,10 +61,10 @@ class Hentai:
         return f"{self.ID}: \"{self.title}\""
     
 
-    @staticmethod
-    def _get_gallery(nhentai_ID: int, cookies: dict[str, str], headers: dict[str, str]) -> dict:
+    @classmethod
+    def _get_gallery(cls, nhentai_ID: int, cookies: dict[str, str], headers: dict[str, str]) -> dict:
         """
-        Tries to load nhentai API gallery from file first, if not found downloads it from nhentai API.
+        Tries to load nhentai API gallery from class variable first, if unsuccessful from file, if unsuccesful again downloads from nhentai API.
 
         Arguments:
         - nhentai_ID: the hentai from nhentai.net found here: https://nhentai.net/g/{hentai_ID}
@@ -74,26 +79,31 @@ class Hentai:
         - ValueError: Hentai with ID \"{self.ID}\" does not exist.
         """
 
-        galleries: list[dict]=[]                                        # list of already downloaded galleries
         gallery: dict                                                   # gallery to return
         gallery_page: requests.Response
         NHENTAI_GALLERY_API_URL: str="https://nhentai.net/api/gallery"  # URL to nhentai API
         
         
-        if os.path.isfile("./galleries.json")==True:        # if galleries file exists:
-            logging.info("Loading gallery from \"galleries.json\"...")
-            with open("./galleries.json", "rt") as galleries_file:       
-                galleries=json.loads(galleries_file.read()) # load already downloaded gallers
-        
-            gallery=next((gallery for gallery in galleries if gallery["id"]==nhentai_ID), {})   # try to find gallery with same ID
-            if gallery=={}:                                                                     # if gallery not found: download it
-                logging.info(f"\rLoaded \"./gallery.json\", but gallery with nhentai ID {nhentai_ID} was not found.")
-            else:                                                                               # if gallery found: use that
-                logging.info("\rLoaded gallery from \"./galleries.json\".")
+        logging.info(f"Loading gallery {nhentai_ID}...")
+        if 0<len(cls.galleries):                                                                    # if class variable initialised: try to load from class variable
+            gallery=next((gallery for gallery in cls.galleries if gallery["id"]==nhentai_ID), {})   # try to find gallery with same ID
+            if gallery!={}:                                                                         # if gallery found: return
+                logging.info(f"\rLoaded gallery {nhentai_ID}.")
+                return gallery
+
+        if os.path.isfile("./galleries.json")==True:                                                # if galleries file exists: try to load from file
+            with open("./galleries.json", "rt") as galleries_file:
+                try:
+                    cls.galleries=json.loads(galleries_file.read())                                 # load already downloaded galleries, overwrite class variable
+                except ValueError as e:                                                             # if file is corrupted:
+                    logging.critical(f"Parsing galleries from \"./galleries.json\" failed with {KFSfstr.full_class_name(e)}. Check your \"./galleries.json\" for errors.")
+                    raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Parsing galleries from \"./galleries.json\" failed with {KFSfstr.full_class_name(e)}. Check your \"./galleries.json\" for errors.") from e
+            gallery=next((gallery for gallery in cls.galleries if gallery["id"]==nhentai_ID), {})   # try to find gallery with same ID
+            if gallery!={}:                                                                         # if gallery found: return
+                logging.info(f"\rLoaded gallery {nhentai_ID} from \"./galleries.json\".")
                 return gallery
         
 
-        logging.info(f"Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\"...") # if gallery not loaded from file: download it
         attempt_no: int=1
         while True:
             try:
@@ -105,8 +115,8 @@ class Hentai:
                 else:                                                       # if failed 3 times: give up
                     raise
             if gallery_page.status_code==403:                               # if status code 403 (forbidden): probably cookies and headers not set correctly
-                logging.critical(f"Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
-                raise requests.HTTPError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
+                logging.critical(f"Downloading gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
+                raise requests.HTTPError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Downloading gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?", response=gallery_page)
             if gallery_page.status_code==404:                               # if status code 404 (not found): hentai does not exist (anymore?)
                 logging.error(f"Hentai with ID \"{nhentai_ID}\" does not exist.")
                 raise ValueError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Hentai with ID \"{nhentai_ID}\" does not exist.")
@@ -118,14 +128,13 @@ class Hentai:
                     raise
 
             gallery=json.loads(gallery_page.text)
-            galleries.append(gallery)
+            cls.galleries.append(gallery)
             break
-        logging.info(f"\rDownloaded gallery from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\".")
+        logging.info(f"\rDownloaded gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\".")
 
-        
-        galleries=sorted(galleries, key=lambda gallery: int(gallery["id"])) # sort galleries by ID
+        cls.galleries=sorted(cls.galleries, key=lambda gallery: int(gallery["id"])) # sort galleries by ID
         with open("./galleries.json", "wt") as galleries_file:
-            galleries_file.write(json.dumps(galleries, indent=4))           # write galleries to file
+            galleries_file.write(json.dumps(cls.galleries, indent=4))               # write galleries to file
 
         return gallery
     
