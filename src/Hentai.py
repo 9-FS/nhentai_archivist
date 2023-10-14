@@ -133,8 +133,10 @@ class Hentai:
         logging.info(f"\rDownloaded gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\".")
 
         cls.galleries=sorted(cls.galleries, key=lambda gallery: int(gallery["id"])) # sort galleries by ID
+        logging.info(f"Saving galleries in \"./galleries.json\"...")
         with open("./galleries.json", "wt") as galleries_file:
             galleries_file.write(json.dumps(cls.galleries, indent=4))               # write galleries to file
+        logging.info(f"\rSaved galleries in \"./galleries.json\".")
 
         return gallery
     
