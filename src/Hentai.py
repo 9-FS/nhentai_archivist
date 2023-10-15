@@ -98,8 +98,8 @@ class Hentai:
                 except ValueError as e:                                                             # if file is corrupted:
                     logging.critical(f"Parsing galleries from \"./galleries.json\" failed with {KFSfstr.full_class_name(e)}. Check your \"./galleries.json\" for errors.")
                     raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Parsing galleries from \"./galleries.json\" failed with {KFSfstr.full_class_name(e)}. Check your \"./galleries.json\" for errors.") from e
-            gallery=next((gallery for gallery in cls.galleries if gallery["id"]==nhentai_ID), {})   # try to find gallery with same ID
-            if gallery!={}:                                                                         # if gallery found: return
+            gallery=next((gallery for gallery in cls.galleries if str(gallery["id"])==str(nhentai_ID)), {}) # try to find gallery with same ID
+            if gallery!={}:                                                                                 # if gallery found: return
                 logging.info(f"\rLoaded gallery {nhentai_ID} from \"./galleries.json\".")
                 return gallery
         
@@ -128,6 +128,9 @@ class Hentai:
                     raise
 
             gallery=json.loads(gallery_page.text)
+            if str(gallery["id"]) in [str(gallery["id"]) for gallery in cls.galleries]: # if gallery already downloaded but adding to class variable requested: something went wrong
+                logging.critical(f"Gallery {nhentai_ID} has been requested to be added to galleries even though it would result in a duplicate entry.")
+                raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Gallery {nhentai_ID} has been requested to be added to galleries even though it would result in a duplicate entry.")
             cls.galleries.append(gallery)
             break
         logging.info(f"\rDownloaded gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\".")

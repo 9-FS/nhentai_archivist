@@ -7,6 +7,6 @@ kfsfstr==1.1.0 ; python_full_version >= "3.11.0" and python_full_version < "4.0.
 kfslog==1.0.1 ; python_full_version >= "3.11.0" and python_full_version < "4.0.0"
 kfsmath==1.0.1 ; python_full_version >= "3.11.0" and python_full_version < "4.0.0"
 kfsmedia==2.1.2 ; python_full_version >= "3.11.0" and python_full_version < "4.0.0"
-pillow==10.0.1 ; python_full_version >= "3.11.0" and python_full_version < "4.0.0"
+pillow==10.1.0 ; python_full_version >= "3.11.0" and python_full_version < "4.0.0"
 requests==2.31.0 ; python_full_version >= "3.11.0" and python_full_version < "4.0.0"
 urllib3==2.0.6 ; python_full_version >= "3.11.0" and python_full_version < "4.0.0"
