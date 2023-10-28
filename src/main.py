@@ -31,12 +31,12 @@ def main():
 
 
     try:
-        cookies =json.loads(KFSconfig.load_config("cookies.json",  COOKIES_DEFAULT))   # load cookies to bypass bot protection
-        headers =json.loads(KFSconfig.load_config("headers.json",  HEADERS_DEFAULT))   # load headers to bypass bot protection
-        settings=json.loads(KFSconfig.load_config("settings.json", SETTINGS_DEFAULT))  # load settings
+        cookies =json.loads(KFSconfig.load_config("./config/cookies.json",  COOKIES_DEFAULT))   # load cookies to bypass bot protection
+        headers =json.loads(KFSconfig.load_config("./config/headers.json",  HEADERS_DEFAULT))   # load headers to bypass bot protection
+        settings=json.loads(KFSconfig.load_config("./config/settings.json", SETTINGS_DEFAULT))  # load settings
     except FileNotFoundError:
         return
-    hentai_ID_list=get_hentai_ID_list()                                             # get desired hentai ID
+    hentai_ID_list=get_hentai_ID_list()                                                         # get desired hentai ID
     
 
     for i, hentai_ID in enumerate(hentai_ID_list):  # work through all desired hentai

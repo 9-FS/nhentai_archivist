@@ -1,5 +1,4 @@
 *.exe
-*.json
 *.log
 *.pyc
 *.token
@@ -7,8 +6,7 @@
 .hypothesis/
 .pytest_cache/
 doc_templates/
-hentai/
 log/
 
-downloadme.txt
+Dockerfile
 tests/test.py

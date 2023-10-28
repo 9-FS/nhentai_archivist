@@ -80,6 +80,7 @@ class Hentai:
         """
 
         gallery: dict                                                   # gallery to return
+        GALLERY_FILEPATH: str="./config/galleries.json"
         gallery_page: requests.Response
         NHENTAI_GALLERY_API_URL: str="https://nhentai.net/api/gallery"  # URL to nhentai API
         
@@ -91,16 +92,16 @@ class Hentai:
                 logging.info(f"\rLoaded gallery {nhentai_ID}.")
                 return gallery
 
-        if os.path.isfile("./galleries.json")==True:                                                # if galleries file exists: try to load from file
-            with open("./galleries.json", "rt") as galleries_file:
+        if os.path.isfile(GALLERY_FILEPATH)==True:                                                  # if galleries file exists: try to load from file
+            with open(GALLERY_FILEPATH, "rt") as galleries_file:
                 try:
                     cls.galleries=json.loads(galleries_file.read())                                 # load already downloaded galleries, overwrite class variable
                 except ValueError as e:                                                             # if file is corrupted:
-                    logging.critical(f"Parsing galleries from \"./galleries.json\" failed with {KFSfstr.full_class_name(e)}. Check your \"./galleries.json\" for errors.")
-                    raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Parsing galleries from \"./galleries.json\" failed with {KFSfstr.full_class_name(e)}. Check your \"./galleries.json\" for errors.") from e
+                    logging.critical(f"Parsing galleries from \"{GALLERY_FILEPATH}\" failed with {KFSfstr.full_class_name(e)}. Check your \"{GALLERY_FILEPATH}\" for errors.")
+                    raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Parsing galleries from \"{GALLERY_FILEPATH}\" failed with {KFSfstr.full_class_name(e)}. Check your \"{GALLERY_FILEPATH}\" for errors.") from e
             gallery=next((gallery for gallery in cls.galleries if str(gallery["id"])==str(nhentai_ID)), {}) # try to find gallery with same ID
             if gallery!={}:                                                                                 # if gallery found: return
-                logging.info(f"\rLoaded gallery {nhentai_ID} from \"./galleries.json\".")
+                logging.info(f"\rLoaded gallery {nhentai_ID} from \"{GALLERY_FILEPATH}\".")
                 return gallery
         
 
@@ -136,10 +137,10 @@ class Hentai:
         logging.info(f"\rDownloaded gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\".")
 
         cls.galleries=sorted(cls.galleries, key=lambda gallery: int(gallery["id"])) # sort galleries by ID
-        logging.info(f"Saving galleries in \"./galleries.json\"...")
-        with open("./galleries.json", "wt") as galleries_file:
+        logging.info(f"Saving galleries in \"{GALLERY_FILEPATH}\"...")
+        with open(GALLERY_FILEPATH, "wt") as galleries_file:
             galleries_file.write(json.dumps(cls.galleries, indent=4))               # write galleries to file
-        logging.info(f"\rSaved galleries in \"./galleries.json\".")
+        logging.info(f"\rSaved galleries in \"{GALLERY_FILEPATH}\".")
 
         return gallery
     
