@@ -12,21 +12,22 @@ from Hentai                           import Hentai
 
 @KFSlog.timeit
 def main():
-    cleanup_success: bool=True              # cleanup successful
-    cookies: dict[str, str]                 # for requests.get to bypass bot protection
-    COOKIES_DEFAULT: str=json.dumps({       # cookies default
+    cleanup_success: bool=True                          # cleanup successful
+    cookies: dict[str, str]                             # for requests.get to bypass bot protection
+    COOKIES_DEFAULT: str=json.dumps({                   # cookies default
         "cf_clearance": "",
         "csrftoken": "",
     }, indent=4)
-    headers: dict[str, str]                 # for requests.get to bypass bot protection
-    HEADERS_DEFAULT: str=json.dumps({       # headers default
+    DOWNLOADME_FILEPATH: str="./config/downloadme.txt"  # path to file containing hentai ID to download
+    headers: dict[str, str]                             # for requests.get to bypass bot protection
+    HEADERS_DEFAULT: str=json.dumps({                   # headers default
         "User-Agent": "",
     }, indent=4)
-    hentai: Hentai                          # individual hentai
-    hentai_ID_list: list[int]               # hentai ID to download
-    settings: dict[str, str]                # settings
-    SETTINGS_DEFAULT: str=json.dumps({      # settings default
-        "dest_path": "./hentai/",           # path to download hentai to
+    hentai: Hentai                                      # individual hentai
+    hentai_ID_list: list[int]                           # hentai ID to download
+    settings: dict[str, str]                            # settings
+    SETTINGS_DEFAULT: str=json.dumps({                  # settings default
+        "dest_path": "./hentai/",                       # path to download hentai to
     }, indent=4)
 
 
@@ -36,7 +37,7 @@ def main():
         settings=json.loads(KFSconfig.load_config("./config/settings.json", SETTINGS_DEFAULT))  # load settings
     except FileNotFoundError:
         return
-    hentai_ID_list=get_hentai_ID_list()                                                         # get desired hentai ID
+    hentai_ID_list=get_hentai_ID_list(DOWNLOADME_FILEPATH)                                      # get desired hentai ID
     
 
     for i, hentai_ID in enumerate(hentai_ID_list):  # work through all desired hentai
