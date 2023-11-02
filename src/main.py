@@ -52,13 +52,13 @@ def main():
             logging.info(hentai)
 
         try:
-            hentai.download(settings["dest_path"])          # download hentai
-        except FileExistsError:                             # if hentai already exists:
-            continue                                        # skip to next hentai
+            hentai.download(settings["dest_path"])                  # download hentai
+        except FileExistsError:                                     # if hentai already exists:
+            continue                                                # skip to next hentai
         except KFSmedia.DownloadError:
-            with open("FAILURES.txt", "at") as fails_file:  # append in failure file
+            with open("./log/FAILURES.txt", "at") as fails_file:    # append in failure file
                 fails_file.write(f"{hentai.ID}\n")
-            continue                                        # skip to next hentai
+            continue                                                # skip to next hentai
     logging.info("--------------------------------------------------")
 
 
