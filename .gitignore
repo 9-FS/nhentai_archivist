@@ -8,5 +8,8 @@
 doc_templates/
 log/
 
+config/downloadme.txt
+config/galleries.json
+config/headers.json
 Dockerfile
 tests/test.py
