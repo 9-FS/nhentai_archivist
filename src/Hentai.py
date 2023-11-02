@@ -196,6 +196,7 @@ class Hentai:
         pages_URL: list[str]=[]                             # URL to individual pages to download
         PDF: list[PIL.Image.Image]                          # finished PDF
         PDF_filepath: str                                   # where to save downloaded result, ID title pdf, but title maximum 140 characters and without illegal filename characters
+        TIMEOUT=100                                         # timeout for downloading images
         TITLE_CHARACTERS_FORBIDDEN: str="\\/:*?\"<>|\t\n"   # in title forbidden characters
 
 
@@ -221,11 +222,11 @@ class Hentai:
             raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: \"{PDF_filepath}\" already exists as directory. Skipped download.")
 
 
-        while self._give_up==False:                                     # while not giving up: try to download and convert
+        while self._give_up==False:                                                     # while not giving up: try to download and convert
             try:
-                KFSmedia.download_medias(pages_URL, images_filepath)    # download images # type:ignore
+                KFSmedia.download_medias(pages_URL, images_filepath, timeout=TIMEOUT)   # download images # type:ignore
             except KFSmedia.DownloadError as e:
-                self._increment_fails(e.args[0])                        # increment fails, may trigger giving up
+                self._increment_fails(e.args[0])                                        # increment fails, may trigger giving up
                 continue
                 
             try:

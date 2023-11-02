@@ -250,18 +250,19 @@ files = [
 
 [[package]]
 name = "kfsmedia"
-version = "2.1.2"
+version = "2.2.0"
 description = ""
 optional = false
 python-versions = ">=3.11.0,<4.0.0"
 files = [
-    {file = "kfsmedia-2.1.2-py3-none-any.whl", hash = "sha256:db5dcbf71b695ec71e19deb96239a54e357979ff42c04c459a185fb7095d775f"},
-    {file = "kfsmedia-2.1.2.tar.gz", hash = "sha256:7573cbb17b19529e25ed344733b3578dcfea1c8b93d96e12a165c4cd9400ff1d"},
+    {file = "kfsmedia-2.2.0-py3-none-any.whl", hash = "sha256:2648bae4670b9fd2be37373465161c801cc625081404e189a12083a140856927"},
+    {file = "kfsmedia-2.2.0.tar.gz", hash = "sha256:8a55c93a8952568b8e9047fe1131ac419a3fe00bf1b7a38a8b9a2d9d699fa2d2"},
 ]
 
 [package.dependencies]
 kfsfstr = ">=1.1.0,<2.0.0"
 kfslog = ">=1.0.0,<2.0.0"
+pebble = ">=5.0.3,<6.0.0"
 pillow = ">=10.0.1,<11.0.0"
 requests = ">=2.31.0,<3.0.0"
 
@@ -274,6 +275,17 @@ python-versions = ">=3.7"
 files = [
     {file = "packaging-23.2-py3-none-any.whl", hash = "sha256:8c491190033a9af7e1d931d0b5dacc2ef47509b34dd0de67ed209b5203fc88c7"},
     {file = "packaging-23.2.tar.gz", hash = "sha256:048fb0e9405036518eaaf48a55953c750c11e1a1b68e0dd1a9d62ed0c092cfc5"},
+]
+
+[[package]]
+name = "pebble"
+version = "5.0.3"
+description = "Threading and multiprocessing eye-candy."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "Pebble-5.0.3-py3-none-any.whl", hash = "sha256:8274aa0959f387b368ede47666129cbe5d123f276a1bd9cafe77e020194b2141"},
+    {file = "Pebble-5.0.3.tar.gz", hash = "sha256:bdcfd9ea7e0aedb895b204177c19e6d6543d9962f4e3402ebab2175004863da8"},
 ]
 
 [[package]]
@@ -430,4 +442,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "f94ae45d4f572b90b894efc64bffb720491d817a705748750410882732e3389b"
+content-hash = "7a2f89c9cc77c56cb7c604afead446846c05615b6cd81bc080b847f84cb47daf"
