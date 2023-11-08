@@ -172,7 +172,7 @@ class Hentai:
         return
     
 
-    def download(self, dest_path: str) -> list[PIL.Image.Image]:
+    def download(self, dest_path: str) -> bytes:
         """
         Downloads the hentai, saves it at f"./{DEST_PATH}{self.ID} {self.title}.pdf", and also returns it in case needed.
 
@@ -194,7 +194,7 @@ class Hentai:
             "p": ".png",
         }
         pages_URL: list[str]=[]                             # URL to individual pages to download
-        PDF: list[PIL.Image.Image]                          # finished PDF
+        PDF: bytes                                          # finished PDF
         PDF_filepath: str                                   # where to save downloaded result, ID title pdf, but title maximum 140 characters and without illegal filename characters
         TIMEOUT=100                                         # timeout for downloading images
         TITLE_CHARACTERS_FORBIDDEN: str="\\/:*?\"<>|\t\n"   # in title forbidden characters
