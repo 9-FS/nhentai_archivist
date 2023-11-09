@@ -281,13 +281,13 @@ files = [
 
 [[package]]
 name = "kfsmedia"
-version = "2.3.1"
+version = "2.3.2"
 description = ""
 optional = false
 python-versions = ">=3.11.0,<4.0.0"
 files = [
-    {file = "kfsmedia-2.3.1-py3-none-any.whl", hash = "sha256:b7cc5cf681b23e5122abb1c98f36a85b42ad061fdd5fcda289ada2f78318669e"},
-    {file = "kfsmedia-2.3.1.tar.gz", hash = "sha256:3839099c955b117fa49ee97536687594e01836d321b7c23cbe4583e3a4f7aecc"},
+    {file = "kfsmedia-2.3.2-py3-none-any.whl", hash = "sha256:836a0e3306717d0b2d2fad62308dab0c59ad7c91d09c411aa4164e64cfd273d9"},
+    {file = "kfsmedia-2.3.2.tar.gz", hash = "sha256:14945a958e67c5f9fb150a842ef561c2c06e5852526a237acbb62902339ad595"},
 ]
 
 [package.dependencies]
