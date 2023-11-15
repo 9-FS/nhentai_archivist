@@ -85,9 +85,9 @@ class Hentai:
         
         
         logging.info(f"Loading gallery {nhentai_ID}...")
-        if 0<len(cls.galleries):                                                                    # if class variable initialised: try to load from class variable
-            gallery=next((gallery for gallery in cls.galleries if gallery["id"]==nhentai_ID), {})   # try to find gallery with same ID
-            if gallery!={}:                                                                         # if gallery found: return
+        if 0<len(cls.galleries):                                                                            # if class variable initialised: try to load from class variable
+            gallery=next((gallery for gallery in cls.galleries if str(gallery["id"])==str(nhentai_ID)), {}) # try to find gallery with same ID
+            if gallery!={}:                                                                                 # if gallery found: return
                 logging.info(f"\rLoaded gallery {nhentai_ID}.")
                 return gallery
         
