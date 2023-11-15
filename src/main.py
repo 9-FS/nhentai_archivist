@@ -44,6 +44,9 @@ def main():
         logging.info("--------------------------------------------------")
         logging.info(f"{KFSfstr.notation_abs(i+1, 0, round_static=True)}/{KFSfstr.notation_abs(len(hentai_ID_list), 0, round_static=True)} ({KFSfstr.notation_abs((i+1)/(len(hentai_ID_list)), 2, round_static=True)})")
 
+        if (i+1)%100==0:    # save galleries to file, only every 100 hentai to save time
+            Hentai.save_galleries()
+
         try:
             hentai=Hentai(hentai_ID, cookies, headers)  # create hentai object
         except ValueError:                              # if hentai does not exist:
@@ -62,7 +65,7 @@ def main():
     logging.info("--------------------------------------------------")
 
 
-    Hentai.save_galleries() # now save all galleries to file, might not have all saved yet because usually only save roughly every 10 galleries to file
+    Hentai.save_galleries() # save all galleries to file
 
     logging.info("Deleting leftover image directories...")
     for hentai_ID in hentai_ID_list:                                                                                            # attempt final cleanup

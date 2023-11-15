@@ -21,6 +21,7 @@ class Hentai:
 
     galleries: typing.ClassVar[list[dict]]=[]           # list of already downloaded galleries
     GALLERIES_FILEPATH: str="./config/galleries.json"   # path to file containing already downloaded galleries
+    galleries_modified: bool=False                      # has galleries been modified since last save?
 
 
     def __init__(self, nhentai_ID: int, cookies: dict[str, str], headers: dict[str, str]):
@@ -132,13 +133,11 @@ class Hentai:
             if str(gallery["id"]) in [str(gallery["id"]) for gallery in cls.galleries]: # if gallery already downloaded but adding to class variable requested: something went wrong
                 logging.critical(f"Gallery {nhentai_ID} has been requested to be added to galleries even though it would result in a duplicate entry.")
                 raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Gallery {nhentai_ID} has been requested to be added to galleries even though it would result in a duplicate entry.")
-            cls.galleries.append(gallery)
+            cls.galleries.append(gallery)                                               # append new gallery
+            cls.galleries=sorted(cls.galleries, key=lambda gallery: int(gallery["id"])) # sort galleries by ID
+            cls.galleries_modified=True                                                 # galleries have been modified, save during next save turn
             break
         logging.info(f"\rDownloaded gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\".")
-
-        cls.galleries=sorted(cls.galleries, key=lambda gallery: int(gallery["id"])) # sort galleries by ID
-        if nhentai_ID%10==0:                                                        # only save to file roughly every 10 galleries to save time
-            cls.save_galleries()
 
         return gallery
     
@@ -255,9 +254,15 @@ class Hentai:
         Saves galleries to file.
         """
 
+        if len(cls.galleries)==0 or cls.galleries_modified==False:  # don't save if nothing to save, might prevent overwriting galleries file with uninitialised galleries
+            return
+        
+
         logging.info(f"Saving galleries in \"{cls.GALLERIES_FILEPATH}\"...")
         with open(cls.GALLERIES_FILEPATH, "wt") as galleries_file:
             galleries_file.write(json.dumps(cls.galleries, indent=4))
         logging.info(f"\rSaved galleries in \"{cls.GALLERIES_FILEPATH}\".")
+        
+        cls.galleries_modified=False    # reset modified flag
 
         return
