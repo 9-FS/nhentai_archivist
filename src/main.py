@@ -62,6 +62,8 @@ def main():
     logging.info("--------------------------------------------------")
 
 
+    Hentai.save_galleries() # now save all galleries to file, might not have all saved yet because usually only save roughly every 10 galleries to file
+
     logging.info("Deleting leftover image directories...")
     for hentai_ID in hentai_ID_list:                                                                                            # attempt final cleanup
         if os.path.isdir(f"{settings['dest_path']}{hentai_ID}") and len(os.listdir(f"{settings['dest_path']}{hentai_ID}"))==0:  # if cache folder still exists and is empty:
