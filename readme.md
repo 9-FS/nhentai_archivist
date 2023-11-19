@@ -31,7 +31,7 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 1. Open the developer console with F12.
 1. Go to the tab "Storage". On the left side expand "Cookies". Click on "https://nhentai.net".
 1. Copy the cookie values into the `cookies.json`.
-1. Execute the program again. This will create a default `.config/headers.json`.
+1. Execute the program again. This will create a default `./config/headers.json`.
 1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
 1. In `./config/settings.json` set `dest_path` to the directory you want to download to. By default, it will download to `./hentai/`.
 
@@ -42,7 +42,7 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 1. Open the developer console with F12.
 1. Go to the tab "Application". On the left side under "Storage", expand "Cookies". Click on "https://nhentai.net".
 1. Copy the cookie values into the `cookies.json`.
-1. Execute the program again. This will create a default `.config/headers.json`.
+1. Execute the program again. This will create a default `./config/headers.json`.
 1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
 1. In `./config/settings.json` set `dest_path` to the directory you want to download to. By default, it will download to `./hentai/`.
 
