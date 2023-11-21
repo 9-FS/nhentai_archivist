@@ -11,7 +11,7 @@ from Hentai                           import Hentai
 
 
 @KFSlog.timeit
-def main():
+def main(DEBUG: bool):
     cleanup_success: bool=True                          # cleanup successful
     cookies: dict[str, str]                             # for requests.get to bypass bot protection
     COOKIES_DEFAULT: str=json.dumps({                   # cookies default
