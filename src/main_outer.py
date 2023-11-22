@@ -7,7 +7,7 @@ from main import main
 
 
 if __name__=="__main__":
-    DEBUG: bool=True   # debug mode?
+    DEBUG: bool=False   # debug mode?
 
 
     if DEBUG==True:
