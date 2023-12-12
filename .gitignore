@@ -10,7 +10,6 @@ log/
 
 config/cookies.json
 config/downloadme.txt
-config/galleries.json
 config/headers.json
 Dockerfile
 tests/test.py

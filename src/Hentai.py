@@ -16,17 +16,18 @@ import typing
 @dataclasses.dataclass
 class Hentai:
     """
-    represents an individual hentai
+    represents an individual hentai from nhentai.net
     """
 
-    galleries: typing.ClassVar[list[dict]]=[]           # list of already downloaded galleries
-    GALLERIES_FILEPATH: str="./config/galleries.json"   # path to file containing already downloaded galleries
-    galleries_modified: bool=False                      # has galleries been modified since last save?
+    galleries: typing.ClassVar[dict[int, list[dict]]]={}    # list of already downloaded galleries
+    galleries_modified: typing.ClassVar[dict[int, bool]]={} # has galleries been modified since last save?
+    GALLERIES_PATH: typing.ClassVar[str]="./config/"        # path to save galleries to
+    GALLERIES_SPLIT: typing.ClassVar[int]=100000            # split galleries into separate files every 100000 hentai
 
 
     def __init__(self, nhentai_ID: int, cookies: dict[str, str], headers: dict[str, str]):
         """
-        Constructs hentai object. Downloads data from the nhentai API.
+        Constructs a hentai object. Downloads data from the nhentai API.
 
         Arguments:
         - nhentai_ID: the hentai from nhentai.net found here: https://nhentai.net/g/{hentai_ID}
@@ -65,7 +66,7 @@ class Hentai:
     @classmethod
     def _get_gallery(cls, nhentai_ID: int, cookies: dict[str, str], headers: dict[str, str]) -> dict:
         """
-        Tries to load nhentai API gallery from class variable first, if unsuccessful from file, if unsuccesful again downloads from nhentai API.
+        Tries to load nhentai API gallery from class variable first, if unsuccessful from files, if unsuccesful again downloads from nhentai API.
 
         Arguments:
         - nhentai_ID: the hentai from nhentai.net found here: https://nhentai.net/g/{hentai_ID}
@@ -76,32 +77,33 @@ class Hentai:
         - gallery: gallery from nhentai API
 
         Raises:
-        - requests.HTTPError: Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{self.ID}\" failed multiple times.
-        - ValueError: Hentai with ID \"{self.ID}\" does not exist.
+        - requests.HTTPError: Downloading gallery from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" failed multiple times.
+        - ValueError: Hentai with ID \"{nhentai_ID}\" does not exist.
         """
 
-        gallery: dict                                                   # gallery to return
+        gallery: dict                                                                                                   # gallery to return
+        gallery_list_filepath: str=os.path.join(cls.GALLERIES_PATH, f"galleries{nhentai_ID//cls.GALLERIES_SPLIT}.json") # appropiate gallery filepath
         gallery_page: requests.Response
-        NHENTAI_GALLERY_API_URL: str="https://nhentai.net/api/gallery"  # URL to nhentai API
-        
-        
+        NHENTAI_GALLERY_API_URL: str="https://nhentai.net/api/gallery"                                                  # URL to nhentai API
+
+
         logging.info(f"Loading gallery {nhentai_ID}...")
-        if 0<len(cls.galleries):                                                                            # if class variable initialised: try to load from class variable
-            gallery=next((gallery for gallery in cls.galleries if str(gallery["id"])==str(nhentai_ID)), {}) # try to find gallery with same ID
-            if gallery!={}:                                                                                 # if gallery found: return
+        if nhentai_ID//cls.GALLERIES_SPLIT in cls.galleries:                                                                                    # if class variable has appropiate gallery list: try to load from class variable
+            gallery=next((gallery for gallery in cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT] if str(gallery["id"])==str(nhentai_ID)), {})    # try to find gallery with same ID in appropiate gallery list
+            if gallery!={}:                                                                                                                     # if gallery found: return
                 logging.info(f"\rLoaded gallery {nhentai_ID}.")
                 return gallery
         
-        elif os.path.isfile(cls.GALLERIES_FILEPATH)==True:                                                  # if class variable uninitialised and galleries file exists: try to load from file
-            with open(cls.GALLERIES_FILEPATH, "rt") as galleries_file:
+        elif os.path.isfile(gallery_list_filepath)==True:                                                                                       # if gallery could not be loaded from class variable and appropiate galleries file exists: try to load from file
+            with open(gallery_list_filepath, "rt") as galleries_file:
                 try:
-                    cls.galleries=json.loads(galleries_file.read())                                         # load already downloaded galleries, overwrite class variable
-                except ValueError as e:                                                                     # if file is corrupted:
-                    logging.critical(f"Parsing galleries from \"{cls.GALLERIES_FILEPATH}\" failed with {KFSfstr.full_class_name(e)}. Check your \"{cls.GALLERIES_FILEPATH}\" for errors.")
-                    raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Parsing galleries from \"{cls.GALLERIES_FILEPATH}\" failed with {KFSfstr.full_class_name(e)}. Check your \"{cls.GALLERIES_FILEPATH}\" for errors.") from e
-            gallery=next((gallery for gallery in cls.galleries if str(gallery["id"])==str(nhentai_ID)), {}) # try to find gallery with same ID
-            if gallery!={}:                                                                                 # if gallery found: return
-                logging.info(f"\rLoaded gallery {nhentai_ID} from \"{cls.GALLERIES_FILEPATH}\".")
+                    cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT]=json.loads(galleries_file.read())                                            # load already downloaded galleries, overwrite class variable
+                except ValueError as e:                                                                                                         # if file is corrupted:
+                    logging.critical(f"Parsing galleries from \"{gallery_list_filepath}\" failed with {KFSfstr.full_class_name(e)}. Check it for errors.")
+                    raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Parsing galleries from \"{cls.GALLERIES_PATH}\" failed with {KFSfstr.full_class_name(e)}. Check it for errors.") from e
+            gallery=next((gallery for gallery in cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT] if str(gallery["id"])==str(nhentai_ID)), {})    # try to find gallery with same ID
+            if gallery!={}:                                                                                                                     # if gallery found: return
+                logging.info(f"\rLoaded gallery {nhentai_ID} from \"{cls.GALLERIES_PATH}\".")
                 return gallery
         
 
@@ -130,12 +132,14 @@ class Hentai:
                     raise
 
             gallery=json.loads(gallery_page.text)
-            if str(gallery["id"]) in [str(gallery["id"]) for gallery in cls.galleries]: # if gallery already downloaded but adding to class variable requested: something went wrong
+            if nhentai_ID//cls.GALLERIES_SPLIT not in cls.galleries:                                                                                        # if gallery list not initialised yet:
+                cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT]=[]                                                                                           # initialise
+            if str(gallery["id"]) in [str(gallery["id"]) for gallery in cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT]]:                                    # if gallery already downloaded but adding to class variable requested: something went wrong
                 logging.critical(f"Gallery {nhentai_ID} has been requested to be added to galleries even though it would result in a duplicate entry.")
                 raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Gallery {nhentai_ID} has been requested to be added to galleries even though it would result in a duplicate entry.")
-            cls.galleries.append(gallery)                                               # append new gallery
-            cls.galleries=sorted(cls.galleries, key=lambda gallery: int(gallery["id"])) # sort galleries by ID
-            cls.galleries_modified=True                                                 # galleries have been modified, save during next save turn
+            cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT].append(gallery)                                                                                  # append new gallery
+            cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT]=sorted(cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT], key=lambda gallery: int(gallery["id"]))   # sort galleries by ID
+            cls.galleries_modified[nhentai_ID//cls.GALLERIES_SPLIT]=True                                                                                    # galleries have been modified, save during next save turn
             break
         logging.info(f"\rDownloaded gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\".")
 
@@ -169,9 +173,13 @@ class Hentai:
         return
     
 
-    def download(self, dest_path: str) -> bytes:
+    def download(self, library_path: str, library_split: int) -> bytes:
         """
-        Downloads the hentai, saves it at f"./{DEST_PATH}{self.ID} {self.title}.pdf", and also returns it in case needed.
+        Downloads the hentai and saves it as PDF at f"./{library_path}/", and also returns it in case needed. If library_split is set, library will be split into subdirectories of maximum library_split many hentai, set 0 to disable.
+
+        Arguments:
+        - library_path: path to download hentai to
+        - library_split: split library into subdirectories of maximum this many hentai, 0 to disable
 
         Returns:
         - PDF: finished PDF
@@ -203,13 +211,21 @@ class Hentai:
                 raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Can't generate page URL for {self} page {i+1}, because media type \"{page['t']}\" is unknown.")
 
             pages_URL.append(f"https://i{random.choice(['', '2', '3', '5', '7'])}.nhentai.net/galleries/{self._gallery['media_id']}/{i+1}{MEDIA_TYPES[page['t']]}") # URL, use random image server instance to distribute load
-            images_filepath.append(f"{dest_path}{self.ID}/{self.ID}-{i+1}{MEDIA_TYPES[page['t']]}")                                                                 # media filepath, but usually image filepath
+            images_filepath.append(os.path.join(library_path, str(self.ID), f"{self.ID}-{i+1}{MEDIA_TYPES[page['t']]}"))                                            # media filepath, but usually image filepath
 
         PDF_filepath=self.title
-        for c in TITLE_CHARACTERS_FORBIDDEN:                                                    # remove forbidden characters for filenames
+        for c in TITLE_CHARACTERS_FORBIDDEN:                                                                                                                                        # remove forbidden characters for filenames
             PDF_filepath=PDF_filepath.replace(c, "")
-        PDF_filepath=PDF_filepath[:140]                                                         # limit title length to 140 characters
-        PDF_filepath=f"{dest_path}{self.ID} {PDF_filepath}.pdf"
+        PDF_filepath=PDF_filepath[:140]                                                                                                                                             # limit title length to 140 characters
+        match library_split:
+            case 0:
+                PDF_filepath=os.path.join(library_path, f"{self.ID} {PDF_filepath}.pdf")                                                                                            # PDF filepath, splitting library into subdirectories disabled
+            case library_split if 0<library_split:
+                PDF_filepath=os.path.join(library_path, f"{self.ID//library_split*library_split}~{(self.ID//library_split+1)*library_split-1}", f"{self.ID} {PDF_filepath}.pdf")    # PDF filepath, but split library into subdirectories with maximum library_split hentai
+            case _:
+                logging.critical(f"library_split ({library_split}) must not be negative.")
+                raise RuntimeError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: library_split ({library_split}) must not be negative.")
+            
         if os.path.isfile(PDF_filepath)==True:                                                  # if PDF already exists: skip download
             logging.info(f"File \"{PDF_filepath}\" already exists. Skipped download.")
             self.PDF_filepath=PDF_filepath                                                      # save PDF filepath
@@ -239,11 +255,11 @@ class Hentai:
             raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Tried to download and convert hentai \"{self}\" several times, but failed. Giving up.")
 
     
-        if os.path.isdir(f"{dest_path}{self.ID}") and len(os.listdir(f"{dest_path}{self.ID}"))==0:  # if cache folder still exists and is empty:
+        if os.path.isdir(os.path.join(library_path, str(self.ID))) and len(os.listdir(os.path.join(library_path, str(self.ID))))==0:    # if cache folder still exists and is empty:
             try:
-                os.rmdir(f"{dest_path}{self.ID}")                                                   # try to clean up
-            except PermissionError:                                                                 # may fail if another process is still using directory like dropbox
-                pass                                                                                # don't warn because will be retried in main
+                os.rmdir(os.path.join(library_path, str(self.ID)))                                                                      # try to clean up
+            except PermissionError:                                                                                                     # may fail if another process is still using directory like dropbox
+                pass                                                                                                                    # don't warn because will be retried in main
 
         return PDF
     
@@ -254,15 +270,17 @@ class Hentai:
         Saves galleries to file.
         """
 
-        if len(cls.galleries)==0 or cls.galleries_modified==False:  # don't save if nothing to save, might prevent overwriting galleries file with uninitialised galleries
-            return
-        
+        for gallery_list_id, gallery_list in cls.galleries.items():
+            if cls.galleries_modified[gallery_list_id]==False:  # if gallery list not modified since last save: skip
+                continue
 
-        logging.info(f"Saving galleries in \"{cls.GALLERIES_FILEPATH}\"...")
-        with open(cls.GALLERIES_FILEPATH, "wt") as galleries_file:
-            galleries_file.write(json.dumps(cls.galleries, indent=4))
-        logging.info(f"\rSaved galleries in \"{cls.GALLERIES_FILEPATH}\".")
-        
-        cls.galleries_modified=False    # reset modified flag
+            gallery_list_filepath: str=os.path.join(cls.GALLERIES_PATH, f"galleries{gallery_list_id}.json") # appropiate gallery filepath
+            
+            logging.info(f"Saving galleries in \"{gallery_list_filepath}\"...")
+            with open(gallery_list_filepath, "wt") as galleries_file:
+                galleries_file.write(json.dumps(gallery_list, indent=4))
+            logging.info(f"\rSaved galleries in \"{gallery_list_filepath}\".")
+            
+            cls.galleries_modified[gallery_list_id]=False   # reset modified flag
 
         return
