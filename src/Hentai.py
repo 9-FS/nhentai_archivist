@@ -100,10 +100,10 @@ class Hentai:
                     cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT]=json.loads(galleries_file.read())                                            # load already downloaded galleries, overwrite class variable
                 except ValueError as e:                                                                                                         # if file is corrupted:
                     logging.critical(f"Parsing galleries from \"{gallery_list_filepath}\" failed with {KFSfstr.full_class_name(e)}. Check it for errors.")
-                    raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Parsing galleries from \"{cls.GALLERIES_PATH}\" failed with {KFSfstr.full_class_name(e)}. Check it for errors.") from e
+                    raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Parsing galleries from \"{gallery_list_filepath}\" failed with {KFSfstr.full_class_name(e)}. Check it for errors.") from e
             gallery=next((gallery for gallery in cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT] if str(gallery["id"])==str(nhentai_ID)), {})    # try to find gallery with same ID
             if gallery!={}:                                                                                                                     # if gallery found: return
-                logging.info(f"\rLoaded gallery {nhentai_ID} from \"{cls.GALLERIES_PATH}\".")
+                logging.info(f"\rLoaded gallery {nhentai_ID} from \"{gallery_list_filepath}\".")
                 return gallery
         
 

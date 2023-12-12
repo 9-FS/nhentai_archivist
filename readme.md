@@ -33,7 +33,8 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 1. Copy the cookie values into the `cookies.json`.
 1. Execute the program again. This will create a default `./config/headers.json`.
 1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
-1. In `./config/settings.json` set `dest_path` to the directory you want to download to. By default, it will download to `./hentai/`.
+1. In `./config/settings.json` set `library_path` to the directory you want to download to. By default, it will download to `./hentai/`.
+1. In `./config/settings.json` set `library_split` to the maximum number of hentai per sub-directory in your `library_path`. Set "0" if you want to disable splitting your library into sub-directories. It is disabled by default.
 
 ### 2.2. Google Chrome
 
@@ -44,7 +45,8 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 1. Copy the cookie values into the `cookies.json`.
 1. Execute the program again. This will create a default `./config/headers.json`.
 1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
-1. In `./config/settings.json` set `dest_path` to the directory you want to download to. By default, it will download to `./hentai/`.
+1. In `./config/settings.json` set `library_path` to the directory you want to download to. By default, it will download to `./hentai/`.
+1. In `./config/settings.json` set `library_split` to the maximum number of hentai per sub-directory in your `library_path`. Set "0" if you want to disable splitting your library into sub-directories. It is disabled by default.
 
 > :information_source:  
 > Setting cookies seems to be required daily nowadays.
