@@ -97,7 +97,8 @@ class Hentai:
         elif os.path.isfile(gallery_list_filepath)==True:                                                                                       # if gallery could not be loaded from class variable and appropiate galleries file exists: try to load from file
             with open(gallery_list_filepath, "rt") as galleries_file:
                 try:
-                    cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT]=json.loads(galleries_file.read())                                            # load already downloaded galleries, overwrite class variable
+                    cls.galleries[nhentai_ID//cls.GALLERIES_SPLIT]=json.loads(galleries_file.read())                                            # load already downloaded galleries, overwrite or create entry class variable
+                    cls.galleries_modified[nhentai_ID//cls.GALLERIES_SPLIT]=False                                                               # overwrite or create netry in modified variable, galleries have not been modified, don't save during next save turn
                 except ValueError as e:                                                                                                         # if file is corrupted:
                     logging.critical(f"Parsing galleries from \"{gallery_list_filepath}\" failed with {KFSfstr.full_class_name(e)}. Check it for errors.")
                     raise RuntimeError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Parsing galleries from \"{gallery_list_filepath}\" failed with {KFSfstr.full_class_name(e)}. Check it for errors.") from e
