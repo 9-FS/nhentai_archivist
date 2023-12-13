@@ -5,11 +5,9 @@
 
 .hypothesis/
 .pytest_cache/
+config/
 doc_templates/
 log/
 
-config/cookies.json
-config/downloadme.txt
-config/headers.json
 Dockerfile
 tests/test.py
