@@ -153,15 +153,15 @@ class Hentai:
         """
 
         PATTERNS: list[str]=[
-            r"^((?P<page_no>[0-9]+)\.[a-z]+)$",         # page URL pattern
-            r"^([0-9]+-(?P<page_no>[0-9]+)\.[a-z]+)$",  # image filepath pattern
+            r"^((.*?[/])?(?P<page_no>[0-9]+)\.[a-z]+)$",            # page URL pattern ending
+            r"^((.*?[/\\])?[0-9]+-(?P<page_no>[0-9]+)\.[a-z]+)$",   # image filepath pattern ending
         ]
         re_match: re.Match|None
 
 
         for image in image_list:                                                        # for each image:
             for pattern in PATTERNS:                                                    # with each pattern:
-                re_match=re.search(pattern, image.split("/")[-1])                       # try to parse page number, use only filename not path
+                re_match=re.search(pattern, image)                                      # try to parse page number
                 if re_match!=None:                                                      # if page number could be parsed:
                     self._fails[int(re_match.groupdict()["page_no"])-1]+=1              # increment appropiate fails counter
                     if 10<=self._fails[int(re_match.groupdict()["page_no"])-1]:         # if any counter 10 or above:
