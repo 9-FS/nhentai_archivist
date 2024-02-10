@@ -190,7 +190,7 @@ class Hentai:
         - Hentai.DownloadError:
             - \"{PDF_filepath}\" already exists as directory.
             - Can't generate page URL for {self} page {i+1}, because media type \"{page['t']}\" is unknown.
-            - Tried to download and convert hentai \"{self}\" several times, but failed.
+            - Tried to download and convert hentai {self} several times, but failed.
         """
 
         images_filepath: list[str]=[]                       # where to cache downloaded images
@@ -252,8 +252,8 @@ class Hentai:
                 self.PDF_filepath=PDF_filepath                                      # save PDF filepath
                 break                                                               # break out
         else:                                                                       # if giving up:
-            logging.error(f"Tried to download and convert hentai \"{self}\" several times, but failed. Giving up.")
-            raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Tried to download and convert hentai \"{self}\" several times, but failed. Giving up.")
+            logging.error(f"Tried to download and convert hentai {self} several times, but failed. Giving up.")
+            raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Tried to download and convert hentai {self} several times, but failed. Giving up.")
 
     
         if os.path.isdir(os.path.join(library_path, str(self.ID))) and len(os.listdir(os.path.join(library_path, str(self.ID))))==0:    # if cache folder still exists and is empty:
