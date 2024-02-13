@@ -142,13 +142,13 @@ files = [
 
 [[package]]
 name = "hypothesis"
-version = "6.98.3"
+version = "6.98.4"
 description = "A library for property-based testing"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "hypothesis-6.98.3-py3-none-any.whl", hash = "sha256:13fd80af383508f5a4707e0148120437d962d6a3ed8f5554b4daea5777a34fc6"},
-    {file = "hypothesis-6.98.3.tar.gz", hash = "sha256:1844d92ca65a42185e1d78956400455e644f88264e1611ebdc8d6aa71b402773"},
+    {file = "hypothesis-6.98.4-py3-none-any.whl", hash = "sha256:8417d1df13e7ba0eb6cba0917e0aa6c8b0b6b35a4e7fb78db6ab84dfbeb8c8fe"},
+    {file = "hypothesis-6.98.4.tar.gz", hash = "sha256:785f47ddac183c7ffef9463b5ab7f2e4433ca9b2b1171e52eeb3f8c5b1f09fa2"},
 ]
 
 [package.dependencies]
@@ -225,18 +225,18 @@ kfsmath = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "kfslog"
-version = "1.0.1"
+version = "1.1.1"
 description = ""
 optional = false
-python-versions = ">=3.11.0,<4.0.0"
+python-versions = ">=3.12.0,<4.0.0"
 files = [
-    {file = "kfslog-1.0.1-py3-none-any.whl", hash = "sha256:e9c5b59282c453cc9b38c251220281fba28fb955c0e9fadf920bb29c30bd6cd9"},
-    {file = "kfslog-1.0.1.tar.gz", hash = "sha256:db1237d6704d09e7adc7ec798df01a281fcc5282bc3b81104d87b9607a42f03f"},
+    {file = "kfslog-1.1.1-py3-none-any.whl", hash = "sha256:cbda83b3f0c782bf6888bae3171f6a0180e31523d9c667e37e6f4605b3e4946f"},
+    {file = "kfslog-1.1.1.tar.gz", hash = "sha256:0c465d95b1f262570a7ea6ce093eb8b4d088bbb6771e78e9795e3adc8d810efd"},
 ]
 
 [package.dependencies]
 colorama = ">=0.4.6,<0.5.0"
-KFSfstr = ">=1.0.0,<2.0.0"
+kfsfstr = ">=1.1.0,<2.0.0"
 
 [[package]]
 name = "kfsmath"
@@ -251,13 +251,13 @@ files = [
 
 [[package]]
 name = "kfsmedia"
-version = "2.4.0"
+version = "2.5.1"
 description = ""
 optional = false
-python-versions = ">=3.11.0,<4.0.0"
+python-versions = ">=3.12.0,<4.0.0"
 files = [
-    {file = "kfsmedia-2.4.0-py3-none-any.whl", hash = "sha256:9b19ab59a79db3edc4ef727ae5bfcc5cebb5fb901dac958eadca216f32665eaf"},
-    {file = "kfsmedia-2.4.0.tar.gz", hash = "sha256:9304fb78b16c7282ad512cef905b1a30c746f3440a106206b88408550294764a"},
+    {file = "kfsmedia-2.5.1-py3-none-any.whl", hash = "sha256:809da999805e8b29eec53c0880a2f4a16535a1b65c8f2b755d7217467025d0b4"},
+    {file = "kfsmedia-2.5.1.tar.gz", hash = "sha256:2d51173784b199cf87bef1d71ba354b821a72048c341ed086c60a82d6481cdd1"},
 ]
 
 [package.dependencies]
@@ -475,5 +475,5 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.11.0"
-content-hash = "dbc8fe90a48db723c8d3f68f3b87d64012e7658c63568cda123c057ad5567f57"
+python-versions = "^3.12.0"
+content-hash = "67872d4ced3ebb4865e952d600fb70f1b955c213c806c4fe4e335d992d026191"

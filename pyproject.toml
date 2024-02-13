@@ -5,18 +5,18 @@ license     = "MIT"
 name        = "x"                                                 # can't leave empty because of bug with `poetry install` from poetry.lock file
 readme      = "readme.md"
 repository  = "https://github.com/9-FS/2021-11-15-nHentai-to-PDF"
-version     = "2.0.4"
+version     = "2.1.0"
 
 [tool.poetry.dependencies]
 kfsconfig = "^1.0.0"
 kfsfstr   = "^1.0.0"
 kfslog    = "^1.0.0"
-kfsmedia  = "^2.4.0"
-python    = "^3.11.0"
+kfsmedia  = "^2.5.1"
+python    = "^3.12.0"
 
 [tool.poetry.group.dev.dependencies]
-hypothesis = "^6.87.0"
-pytest     = "^7.4.2"
+hypothesis = "^6.0.0"
+pytest     = "^7.0.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

@@ -1,4 +1,5 @@
 # Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
+import gc   # garbage collector, explicitly free memory
 import json
 from KFSconfig import KFSconfig
 from KFSfstr   import KFSfstr
@@ -63,6 +64,7 @@ def main(DEBUG: bool):
             with open("./log/FAILURES.txt", "at") as fails_file:                        # append in failure file
                 fails_file.write(f"{hentai.ID}\n")
             continue                                                                    # skip to next hentai
+        gc.collect()                                                                    # explicitly free memory, otherwise PDF may clutter memory
     logging.info("--------------------------------------------------")
 
 
@@ -74,7 +76,7 @@ def main(DEBUG: bool):
             try:
                 os.rmdir(os.path.join(settings["library_path"], str(hentai_ID)))                                                                                    # try to clean up
             except PermissionError as e:                                                                                                                            # may fail if another process is still using directory like dropbox
-                logging.warning(f"Deleting \"{os.path.join(settings['library_path'], str(hentai_ID))}/\" failed with {KFSfstr.full_class_name(e)}.")
+                logging.warning(f"Deleting \"{os.path.join(settings["library_path"], str(hentai_ID))}/\" failed with {KFSfstr.full_class_name(e)}.")
                 cleanup_success=False                                                                                                                               # cleanup unsuccessful
     if cleanup_success==True:
         logging.info("\rDeleted leftover image directories.")

@@ -37,7 +37,7 @@ def get_hentai_ID_list(downloadme_filepath: str) -> list[int]:
 
 def _convert_hentai_ID_list_str_to_hentai_ID_list_int(hentai_ID_list_str: list[str]) -> list[int]:
     """
-    Converts list of hentai ID from list[str] to list[int] cleans up entries.
+    Converts list of hentai ID from list[str] to list[int], cleans up entries. Does not sort to respect input order.
 
     Arguments:
     - hentai_ID_list_str: list of hentai ID in str to convert
@@ -57,7 +57,5 @@ def _convert_hentai_ID_list_str_to_hentai_ID_list_int(hentai_ID_list_str: list[s
             hentai_ID_list.append(int(hentai_ID))
         except ValueError:                                                                  # if input invalid: discard that, keep rest
             logging.error(f"Converting input \"{hentai_ID}\" to int failed. Skipping ID.")
-            
-    hentai_ID_list=sorted(hentai_ID_list)                                                   # sort numerically
 
     return hentai_ID_list

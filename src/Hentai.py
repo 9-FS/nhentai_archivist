@@ -1,9 +1,9 @@
 # Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
-import inspect
 import dataclasses
+import inspect
+import json
 from KFSfstr  import KFSfstr
 from KFSmedia import KFSmedia
-import json
 import logging
 import os
 import random
@@ -189,7 +189,7 @@ class Hentai:
         - FileExistsError: File \"{PDF_filepath}\" already exists.
         - Hentai.DownloadError:
             - \"{PDF_filepath}\" already exists as directory.
-            - Can't generate page URL for {self} page {i+1}, because media type \"{page['t']}\" is unknown.
+            - Can't generate page URL for {self} page {i+1}, because media type \"{page["t"]}\" is unknown.
             - Tried to download and convert hentai {self} several times, but failed.
         """
 
@@ -208,11 +208,11 @@ class Hentai:
 
         for i, page in enumerate(self._gallery["images"]["pages"]):
             if page["t"] not in MEDIA_TYPES.keys(): # if media type unknown:
-                logging.error(f"Can't generate page URL for {self} page {i+1}, because media type \"{page['t']}\" is unknown.")
-                raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Can't generate page URL for {self} page {i+1}, because media type \"{page['t']}\" is unknown.")
+                logging.error(f"Can't generate page URL for {self} page {i+1}, because media type \"{page["t"]}\" is unknown.")
+                raise KFSmedia.DownloadError(f"Error in {self.download.__name__}{inspect.signature(self.download)}: Can't generate page URL for {self} page {i+1}, because media type \"{page["t"]}\" is unknown.")
 
-            pages_URL.append(f"https://i{random.choice(['', '2', '3', '5', '7'])}.nhentai.net/galleries/{self._gallery['media_id']}/{i+1}{MEDIA_TYPES[page['t']]}") # URL, use random image server instance to distribute load
-            images_filepath.append(os.path.join(library_path, str(self.ID), f"{self.ID}-{i+1}{MEDIA_TYPES[page['t']]}"))                                            # media filepath, but usually image filepath
+            pages_URL.append(f"https://i{random.choice(["", "2", "3", "5", "7"])}.nhentai.net/galleries/{self._gallery["media_id"]}/{i+1}{MEDIA_TYPES[page["t"]]}") # URL, use random image server instance to distribute load
+            images_filepath.append(os.path.join(library_path, str(self.ID), f"{self.ID}-{i+1}{MEDIA_TYPES[page["t"]]}"))                                            # media filepath, but usually image filepath
 
         PDF_filepath=self.title
         for c in TITLE_CHARACTERS_FORBIDDEN:                                                                                                                                        # remove forbidden characters for filenames
