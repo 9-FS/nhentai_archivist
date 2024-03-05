@@ -57,13 +57,14 @@ def main(DEBUG: bool):
             logging.info(hentai)
 
         try:
-            hentai.download(settings["library_path"], int(settings["library_split"]))   # download hentai
+            _=hentai.download(settings["library_path"], int(settings["library_split"])) # download hentai
         except FileExistsError:                                                         # if hentai already exists:
             continue                                                                    # skip to next hentai
         except KFSmedia.DownloadError:
             with open("./log/FAILURES.txt", "at") as fails_file:                        # append in failure file
                 fails_file.write(f"{hentai.ID}\n")
             continue                                                                    # skip to next hentai
+        del _
         gc.collect()                                                                    # explicitly free memory, otherwise PDF may clutter memory
     logging.info("--------------------------------------------------")
 
