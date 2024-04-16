@@ -152,6 +152,7 @@ class Hentai:
         Takes list of filepaths that could not be downloaded or converted and increments appropiate failure counter.
         """
 
+        FAILS_MAX: int=5                                            # maximum amount of fails before giving up
         PATTERNS: list[str]=[
             r"^((.*?[/])?(?P<page_no>[0-9]+)\.[a-z]+)$",            # page URL pattern ending
             r"^((.*?[/\\])?[0-9]+-(?P<page_no>[0-9]+)\.[a-z]+)$",   # image filepath pattern ending
@@ -164,7 +165,7 @@ class Hentai:
                 re_match=re.search(pattern, image)                                      # try to parse page number
                 if re_match!=None:                                                      # if page number could be parsed:
                     self._fails[int(re_match.groupdict()["page_no"])-1]+=1              # increment appropiate fails counter
-                    if 10<=self._fails[int(re_match.groupdict()["page_no"])-1]:         # if any counter 10 or above:
+                    if FAILS_MAX<=self._fails[int(re_match.groupdict()["page_no"])-1]:  # if any counter at maximum fails:
                         self._give_up=True                                              # give hentai up
                     break
             else:                                                                       # if page number can't be parsed:

@@ -6,7 +6,7 @@ name         = ""
 package-mode = false                                               # this is an application, not library
 readme       = "readme.md"
 repository   = "https://github.com/9-FS/2021-11-15-nHentai-to-PDF"
-version      = "2.1.1"
+version      = "2.2.0"
 
 [tool.poetry.dependencies]
 kfsconfig = "^1.0.0"
