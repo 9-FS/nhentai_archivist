@@ -1,11 +1,12 @@
 [tool.poetry]
-authors     = ["9FS <pray4spam@googlemail.com>"]
-description = ""
-license     = "MIT"
-name        = "x"                                                 # can't leave empty because of bug with `poetry install` from poetry.lock file
-readme      = "readme.md"
-repository  = "https://github.com/9-FS/2021-11-15-nHentai-to-PDF"
-version     = "2.1.1"
+authors      = ["9FS <pray4spam@googlemail.com>"]
+description  = ""
+license      = "MIT"
+name         = ""
+package-mode = false                                               # this is an application, not library
+readme       = "readme.md"
+repository   = "https://github.com/9-FS/2021-11-15-nHentai-to-PDF"
+version      = "2.1.1"
 
 [tool.poetry.dependencies]
 kfsconfig = "^1.0.0"
