@@ -18,8 +18,8 @@ CMD poetry run python${PYTHON_VERSION} "./src/main_outer.py"
 
 # MANUAL BUILD:
 
-# build docker image, @L to lowercase
-# IMAGE_NAME="9-FS/2021-11-15-nHentai-to-PDF:latest" && docker build -t "${IMAGE_NAME@L}" --no-cache . && docker save "${IMAGE_NAME@L}" > "image.tar"
+# build docker image, save in tar, remove image so only tar remains, @L to lowercase
+# IMAGE_NAME="9-FS/2021-11-15-nHentai-to-PDF:latest" && docker build -t "${IMAGE_NAME@L}" --no-cache . && docker save "${IMAGE_NAME@L}" > "image.tar" && docker rmi "${IMAGE_NAME@L}"
 
 # on deployment environment load docker image from tar file
 # docker load < "/mnt/user/appdata/image.tar"
