@@ -7,8 +7,8 @@ from KFSlog    import KFSlog
 from KFSmedia  import KFSmedia
 import logging
 import os
-from get_hentai_ID_list               import get_hentai_ID_list
-from Hentai                           import Hentai
+from get_hentai_ID_list import get_hentai_ID_list
+from Hentai             import Hentai
 
 
 @KFSlog.timeit
