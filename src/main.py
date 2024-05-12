@@ -6,6 +6,7 @@ from KFSlog    import KFSlog
 from KFSmedia  import KFSmedia
 import logging
 import os
+import typing
 from get_hentai_ID_list import get_hentai_ID_list
 from Hentai             import Hentai
 
@@ -13,19 +14,19 @@ from Hentai             import Hentai
 @KFSlog.timeit()
 def main(DEBUG: bool):
     cleanup_success: bool=True                              # cleanup successful
-    config: dict[str, str]                                  # config
-    CONFIG_DEFAULT: dict[str, str]=\
+    config: dict[str, typing.Any]                           # config
+    CONFIG_DEFAULT: dict[str, typing.Any]=\
     {
         "DOWNLOADME_FILEPATH": "./config/downloadme.txt",   # path to file containing hentai ID to download
         "LIBRARY_PATH": "./hentai/",                        # path to download hentai to
-        "LIBRARY_SPLIT": "0",                               # split library into subdirectories of maximum this many hentai, 0 to disable
+        "LIBRARY_SPLIT": 0,                                 # split library into subdirectories of maximum this many hentai, 0 to disable
     }
     env: dict[str, str]                                     # environment variables
     ENV_DEFAULT: dict[str, str]=\
     {
         "CF_CLEARANCE": "",                                 # for requests.get to bypass bot protection
         "CSRFTOKEN": "",
-        "USER-AGENT": "",
+        "USER_AGENT": "",
     }
     hentai: Hentai                                          # individual hentai
     hentai_ID_list: list[int]                               # hentai ID to download
@@ -47,22 +48,22 @@ def main(DEBUG: bool):
             Hentai.save_galleries()
 
         try:
-            hentai=Hentai(hentai_ID, {"cf_clearance": env["CF_CLEARANCE"], "csrftoken": env["CSRFTOKEN"]}, {"User-Agent": env["USER-AGENT"]})   # create hentai object
+            hentai=Hentai(hentai_ID, {"cf_clearance": env["CF_CLEARANCE"], "csrftoken": env["CSRFTOKEN"]}, {"User-Agent": env["USER_AGENT"]})   # create hentai object
         except ValueError:                                                                                                                      # if hentai does not exist:
             continue                                                                                                                            # skip to next hentai
         else:
             logging.info(hentai)
 
         try:
-            _=hentai.download(config["LIBRARY_PATH"], int(config["LIBRARY_SPLIT"])) # download hentai
-        except FileExistsError:                                                     # if hentai already exists:
-            continue                                                                # skip to next hentai
+            _=hentai.download(config["LIBRARY_PATH"], config["LIBRARY_SPLIT"])  # download hentai
+        except FileExistsError:                                                 # if hentai already exists:
+            continue                                                            # skip to next hentai
         except KFSmedia.DownloadError:
-            with open("./log/FAILURES.txt", "at") as fails_file:                    # append in failure file
+            with open("./log/FAILURES.txt", "at") as fails_file:                # append in failure file
                 fails_file.write(f"{hentai.ID}\n")
-            continue                                                                # skip to next hentai
+            continue                                                            # skip to next hentai
         del _
-        gc.collect()                                                                # explicitly free memory, otherwise PDF may clutter memory
+        gc.collect()                                                            # explicitly free memory, otherwise PDF may clutter memory
     logging.info("--------------------------------------------------")
 
 

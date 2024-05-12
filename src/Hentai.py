@@ -120,8 +120,8 @@ class Hentai:
                 else:                                                       # if failed 3 times: give up
                     raise
             if gallery_page.status_code==403:                               # if status code 403 (forbidden): probably cookies and headers not set correctly
-                logging.critical(f"Downloading gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
-                raise requests.HTTPError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Downloading gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" resulted in status code {gallery_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?", response=gallery_page)
+                logging.critical(f"Downloading gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" resulted in status code {gallery_page.status_code}. Have you set cookies and headers correctly?")
+                raise requests.HTTPError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Downloading gallery {nhentai_ID} from \"{NHENTAI_GALLERY_API_URL}/{nhentai_ID}\" resulted in status code {gallery_page.status_code}. Have you set cookies and headers correctly?", response=gallery_page)
             if gallery_page.status_code==404:                               # if status code 404 (not found): hentai does not exist (anymore?)
                 logging.error(f"Hentai with ID \"{nhentai_ID}\" does not exist.")
                 raise ValueError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Hentai with ID \"{nhentai_ID}\" does not exist.")
