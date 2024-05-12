@@ -26,27 +26,27 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 ## 2. How to Set Up
 ### 2.1. Firefox
 
-1. Execute the program once. This will create a default `./config/cookies.json`.
-1. Go to https://nhentai.net/. Clear the cloudflare prompt.
-1. Open the developer console with F12.
-1. Go to the tab "Storage". On the left side expand "Cookies". Click on "https://nhentai.net".
-1. Copy the cookie values into the `cookies.json`.
-1. Execute the program again. This will create a default `./config/headers.json`.
-1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
-1. In `./config/settings.json` set `library_path` to the directory you want to download to. By default, it will download to `./hentai/`.
-1. In `./config/settings.json` set `library_split` if you want to split your library into sub-directories. The number specifies the maximum number of hentai to allow per sub-directory. Set "0" if you want to disable splitting your library into sub-directories. It is disabled by default and only recommended if the number of hentai in 1 directory starts to affect file explorer performance. This _should_ not affect you if you have 10.000 files or less in 1 directory.
+1. Execute the program once. This will create a default `./config/config.json`.
+   1. Set `library_path` to the directory you want to download to. By default, it will download to `./hentai/`.
+   1. Set `library_split` if you want to split your library into sub-directories. The number specifies the maximum number of hentai to allow per sub-directory. Set "0" if you want to disable splitting your library into sub-directories. It is disabled by default and only recommended if the number of hentai in 1 directory starts to affect file explorer performance. This _should_ not affect you if you have 10.000 files or less in 1 directory.
+1. Execute the program again. This will create a default `./.env`.
+   1. Go to https://nhentai.net/. Clear the cloudflare prompt.
+   1. Open the developer console with F12.
+   1. Go to the tab "Storage". On the left side expand "Cookies". Click on "https://nhentai.net".
+   1. Copy the cookie values into the `./.env`.
+   1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `./.env`.
 
 ### 2.2. Google Chrome
 
-1. Execute the program once. This will create a default `./config/cookies.json`.
-1. Go to https://nhentai.net/. Clear the cloudflare prompt.
-1. Open the developer console with F12.
-1. Go to the tab "Application". On the left side under "Storage", expand "Cookies". Click on "https://nhentai.net".
-1. Copy the cookie values into the `cookies.json`.
-1. Execute the program again. This will create a default `./config/headers.json`.
-1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
-1. In `./config/settings.json` set `library_path` to the directory you want to download to. By default, it will download to `./hentai/`.
-1. In `./config/settings.json` set `library_split` if you want to split your library into sub-directories. The number specifies the maximum number of hentai to allow per sub-directory. Set "0" if you want to disable splitting your library into sub-directories. It is disabled by default and only recommended if the number of hentai in 1 directory starts to affect file explorer performance. This _should_ not affect you if you have 10.000 files or less in 1 directory.
+1. Execute the program once. This will create a default `./config/config.json`.
+   1. Set `library_path` to the directory you want to download to. By default, it will download to `./hentai/`.
+   1. Set `library_split` if you want to split your library into sub-directories. The number specifies the maximum number of hentai to allow per sub-directory. Set "0" if you want to disable splitting your library into sub-directories. It is disabled by default and only recommended if the number of hentai in 1 directory starts to affect file explorer performance. This _should_ not affect you if you have 10.000 files or less in 1 directory.
+1. Execute the program again. This will create a default `./.env`.
+   1. Go to https://nhentai.net/. Clear the cloudflare prompt.
+   1. Open the developer console with F12.
+   1. Go to the tab "Application". On the left side under "Storage", expand "Cookies". Click on "https://nhentai.net".
+   1. Copy the cookie values into the `./.env`.
+   1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `./.env`.
 
 > :information_source:  
 > Setting cookies seems to be required daily nowadays.
