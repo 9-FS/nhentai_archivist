@@ -3,9 +3,9 @@ authors      = ["9FS <pray4spam@googlemail.com>"]
 description  = ""
 license      = "MIT"
 name         = ""
-package-mode = false                                               # this is an application, not library
-readme       = "readme.md"
-repository   = "https://github.com/9-FS/2021-11-15-nHentai-to-PDF"
+package-mode = false                                    # this is an application, not library
+readme       = "readme.typ"
+repository   = "https://github.com/9-FS/nhentai_to_pdf"
 version      = "2.3.1"
 
 [tool.poetry.dependencies]
