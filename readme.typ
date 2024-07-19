@@ -1,17 +1,18 @@
 #import "@preview/wrap-it:0.1.0": wrap-content  // https://github.com/ntjess/wrap-it/blob/main/docs/manual.pdf
-#import "./doc_templates/src/style.typ": set_style
 #import "./doc_templates/src/note.typ": *
+#import "./doc_templates/src/style.typ": set_style
 
 
 #show: doc => set_style(
-    topic: "nHentai to PDF",
+    topic: "nhentai_to_pdf",
     author: "구FS",
     language: "EN",
     doc
 )
+#set text(size: 3.5mm)
 
 
-#align(center, text(size: 8mm, weight: "bold")[nHentai to PDF])
+#align(center, text(size: 2em, weight: "bold")[nhentai_to_pdf])
 #line(length: 100%, stroke: 0.3mm)
 \
 \
