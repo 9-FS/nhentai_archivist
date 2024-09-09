@@ -1,24 +1,25 @@
 version: "3"
 
 services:
-	2021-11-15-nhentai-to-pdf:
-        container_name: "2021-11-15-nHentai-to-PDF"
-        image: "9-fs/2021-11-15-nhentai-to-pdf:latest"
+    nhentai_archivist:
+        container_name: "nhentai_archivist"
+        image: "9-fs/nhentai_archivist:latest"
         environment:
             HOST_OS: "Unraid"
+            PGID: 100
+            PUID: 99
             TZ: "UTC"
-            CF_CLEARANCE: ""
-            CSRFTOKEN: ""
-            USER_AGENT: ""
+            UMASK: 000
         volumes:
-            - "/mnt/user/appdata/2021-11-15-nhentai-to-pdf/config/:/app/config/:rw"
-            - "/mnt/user/appdata/2021-11-15-nhentai-to-pdf/log/:/app/log/:rw"
+            - "/mnt/user/appdata/nhentai_archivist/config/:/app/config/:rw"
+            - "/mnt/user/appdata/nhentai_archivist/db/:/app/db/:rw"
+            - "/mnt/user/appdata/nhentai_archivist/log/:/app/log/:rw"
             - "/mnt/user/media/hentai/:/app/hentai/:rw"
         network_mode: "bridge"
         deploy:
             resources:
-            limits:
-                memory: "20G"
+                limits:
+                    memory: "1G"
         user: "99:100"
 
 networks: {}

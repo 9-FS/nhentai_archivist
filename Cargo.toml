@@ -1,0 +1,36 @@
+[package]
+authors     = ["9-FS <pray4spam@googlemail.com>"]
+categories  = []
+description = ""
+edition     = "2021"
+exclude     = [".github/", "readme.pdf"]                  # additional to .gitignore
+keywords    = []
+license     = "MIT"
+name        = "nhentai_archivist"
+readme      = "readme.md"
+repository  = "https://github.com/9-FS/nhentai_archivist"
+version     = "3.0.0"
+
+[dependencies]
+chrono = { version = "^0.4.0", features = ["serde"] }
+load_config = { git = "https://github.com/9-FS/load_config", tag = "1.0.0", features = [
+    "toml_file",
+] }
+log = "^0.4.0"
+openssl = { version = "^0.10.0", features = [
+    "vendored",
+] } # because otherwise some wild fuckywuckys during cross compilation
+reqwest = { version = "^0.12.0", features = ["cookies"] }
+scaler = "^1.0.0"
+serde = { version = "^1.0.0", features = ["derive"] }
+serde-xml-rs = "^0.6.0"
+serde_json = "^1.0.0"
+setup_logging = { git = "https://github.com/9-FS/setup_logging", tag = "2.1.0" }
+sqlx = { version = "^0.8.0", features = [
+    "chrono",
+    "runtime-tokio-rustls",
+    "sqlite",
+] }
+thiserror = "^1.0.0"
+tokio = { version = "^1.0.0", features = ["rt-multi-thread"] }
+zip = "^2.0.0"

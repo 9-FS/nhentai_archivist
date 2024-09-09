@@ -1,0 +1,34 @@
+entity "Hentai"
+{
+    + <u>id: u32</u>
+    + cover_type: String
+    + media_id: u32
+    + num_favorites: u32
+    + num_pages: u16
+    + page_types: String
+    + scanlator: Option<String>
+    + title_english: Option<String>
+    + title_japanese: Option<String>
+    + title_pretty: Option<String>
+    + upload_date: chrono::DateTime<chrono::Utc>
+}
+
+
+entity "Tag"
+{
+    + <u>id: u32</u>
+    + name: String
+    + type: String
+    + url: String
+}
+
+
+entity "Hentai_Tag"
+{
+    - <u>hentai_id: u32</u>
+    - <u>tag_id: u32</u>
+}
+
+
+"Hentai" <-- "Hentai_Tag"
+"Tag" <-- "Hentai_Tag"

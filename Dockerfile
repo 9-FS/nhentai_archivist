@@ -1,25 +1,20 @@
-ARG PYTHON_VERSION="3.12"
-FROM python:$PYTHON_VERSION
+ARG RUST_VERSION="1.80"
 
-ENV PYTHON_VERSION="3.12"
-
-
+FROM rust:$RUST_VERSION as builder
 WORKDIR "/app/"
-COPY . .
+COPY "." "."
+RUN cargo build --release
 
-RUN python${PYTHON_VERSION} -m pip install poetry
-RUN poetry config virtualenvs.in-project true
-RUN poetry config repositories.test-pypi "https://test.pypi.org/legacy/"
-RUN poetry install
-
-
-CMD poetry run python${PYTHON_VERSION} "./src/main_outer.py"
+FROM gcr.io/distroless/cc
+WORKDIR "/app/"
+COPY --from=builder "/app/target/release/nhentai_archivist" "."
+CMD ["./nhentai_archivist"]
 
 
 # MANUAL BUILD:
 
 # build docker image, save in tar, remove image so only tar remains, @L to lowercase
-# IMAGE_NAME="9-FS/2021-11-15-nHentai-to-PDF:latest" && docker build -t "${IMAGE_NAME@L}" --no-cache . && docker save "${IMAGE_NAME@L}" > "image.tar" && docker rmi "${IMAGE_NAME@L}"
+# IMAGE_NAME="9-FS/nhentai_archivist:latest" && docker build -t "${IMAGE_NAME@L}" --no-cache . && docker save "${IMAGE_NAME@L}" > "docker-image.tar" && docker rmi "${IMAGE_NAME@L}"
 
 # on deployment environment load docker image from tar file
-# docker load < "/mnt/user/appdata/image.tar"
+# docker load < "/mnt/user/appdata/docker-image.tar"
