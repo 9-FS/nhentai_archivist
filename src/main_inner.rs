@@ -10,7 +10,7 @@ pub async fn main_inner(config: Config) -> Result<()>
 {
     const NHENTAI_HENTAI_SEARCH_URL: &str="https://nhentai.net/api/gallery/"; // nhentai search by id api url
     const NHENTAI_TAG_SEARCH_URL: &str="https://nhentai.net/api/galleries/search"; // nhentai search by tag api url
-    let db: sqlx::sqlite::SqlitePool; // database containing all metadata from nhentai.net api
+    let mut db: sqlx::sqlite::SqlitePool; // database containing all metadata from nhentai.net api
     let f0 = scaler::Formatter::new()
         .set_scaling(scaler::Scaling::None)
         .set_rounding(scaler::Rounding::Magnitude(0)); // formatter
@@ -22,8 +22,6 @@ pub async fn main_inner(config: Config) -> Result<()>
     let http_client: reqwest::Client; // http client
     let timeout: std::time::Duration = std::time::Duration::from_secs(30); // connection timeout
 
-
-    db = connect_to_db(&config.DATABASE_URL).await?; // connect to database
 
     {
         let mut headers: reqwest::header::HeaderMap = reqwest::header::HeaderMap::new(); // headers
@@ -59,6 +57,7 @@ pub async fn main_inner(config: Config) -> Result<()>
 
     loop // keep running for server mode
     {
+        db = connect_to_db(&config.DATABASE_URL).await?; // connect to database
         hentai_id_list = get_hentai_id_list
         (
             std::path::Path::new(config.DOWNLOADME_FILEPATH.as_str()),
@@ -117,6 +116,7 @@ pub async fn main_inner(config: Config) -> Result<()>
         {
             log::error!("Deleting \"{}\" failed with: {e}", config.DOWNLOADME_FILEPATH);
         }
+        db.close().await; // close database connection
 
         log::info!("Sleeping for {}s...", f4.format(config.SLEEP_INTERVAL.unwrap_or_default() as f64));
         tokio::time::sleep(std::time::Duration::from_secs(config.SLEEP_INTERVAL.unwrap_or_default())).await; // if in server mode: sleep for interval until next check

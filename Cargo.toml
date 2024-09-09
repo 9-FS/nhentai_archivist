@@ -9,7 +9,7 @@ license     = "MIT"
 name        = "nhentai_archivist"
 readme      = "readme.md"
 repository  = "https://github.com/9-FS/nhentai_archivist"
-version     = "3.0.0"
+version     = "3.0.1"
 
 [dependencies]
 chrono = { version = "^0.4.0", features = ["serde"] }

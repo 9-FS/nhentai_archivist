@@ -54,11 +54,12 @@ pub async fn connect_to_db(database_url: &str) -> Result<sqlx::sqlite::SqlitePoo
 
         db = sqlx::sqlite::SqlitePoolOptions::new()
             .max_connections(1) // only 1 connection to database at the same time, otherwise concurrent writers fail
+            .max_lifetime(None) // keep connection open indefinitely otherwise database locks up after lifetime, closing and reconnecting manually
             .connect(database_url).await?; // connect to database
         db.set_connect_options(sqlx::sqlite::SqliteConnectOptions::new()
             .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal) // use write-ahead journal for better performance
             .locking_mode(sqlx::sqlite::SqliteLockingMode::Exclusive) // do not release file lock until all transactions are complete
-            .synchronous(sqlx::sqlite::SqliteSynchronous::Normal));
+            .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)); // ensure data is written to disk after each transaction for consistent state
         log::info!("Connected to database at \"{}\".", database_url);
 
         sqlx::query(CREATE_DB_QUERY_STRING).execute(&db).await?; // initialise database by creating tables
@@ -68,11 +69,12 @@ pub async fn connect_to_db(database_url: &str) -> Result<sqlx::sqlite::SqlitePoo
     {
         db = sqlx::sqlite::SqlitePoolOptions::new()
             .max_connections(1) // only 1 connection to database at the same time, otherwise concurrent writers fail
+            .max_lifetime(None) // keep connection open indefinitely otherwise database locks up after lifetime, closing and reconnecting manually
             .connect(database_url).await?; // connect to database
         db.set_connect_options(sqlx::sqlite::SqliteConnectOptions::new()
             .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal) // use write-ahead journal for better performance
             .locking_mode(sqlx::sqlite::SqliteLockingMode::Exclusive) // do not release file lock until all transactions are complete
-            .synchronous(sqlx::sqlite::SqliteSynchronous::Normal));
+            .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)); // ensure data is written to disk after each transaction for consistent state
         log::info!("Connected to database at \"{}\".", database_url);
     }
 
