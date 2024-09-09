@@ -30,8 +30,8 @@ I'm happy about anyone who finds my software useful and feedback is also always 
     1. Copy the cookie values into `./config/.env`.
     1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `./config/.env`.
 
-    > [!NOTE]
-    > If nhentai has "under attack" mode enabled, setting `CF_CLEARANCE` seems to be required daily.
+> [!NOTE]
+> If nhentai has "under attack" mode enabled, setting `CF_CLEARANCE` seems to be required daily.
 
 Further settings:
 
@@ -56,17 +56,15 @@ Further settings:
 
     Setting this to a value other than 0 splits the library at `LIBRARY_PATH` into sub-directories with a maximum number of `LIBRARY_SPLIT` hentai allowed per sub-directory. It is recommended if the number of hentai in 1 directory starts to affect file explorer performance. This _should_ not affect you if you plan to keep less than 10.000 files in your `LIBRARY_PATH` directory, otherwise the recommended setting is "LIBRARY_SPLIT = 10000".
 
-
-
 ## Usage
 ### Download a Few Quickly
 
-1. Run the program as is. Do not specifiy `NHENTAI_TAG`, and make sure there is no file at `DOWNLOADME_FILEPATH`.
+1. Run the program as is. Do not set `NHENTAI_TAG` and make sure there is no file at `DOWNLOADME_FILEPATH`.
 1. Enter the nhentai id you want to download separated by spaces.
 
 ### Download a Bit More From a File
 
-1. Do not specifiy `NHENTAI_TAG`.
+1. Do not set `NHENTAI_TAG`.
 1. Create a file at `DOWNLOADME_FILEPATH` and enter the nhentai id you want to download separated by linebreaks.
 
 ### Ich mein's ernst: Keeping a Self-Hosted Library Up-to-Date
