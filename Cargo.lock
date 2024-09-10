@@ -1128,7 +1128,7 @@ dependencies = [
 
 [[package]]
 name = "nhentai_archivist"
-version = "3.0.1"
+version = "3.0.2"
 dependencies = [
  "chrono",
  "load_config",
@@ -1142,6 +1142,7 @@ dependencies = [
  "sqlx",
  "thiserror",
  "tokio",
+ "unicode-segmentation",
  "zip",
 ]
 
@@ -1641,9 +1642,9 @@ checksum = "fc0a2ce646f8655401bb81e7927b812614bd5d91dbc968696be50603510fcaf0"
 
 [[package]]
 name = "rustls-webpki"
-version = "0.102.7"
+version = "0.102.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84678086bd54edf2b415183ed7a94d0efb049f1b646a33e22a36f3794be6ae56"
+checksum = "64ca1bc8749bd4cf37b5ce386cc146580777b4e8572c7b97baf22c83f444bee9"
 dependencies = [
  "ring",
  "rustls-pki-types",

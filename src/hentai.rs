@@ -11,6 +11,7 @@ use std::os::unix::fs::OpenOptionsExt;
 use std::os::unix::fs::PermissionsExt;
 use std::str::FromStr;
 use tokio::io::AsyncWriteExt;
+use unicode_segmentation::UnicodeSegmentation;
 
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -49,6 +50,7 @@ impl Hentai
     /// - created hentai or error
     pub async fn new(id: u32, db: &sqlx::sqlite::SqlitePool, http_client: &reqwest::Client, nhentai_hentai_search_url: &str, library_path: &str, library_split: u32) -> Result<Self>
     {
+        const FILENAME_SIZE_MAX: u16 = 255; // maximum filename size [B]
         const TITLE_CHARACTERS_FORBIDDEN: &str = "\\/:*?\"<>|\t\n"; // forbidden characters in Windows file names
         let mut cbz_filepath: String;
         let hentai_table_row: HentaiTableRow;
@@ -89,20 +91,30 @@ impl Hentai
 
         cbz_filepath = hentai_table_row.title_english.clone().unwrap_or_default();
         cbz_filepath.retain(|c| !TITLE_CHARACTERS_FORBIDDEN.contains(c)); // remove forbidden characters
+        if FILENAME_SIZE_MAX - 12 < cbz_filepath.len() as u16 // if title size problematic
+        {
+            let mut byte_count: u16 = 0;
+            cbz_filepath = cbz_filepath
+                .graphemes(true) // iterate over graphemes
+                .take_while (|&g| // only add grapheme if it wouldn't bust limit
+                {
+                    byte_count += g.len() as u16;
+                    byte_count <= FILENAME_SIZE_MAX - 12
+                }) // limit title to 243 B so filename does not exceed 255 B
+                .collect();
+        }
         if library_split == 0 // no library split
         {
-            cbz_filepath = format!("{}{id} {}.cbz", library_path.to_owned(), cbz_filepath);
+            cbz_filepath = format!("{}{id} {cbz_filepath}.cbz", library_path.to_owned());
         }
         if 0 < library_split // with library split
         {
             cbz_filepath = format!
             (
-                "{}{}~{}/{} {}.cbz",
+                "{}{}~{}/{id} {cbz_filepath}.cbz",
                 library_path.to_owned(),
                 id.div_euclid(library_split) * library_split,
                 (id.div_euclid(library_split) + 1) * library_split - 1,
-                id,
-                cbz_filepath
             );
         }
 
@@ -169,7 +181,7 @@ impl Hentai
                 let f_clone: scaler::Formatter = f.clone();
                 let http_client_clone: reqwest::Client = http_client.clone();
                 let id_clone: u32 = self.id;
-                let image_filepath: String = format!("{}{}/{}.", self.library_path, self.id, self.images_filename.get(i).expect("Index out of bounds even though should have same size as images_url."));
+                let image_filepath: String = format!("{}{}/{}", self.library_path, self.id, self.images_filename.get(i).expect("Index out of bounds even though should have same size as images_url."));
                 let image_url_clone: String = self.images_url.get(i).expect("Index out of bounds even though checked before that it fits.").clone();
                 let num_pages_clone: u16 = self.num_pages;
 
@@ -252,7 +264,7 @@ impl Hentai
         for (i, image_filename) in self.images_filename.iter().enumerate() // load images into zip
         {
             let mut image: Vec<u8> = Vec::new();
-            std::fs::File::open(format!("{}{}/{image_filename}.", self.library_path, self.id))?.read_to_end(&mut image)?; // open image file, read image into memory
+            std::fs::File::open(format!("{}{}/{image_filename}", self.library_path, self.id))?.read_to_end(&mut image)?; // open image file, read image into memory
             zip_writer.start_file(image_filename, zip::write::SimpleFileOptions::default().unix_permissions(0o666))?; // create image file in zip with permissions "rw-rw-rw-"
             zip_writer.write_all(&image)?; // write image into zip
             log::debug!("Saved hentai {} image {} / {} in cbz.", self.id, f.format((i+1) as f64), f.format(self.num_pages));

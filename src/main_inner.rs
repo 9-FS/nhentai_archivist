@@ -75,6 +75,13 @@ pub async fn main_inner(config: Config) -> Result<()>
             let hentai: Hentai; // hentai to download
 
 
+            if (i + 1).rem_euclid(1000) == 0 // reconnect to database every 1000 downloads to free up resources
+            {
+                db.close().await; // close database connection
+                log::info!("Disconnected from database at \"{}\".", config.DATABASE_URL);
+                db = connect_to_db(&config.DATABASE_URL).await?; // reconnect to database
+            }
+
             match Hentai::new(*hentai_id, &db, &http_client, NHENTAI_HENTAI_SEARCH_URL, &config.LIBRARY_PATH, config.LIBRARY_SPLIT).await
             {
                 Ok(o) => hentai = o, // hentai created successfully
@@ -92,7 +99,6 @@ pub async fn main_inner(config: Config) -> Result<()>
                     continue; // skip download
                 }
             }
-
 
             if let Err(e) = hentai.download(&http_client).await
             {
@@ -117,6 +123,7 @@ pub async fn main_inner(config: Config) -> Result<()>
             log::error!("Deleting \"{}\" failed with: {e}", config.DOWNLOADME_FILEPATH);
         }
         db.close().await; // close database connection
+        log::info!("Disconnected from database at \"{}\".", config.DATABASE_URL);
 
         log::info!("Sleeping for {}s...", f4.format(config.SLEEP_INTERVAL.unwrap_or_default() as f64));
         tokio::time::sleep(std::time::Duration::from_secs(config.SLEEP_INTERVAL.unwrap_or_default())).await; // if in server mode: sleep for interval until next check
