@@ -18,11 +18,12 @@ use unicode_segmentation::UnicodeSegmentation;
 pub struct Hentai
 {
     pub id: u32, // nhentai.net hentai id
-    pub cbz_filepath: String, // filepath to final cbz
+    pub cbz_filename: String, // filename of temporary and final cbz
     pub gallery_url: String, // nhentai.net gallery url
     pub images_filename: Vec<String>, // filenames of images, not filepath because needed at temporary image location and final zip location
     pub images_url: Vec<String>, // urls to images to download
     pub library_path: String, // path to local hentai library, relevant to generate filepaths of temporary images
+    pub library_split: u32, // split library into subdirectories with maximum this number of hentai, 0 for no split
     pub num_pages: u16,
     pub scanlator: Option<String>,
     pub tags: Vec<Tag>, // tags from Tag table, must be broken up by type
@@ -52,7 +53,7 @@ impl Hentai
     {
         const FILENAME_SIZE_MAX: u16 = 255; // maximum filename size [B]
         const TITLE_CHARACTERS_FORBIDDEN: &str = "\\/:*?\"<>|\t\n"; // forbidden characters in Windows file names
-        let mut cbz_filepath: String;
+        let mut cbz_filename: String;
         let hentai_table_row: HentaiTableRow;
         let mut images_filename: Vec<String> = Vec::new();
         let mut images_url: Vec<String> = Vec::new();
@@ -89,12 +90,12 @@ impl Hentai
             return Err(Error::HentaiLengthInconsistency {page_types: hentai_table_row.page_types.len() as u16, num_pages: hentai_table_row.num_pages});
         }
 
-        cbz_filepath = hentai_table_row.title_english.clone().unwrap_or_default();
-        cbz_filepath.retain(|c| !TITLE_CHARACTERS_FORBIDDEN.contains(c)); // remove forbidden characters
-        if FILENAME_SIZE_MAX - 12 < cbz_filepath.len() as u16 // if title size problematic
+        cbz_filename = hentai_table_row.title_english.clone().unwrap_or_default();
+        cbz_filename.retain(|c| !TITLE_CHARACTERS_FORBIDDEN.contains(c)); // remove forbidden characters
+        if FILENAME_SIZE_MAX - 12 < cbz_filename.len() as u16 // if title size problematic
         {
             let mut byte_count: u16 = 0;
-            cbz_filepath = cbz_filepath
+            cbz_filename = cbz_filename
                 .graphemes(true) // iterate over graphemes
                 .take_while (|&g| // only add grapheme if it wouldn't bust limit
                 {
@@ -103,29 +104,17 @@ impl Hentai
                 }) // limit title to 243 B so filename does not exceed 255 B
                 .collect();
         }
-        if library_split == 0 // no library split
-        {
-            cbz_filepath = format!("{}{id} {cbz_filepath}.cbz", library_path.to_owned());
-        }
-        if 0 < library_split // with library split
-        {
-            cbz_filepath = format!
-            (
-                "{}{}~{}/{id} {cbz_filepath}.cbz",
-                library_path.to_owned(),
-                id.div_euclid(library_split) * library_split,
-                (id.div_euclid(library_split) + 1) * library_split - 1,
-            );
-        }
+        cbz_filename = format!("{id} {cbz_filename}.cbz"); // prepend id, append extension
 
         return Ok(Self
         {
             id,
-            cbz_filepath,
+            cbz_filename,
             gallery_url: format!("https://nhentai.net/g/{id}/"),
             images_filename,
             images_url,
             library_path: library_path.to_owned(),
+            library_split,
             num_pages: hentai_table_row.num_pages,
             scanlator: hentai_table_row.scanlator,
             tags,
@@ -147,6 +136,8 @@ impl Hentai
     pub async fn download(&self, http_client: &reqwest::Client) -> Result<()>
     {
         const WORKERS: usize = 5; // number of parallel workers
+        let cbz_final_filepath: String; //filepath to final cbz in library
+        let cbz_temp_filepath: String = format!("{}{}/{}", self.library_path, self.id, self.cbz_filename); //filepath to temporary cbz, cbz is created here and when finished moved to final location, roundabout way over temporary cbz filepath in case program gets stopped while creating cbz, so no half finished cbz remains in library
         let f = scaler::Formatter::new()
             .set_scaling(scaler::Scaling::None)
             .set_rounding(scaler::Rounding::Magnitude(0)); // formatter
@@ -156,17 +147,33 @@ impl Hentai
         let mut zip_writer: zip::ZipWriter<std::fs::File>; // write to zip file
 
 
-        if let Ok(o) = tokio::fs::metadata(self.cbz_filepath.as_str()).await
+        if self.library_split == 0 // no library split
         {
-            if o.is_file() // if cbz already exists
+            cbz_final_filepath = format!("{}{}", self.library_path, self.cbz_filename);
+        }
+        else // with library split
+        {
+            cbz_final_filepath = format!
+            (
+                "{}{}~{}/{}",
+                self.library_path.to_owned(),
+                self.id.div_euclid(self.library_split) * self.library_split,
+                (self.id.div_euclid(self.library_split) + 1) * self.library_split - 1,
+                self.cbz_filename,
+            );
+        }
+
+        if let Ok(o) = tokio::fs::metadata(cbz_final_filepath.as_str()).await
+        {
+            if o.is_file() // if final cbz already exists
             {
                 log::info!("Hentai {} already exists. Skipped download.", self.id);
                 return Ok(()); // skip download
             }
             if o.is_dir() // if cbz filepath blocked by directory
             {
-                log::error!("\"{}\" already exists as directory. Skipped download.", self.cbz_filepath);
-                return Err(Error::BlockedByDirectory {directory_path: self.cbz_filepath.clone()}); // give up
+                log::error!("\"{}\" already exists as directory. Skipped download.", cbz_final_filepath);
+                return Err(Error::BlockedByDirectory {directory_path: cbz_final_filepath.clone()}); // give up
             }
         }
 
@@ -247,8 +254,8 @@ impl Hentai
         let zip_file: std::fs::File;
         #[cfg(target_family = "unix")]
         {
-            if let Some(parent) = std::path::Path::new(&self.cbz_filepath).parent() {tokio::fs::DirBuilder::new().recursive(true).mode(0o777).create(parent).await?;} // create all parent directories with permissions "drwxrwxrwx"
-            zip_file = std::fs::OpenOptions::new().create_new(true).mode(0o666).write(true).open(self.cbz_filepath.clone())?; // create zip file with permissions "rw-rw-rw-"
+            tokio::fs::DirBuilder::new().recursive(true).mode(0o777).create(std::path::Path::new(format!("{}{}", self.library_path, self.id).as_str())).await?; // create all parent directories with permissions "drwxrwxrwx"
+            zip_file = std::fs::OpenOptions::new().create(true).mode(0o666).write(true).open(cbz_temp_filepath.clone())?; // create temporary cbz file with permissions "rw-rw-rw-", overwrite if already exists
             if let Err(e) = zip_file.set_permissions(std::fs::Permissions::from_mode(0o666)) // set permissions
             {
                 log::warn!("Setting permissions \"rw-rw-rw-\"for hentai {} failed with: {e}", self.id);
@@ -256,25 +263,35 @@ impl Hentai
         }
         #[cfg(not(target_family = "unix"))]
         {
-            if let Some(parent) = std::path::Path::new(&self.cbz_filepath).parent() {tokio::fs::DirBuilder::new().recursive(true).create(parent).await?;} // create all parent directories
-            zip_file = std::fs::OpenOptions::new().create_new(true).write(true).open(self.cbz_filepath.clone())?; // create zip file with permissions "rw-rw-rw-"
+            tokio::fs::DirBuilder::new().recursive(true).create(std::path::Path::new(format!("{}{}", self.library_path, self.id).as_str())).await?; // create all parent directories
+            zip_file = std::fs::OpenOptions::new().create(true).write(true).open(cbz_temp_filepath.clone())?; // create temporary cbz file, overwrite if already exists
         }
 
-        zip_writer = zip::ZipWriter::new(zip_file); // create zip writer
-        for (i, image_filename) in self.images_filename.iter().enumerate() // load images into zip
+        zip_writer = zip::ZipWriter::new(zip_file); // create cbz writer
+        for (i, image_filename) in self.images_filename.iter().enumerate() // load images into cbz
         {
             let mut image: Vec<u8> = Vec::new();
             std::fs::File::open(format!("{}{}/{image_filename}", self.library_path, self.id))?.read_to_end(&mut image)?; // open image file, read image into memory
-            zip_writer.start_file(image_filename, zip::write::SimpleFileOptions::default().unix_permissions(0o666))?; // create image file in zip with permissions "rw-rw-rw-"
-            zip_writer.write_all(&image)?; // write image into zip
+            zip_writer.start_file(image_filename, zip::write::SimpleFileOptions::default().unix_permissions(0o666))?; // create image file in cbz with permissions "rw-rw-rw-"
+            zip_writer.write_all(&image)?; // write image into cbz
             log::debug!("Saved hentai {} image {} / {} in cbz.", self.id, f.format((i+1) as f64), f.format(self.num_pages));
         }
         #[cfg(target_family = "unix")]
-        zip_writer.start_file("ComicInfo.xml", zip::write::SimpleFileOptions::default().unix_permissions(0o666))?; // create metadata ffile in zip with permissions "rw-rw-rw-"
+        zip_writer.start_file("ComicInfo.xml", zip::write::SimpleFileOptions::default().unix_permissions(0o666))?; // create metadata file in cbz with permissions "rw-rw-rw-"
         #[cfg(not(target_family = "unix"))]
-        zip_writer.start_file("ComicInfo.xml", zip::write::SimpleFileOptions::default())?; // create metadata file in zip without permissions
-        zip_writer.write_all(serde_xml_rs::to_string(&ComicInfoXml::from(self.clone()))?.as_bytes())?; // write metadata into zip
-        zip_writer.finish()?; // finish zip
+        zip_writer.start_file("ComicInfo.xml", zip::write::SimpleFileOptions::default())?; // create metadata file in cbz without permissions
+        zip_writer.write_all(serde_xml_rs::to_string(&ComicInfoXml::from(self.clone()))?.as_bytes())?; // write metadata into cbz
+        zip_writer.finish()?; // finish temporary cbz
+
+        #[cfg(target_family = "unix")]
+        {
+            if let Some(parent) = std::path::Path::new(cbz_final_filepath.as_str()).parent() {tokio::fs::DirBuilder::new().recursive(true).mode(0o777).create(parent).await?;} // create all parent directories of with permissions "drwxrwxrwx"
+        }
+        #[cfg(not(target_family = "unix"))]
+        {
+            if let Some(parent) = std::path::Path::new(cbz_final_filepath.as_str()).parent() {tokio::fs::DirBuilder::new().recursive(true).create(parent).await?;} // create all parent directories
+        }
+        tokio::fs::rename(cbz_temp_filepath, cbz_final_filepath).await?; // move finished cbz to final location in library
         log::info!("Saved hentai {} cbz.", self.id);
 
 
@@ -318,7 +335,7 @@ impl Hentai
         }
         #[cfg(not(target_family = "unix"))]
         {
-            if let Some(parent) = std::path::Path::new(image_filepath).parent() {tokio::fs::DirBuilder::new().recursive(true).create(parent).await?;} // create all parent directories with permissions "drwxrwxrwx"
+            if let Some(parent) = std::path::Path::new(image_filepath).parent() {tokio::fs::DirBuilder::new().recursive(true).create(parent).await?;} // create all parent directories
             file = tokio::fs::OpenOptions::new().create_new(true).write(true).open(image_filepath).await?;
         }
         file.write_all_buf(&mut r.bytes().await?).await?; // save image with permissions "rw-rw-rw-"
