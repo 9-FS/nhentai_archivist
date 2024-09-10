@@ -11,8 +11,8 @@ on:
 
 
 jobs:
-    datetime:
-        name: "Get Current Datetime"
+    initialisation:
+        name: "Initialisation"
         env:
             working-directory: ${{github.workspace}}
         runs-on: "ubuntu-latest"
@@ -22,12 +22,18 @@ jobs:
                 id: "now"
                 run: "echo \"NOW=$(date +'%Y-%m-%dT%H:%M:%S')\" >> $GITHUB_OUTPUT"  # get datetime, save in NOW, push to output
 
+            -   name: "Parse Tag"
+                id: "parse_tag"
+                run: "echo \"TAG=${GITHUB_REF#refs/tags/*}\" >> $GITHUB_OUTPUT" # parse tag because github.ref provides tag as f"refs/tags/{tag}"
+                shell: "bash"                                                   # must be bash even on windows, because command to apply value to variable works differently in powershell
+
             -   name: "TODAY"
                 id: "today"
                 run: "echo \"TODAY=$(date +'%Y-%m-%d')\" >> $GITHUB_OUTPUT" # get date, save in TODAY, push to output
 
         outputs:    # set step output as job output so other jobs can access
             NOW: ${{steps.now.outputs.NOW}}
+            TAG: ${{steps.parse_tag.outputs.TAG}}
             TODAY: ${{steps.today.outputs.TODAY}}
 
 
@@ -35,6 +41,7 @@ jobs:
         name: "Run Tests"
         env:
             working-directory: ${{github.workspace}}
+        needs: ["initialisation"]
         runs-on: "ubuntu-latest"
 
         steps:
@@ -49,8 +56,7 @@ jobs:
             -   name: "Check Project Version and Tag Match"
                 run: |
                     project_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
-                    tag=${GITHUB_REF#refs/tags/*}
-                    if [ "$project_version" == "$tag" ]; then
+                    if [ "$project_version" == "${{needs.initialisation.outputs.TAG}}" ]; then
                         exit 0
                     else
                         exit 1
@@ -65,7 +71,7 @@ jobs:
         name: "Create Release on GitHub"
         env:
             working-directory: ${{github.workspace}}
-        needs: ["datetime", "test"]
+        needs: ["initialisation", "test"]
         runs-on: "ubuntu-latest"
 
         steps:
@@ -73,13 +79,13 @@ jobs:
                 env:
                     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
                 id: "create_release"
-                uses: "actions/create-release@v1"                                                           # function that creates release
-                with:                                                                                       # parameters
-                    body:                                                                                   # release text
+                uses: "actions/create-release@v1"                                                                                       # function that creates release
+                with:                                                                                                                   # parameters
+                    body:                                                                                                               # release text
                     draft: false
                     prerelease: false
-                    release_name: "${{needs.datetime.outputs.TODAY}} ${{env.REPO_NAME}} ${{github.ref}}"    # release title
-                    tag_name: ${{github.ref}}                                                               # release tag
+                    release_name: "${{needs.initialisation.outputs.TODAY}} ${{env.REPO_NAME}} ${{needs.initialisation.outputs.TAG}}"    # release title
+                    tag_name: ${{github.ref}}                                                                                           # release tag
 
         outputs:
             github_release: ${{steps.create_release.outputs.upload_url}}
@@ -129,6 +135,7 @@ jobs:
         name: "Build Docker Image"
         env:
             working-directory: ${{github.workspace}}
+        needs: ["initialisation"]
         runs-on: "ubuntu-latest"
 
         steps:
@@ -142,10 +149,10 @@ jobs:
                 run: "mkdir -p \"./target/\""
 
             -   name: "Compile"
-                run: "IMAGE_NAME=\"9-FS/${{env.REPO_NAME}}:latest\" && docker build -t \"${IMAGE_NAME@L}\" --no-cache ."
+                run: "docker build -t \"ghcr.io/9-fs/${{env.REPO_NAME}}:${{needs.initialisation.outputs.TAG}}\" --no-cache ."
 
             -   name: "Save Docker Image"
-                run: "IMAGE_NAME=\"9-FS/${{env.REPO_NAME}}:latest\" && docker save \"${IMAGE_NAME@L}\" > \"./target/docker-image.tar\""
+                run: "docker save \"ghcr.io/9-fs/${{env.REPO_NAME}}:${{needs.initialisation.outputs.TAG}}\" > \"./target/docker-image.tar\""
 
             -   name: "Cache Docker Image"
                 uses: "actions/cache/save@v4"
@@ -158,7 +165,7 @@ jobs:
         name: "Deploy Executable for ${{matrix.os}} on GitHub"
         env:
             working-directory: ${{github.workspace}}
-        needs: ["build_executables", "create_release", "datetime", "test"]
+        needs: ["build_executables", "create_release", "initialisation", "test"]
         runs-on: "ubuntu-latest"
         strategy:
             matrix:
@@ -179,11 +186,6 @@ jobs:
                     key: ${{matrix.os}}
                     path: "./target/${{matrix.os}}/release/${{env.REPO_NAME}}.exe"
 
-            -   name: "Parse Tag"
-                id: "parse_tag"
-                run: "echo \"tag=${GITHUB_REF#refs/tags/*}\" >> $GITHUB_OUTPUT" # parse tag because github.ref provides tag as f"refs/tags/{tag}", in create_release it is parsed automatically idk
-                shell: "bash"                                                   # must be bash even on windows, because command to apply value to variable works differently in powershell
-
             -   name: "Attach Executable to Release"
                 if: ${{matrix.os != 'x86_64-pc-windows-gnu'}}
                 env:
@@ -191,7 +193,7 @@ jobs:
                 uses: "actions/upload-release-asset@v1"
                 with:
                     asset_content_type: "application"
-                    asset_name: "${{needs.datetime.outputs.TODAY}} ${{env.REPO_NAME}} ${{steps.parse_tag.outputs.tag}} ${{matrix.os}}"
+                    asset_name: "${{needs.initialisation.outputs.TODAY}} ${{env.REPO_NAME}} ${{needs.initialisation.outputs.TAG}} ${{matrix.os}}"
                     asset_path: "./target/${{matrix.os}}/release/${{env.REPO_NAME}}"
                     upload_url: ${{needs.create_release.outputs.github_release}}
 
@@ -202,7 +204,7 @@ jobs:
                 uses: "actions/upload-release-asset@v1"
                 with:
                     asset_content_type: "application"
-                    asset_name: "${{needs.datetime.outputs.TODAY}} ${{env.REPO_NAME}} ${{steps.parse_tag.outputs.tag}} ${{matrix.os}}.exe"
+                    asset_name: "${{needs.initialisation.outputs.TODAY}} ${{env.REPO_NAME}} ${{needs.initialisation.outputs.TAG}} ${{matrix.os}}.exe"
                     asset_path: "./target/${{matrix.os}}/release/${{env.REPO_NAME}}.exe"
                     upload_url: ${{needs.create_release.outputs.github_release}}
 
@@ -211,7 +213,7 @@ jobs:
         name: "Deploy Docker Image on GitHub"
         env:
             working-directory: ${{github.workspace}}
-        needs: ["build_docker_image", "create_release", "datetime", "test"]
+        needs: ["build_docker_image", "create_release", "initialisation", "test"]
         runs-on: "ubuntu-latest"
 
         steps:
@@ -221,17 +223,27 @@ jobs:
                     key: "docker"
                     path: "./target/docker-image.tar"
 
-            -   name: "Parse Tag"
-                id: "parse_tag"
-                run: "echo \"tag=${GITHUB_REF#refs/tags/*}\" >> $GITHUB_OUTPUT" # parse tag because github.ref provides tag as f"refs/tags/{tag}", in create_release it is parsed automatically idk
-                shell: "bash"                                                   # must be bash even on windows, because command to apply value to variable works differently in powershell
-
             -   name: "Attach Docker Image to Release"
                 env:
                     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
                 uses: "actions/upload-release-asset@v1"
                 with:
                     asset_content_type: "application"
-                    asset_name: "${{needs.datetime.outputs.TODAY}} ${{env.REPO_NAME}} ${{steps.parse_tag.outputs.tag}} docker.tar"
+                    asset_name: "${{needs.initialisation.outputs.TODAY}} ${{env.REPO_NAME}} ${{needs.initialisation.outputs.TAG}} docker.tar"
                     asset_path: "./target/docker-image.tar"
                     upload_url: ${{needs.create_release.outputs.github_release}}
+
+            -   name: "Load Docker Image"
+                run: "docker load < \"./target/docker-image.tar\""
+
+            -   name: "Add \"latest\" Tag to Docker Image"
+                run: "docker tag \"ghcr.io/9-fs/${{env.REPO_NAME}}:${{needs.initialisation.outputs.TAG}}\" \"ghcr.io/9-fs/${{env.REPO_NAME}}:latest\""
+
+            -   name: "Log In to GitHub Docker Registry"
+                run: "echo ${{secrets.GITHUB_TOKEN}} | docker login ghcr.io -u \"9-FS\" --password-stdin"
+
+            -   name: "Push Docker Image to GitHub Docker Registry"
+                run: "docker push \"ghcr.io/9-fs/${{env.REPO_NAME}}:${{needs.initialisation.outputs.TAG}}\""
+
+            -   name: "Push Docker Image to GitHub Docker Registry"
+                run: "docker push \"ghcr.io/9-fs/${{env.REPO_NAME}}:latest\""

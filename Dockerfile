@@ -13,8 +13,8 @@ CMD ["./nhentai_archivist"]
 
 # MANUAL BUILD:
 
-# build docker image, save in tar, remove image so only tar remains, @L to lowercase
-# IMAGE_NAME="9-FS/nhentai_archivist:latest" && docker build -t "${IMAGE_NAME@L}" --no-cache . && docker save "${IMAGE_NAME@L}" > "docker-image.tar" && docker rmi "${IMAGE_NAME@L}"
+# build docker image, save in tar, remove image so only tar remains
+# docker build -t "9-fs/nhentai_archivist:latest" --no-cache . && docker save "9-fs/nhentai_archivist:latest" > "docker-image.tar" && docker rmi "9-fs/nhentai_archivist:latest"
 
 # on deployment environment load docker image from tar file
 # docker load < "/mnt/user/appdata/docker-image.tar"
