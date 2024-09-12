@@ -6,7 +6,7 @@ use crate::get_hentai_id_list::*;
 use crate::hentai::*;
 
 
-pub async fn main_inner(config: Config) -> Result<()>
+pub async fn main_inner(config: Config) -> Result<(), Error>
 {
     const NHENTAI_HENTAI_SEARCH_URL: &str="https://nhentai.net/api/gallery/"; // nhentai search by id api url
     const NHENTAI_TAG_SEARCH_URL: &str="https://nhentai.net/api/galleries/search"; // nhentai search by tag api url
@@ -25,28 +25,26 @@ pub async fn main_inner(config: Config) -> Result<()>
 
     {
         let mut headers: reqwest::header::HeaderMap = reqwest::header::HeaderMap::new(); // headers
-        headers.insert(reqwest::header::USER_AGENT, reqwest::header::HeaderValue::from_str(&config.USER_AGENT).unwrap_or_else
-        (
-            |e|
-            {
-                log::warn!("Adding user agent to HTTP client headers failed with: {e}\nUsing empty user agent instead.");
-                reqwest::header::HeaderValue::from_str("").expect("Creating empty user agent failed.")
-            }
-        ));
-        headers.insert(reqwest::header::COOKIE, reqwest::header::HeaderValue::from_str(format!("cf_clearance={}; csrftoken={}", config.CF_CLEARANCE, config.CSRFTOKEN).as_str()).unwrap_or_else
-        (
-            |e|
-            {
-                log::warn!("Adding cookies \"cf_clearance\" and \"csrftoken\" to HTTP client headers failed with: {e}\nUsing no cookies instead.");
-                reqwest::header::HeaderValue::from_str("").expect("Creating empty cookies failed.")
-            }
-        ));
-        http_client = reqwest::Client::builder()  // create http client
+        match reqwest::header::HeaderValue::from_str(&config.USER_AGENT)
+        {
+            Ok(o) => _ = headers.insert(reqwest::header::USER_AGENT, o),
+            Err(e) => log::warn!("Adding user agent to HTTP client headers failed with: {e}\nUsing empty user agent instead."),
+        }
+        match reqwest::header::HeaderValue::from_str(format!("cf_clearance={}; csrftoken={}", config.CF_CLEARANCE, config.CSRFTOKEN).as_str())
+        {
+            Ok(o) => _ = headers.insert(reqwest::header::COOKIE, o),
+            Err(e) => log::warn!("Adding cookies \"cf_clearance\" and \"csrftoken\" to HTTP client headers failed with: {e}\nUsing no cookies instead."),
+        }
+        match reqwest::Client::builder()  // create http client
             .connect_timeout(timeout)
             .cookie_store(true) // enable cookies
             .default_headers(headers)
             .read_timeout(timeout)
-            .build().expect("Creating HTTP client failed.");
+            .build()
+        {
+            Ok(o) => http_client = o,
+            Err(e) => return Err(Error::ReqwestClientBuilder {source: e}),
+        }
         let r: reqwest::Response = http_client.get(NHENTAI_TAG_SEARCH_URL).query(&[("query", "language:english"), ("page", "1")]).send().await?; // send test request
         if r.status() != reqwest::StatusCode::OK // if status is not ok: something went wrong
         {
@@ -60,7 +58,7 @@ pub async fn main_inner(config: Config) -> Result<()>
         db = connect_to_db(&config.DATABASE_URL).await?; // connect to database
         hentai_id_list = get_hentai_id_list
         (
-            std::path::Path::new(config.DOWNLOADME_FILEPATH.as_str()),
+            config.DOWNLOADME_FILEPATH.as_str(),
             &http_client,
             NHENTAI_TAG_SEARCH_URL,
             &config.NHENTAI_TAG,
@@ -71,7 +69,7 @@ pub async fn main_inner(config: Config) -> Result<()>
         for (i, hentai_id) in hentai_id_list.iter().enumerate()
         {
             log::info!("--------------------------------------------------");
-            log::info!("{} / {} ({})", f0.format((i+1) as f64), f0.format(hentai_id_list.len() as f64), fm2.format((i+1) as f64 / hentai_id_list.len() as f64));
+            log::info!("{} / {} ({}) | hentai {hentai_id}", f0.format((i+1) as f64), f0.format(hentai_id_list.len() as f64), fm2.format((i+1) as f64 / hentai_id_list.len() as f64));
             let hentai: Hentai; // hentai to download
 
 
@@ -87,30 +85,14 @@ pub async fn main_inner(config: Config) -> Result<()>
                 Ok(o) => hentai = o, // hentai created successfully
                 Err(e) => // hentai creation failed
                 {
-                    match e
-                    {
-                        Error::HentaiLengthInconsistency { page_types, num_pages } => log::error!("Hentai {hentai_id} has {} page types specified, but {} pages were expected.", f0.format(page_types), f0.format(num_pages)),
-                        Error::Reqwest(e) => log::error!("Hentai {hentai_id} metadata could not be loaded from database and downloading from \"{}\" failed with: {e}", e.url().map_or_else(|| "<unknown>", |o| o.as_str())),
-                        Error::ReqwestStatus {url, status} => log::error!("Hentai {hentai_id} metadata could not be loaded from database and downloading from \"{url}\" failed with status code {status}."),
-                        Error::SerdeJson(e) => log::error!("Hentai {hentai_id} metadata could not be loaded from database and after downloading, deserialising API response failed with: {e}"),
-                        Error::Sqlx(e) => log::error!("Loading hentai {hentai_id} tags from database failed with: {e}"),
-                        _ => panic!("Unhandled error: {e}"),
-                    }
+                    log::error!("{e}");
                     continue; // skip download
                 }
             }
 
             if let Err(e) = hentai.download(&http_client).await
             {
-                match e
-                {
-                    Error::BlockedByDirectory {directory_path} => {log::error!("Downloading hentai {hentai_id} failed, because \"{directory_path}\" already is a directory.");} // directory blocked
-                    Error::Download {} => log::error!("Downloading hentai {hentai_id} failed multiple times. Giving up..."), // download failed multiple times, more specific error messages already in download logged
-                    Error::SerdeXml(e) => log::error!("Serialising hentai {hentai_id} metadata failed with: {e}"), // serde xml error
-                    Error::StdIo(e) => log::error!("Saving hentai {hentai_id} failed with: {e}"), // std io error
-                    Error::Zip(e) => log::error!("Saving hentai {hentai_id} failed with: {e}"), // zip error
-                    _ => panic!("Unhandled error: {e}"),
-                }
+                log::error!{"{e}"};
             }
         }
         log::info!("--------------------------------------------------");
@@ -120,7 +102,7 @@ pub async fn main_inner(config: Config) -> Result<()>
 
         if let Err(e) = tokio::fs::remove_file(&config.DOWNLOADME_FILEPATH).await // server mode cleanup, delete downloadme
         {
-            log::error!("Deleting \"{}\" failed with: {e}", config.DOWNLOADME_FILEPATH);
+            log::warn!("Deleting \"{}\" failed with: {e}", config.DOWNLOADME_FILEPATH);
         }
         db.close().await; // close database connection
         log::info!("Disconnected from database at \"{}\".", config.DATABASE_URL);

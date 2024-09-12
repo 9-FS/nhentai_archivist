@@ -1,4 +1,5 @@
 // Copyright (c) 2024 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
+use sqlx::ConnectOptions;
 use sqlx::migrate::MigrateDatabase;
 
 
@@ -59,6 +60,7 @@ pub async fn connect_to_db(database_url: &str) -> Result<sqlx::sqlite::SqlitePoo
         db.set_connect_options(sqlx::sqlite::SqliteConnectOptions::new()
             .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal) // use write-ahead journal for better performance
             .locking_mode(sqlx::sqlite::SqliteLockingMode::Exclusive) // do not release file lock until all transactions are complete
+            .log_slow_statements(log::LevelFilter::Warn, std::time::Duration::from_secs(5)) // log slow statements only after 5 s
             .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)); // ensure data is written to disk after each transaction for consistent state
         log::info!("Connected to database at \"{}\".", database_url);
 
@@ -74,6 +76,7 @@ pub async fn connect_to_db(database_url: &str) -> Result<sqlx::sqlite::SqlitePoo
         db.set_connect_options(sqlx::sqlite::SqliteConnectOptions::new()
             .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal) // use write-ahead journal for better performance
             .locking_mode(sqlx::sqlite::SqliteLockingMode::Exclusive) // do not release file lock until all transactions are complete
+            .log_slow_statements(log::LevelFilter::Warn, std::time::Duration::from_secs(5)) // log slow statements only after 5 s
             .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)); // ensure data is written to disk after each transaction for consistent state
         log::info!("Connected to database at \"{}\".", database_url);
     }

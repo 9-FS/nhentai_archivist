@@ -49,7 +49,7 @@ impl Hentai
     ///
     /// # Returns
     /// - created hentai or error
-    pub async fn new(id: u32, db: &sqlx::sqlite::SqlitePool, http_client: &reqwest::Client, nhentai_hentai_search_url: &str, library_path: &str, library_split: u32) -> Result<Self>
+    pub async fn new(id: u32, db: &sqlx::sqlite::SqlitePool, http_client: &reqwest::Client, nhentai_hentai_search_url: &str, library_path: &str, library_split: u32) -> Result<Self, HentaiNewError>
     {
         const FILENAME_SIZE_MAX: u16 = 255; // maximum filename size [B]
         const TITLE_CHARACTERS_FORBIDDEN: &str = "\\/:*?\"<>|\t\n"; // forbidden characters in Windows file names
@@ -65,19 +65,19 @@ impl Hentai
             .fetch_optional(db).await // load hentai metadata from database
         {
             hentai_table_row = s;
-            log::info!("Loaded hentai {id} metadata from database.");
+            log::info!("Loaded hentai metadata from database.");
         }
         else // if any step to load from database failed
         {
-            log::info!("Hentai {id} metadata could not be loaded from database. Downloading from nhentai.net API...");
+            log::info!("Hentai metadata could not be loaded from database. Downloading from nhentai.net API...");
             hentai_table_row = search_by_id(http_client, nhentai_hentai_search_url, id, db).await?; // load hentai metadata from api
-            log::info!("Downloaded hentai {id} metadata.");
+            log::info!("Downloaded hentai metadata.");
         }
 
         tags = sqlx::query_as("SELECT Tag.* FROM Tag JOIN (SELECT tag_id FROM Hentai_Tag WHERE hentai_id = ?) AS tags_attached_to_hentai_desired ON Tag.id = tags_attached_to_hentai_desired.tag_id")
             .bind(id)
             .fetch_all(db).await?; // load tags from database
-        log::info!("Loaded hentai {id} tags from database.");
+        log::info!("Loaded hentai tags from database.");
 
 
         for (i, page_type) in hentai_table_row.page_types.char_indices()
@@ -87,7 +87,7 @@ impl Hentai
         }
         if hentai_table_row.page_types.len() != hentai_table_row.num_pages as usize // if number of pages does not match number of page types: inconsistency
         {
-            return Err(Error::HentaiLengthInconsistency {page_types: hentai_table_row.page_types.len() as u16, num_pages: hentai_table_row.num_pages});
+            return Err(HentaiNewError::HentaiLengthInconsistency {page_types: hentai_table_row.page_types.len() as u16, num_pages: hentai_table_row.num_pages});
         }
 
         cbz_filename = hentai_table_row.title_english.clone().unwrap_or_default();
@@ -133,7 +133,7 @@ impl Hentai
     ///
     /// # Returns
     /// - nothing or error
-    pub async fn download(&self, http_client: &reqwest::Client) -> Result<()>
+    pub async fn download(&self, http_client: &reqwest::Client) -> Result<(), HentaiDownloadError>
     {
         const WORKERS: usize = 5; // number of parallel workers
         let cbz_final_filepath: String; //filepath to final cbz in library
@@ -167,13 +167,12 @@ impl Hentai
         {
             if o.is_file() // if final cbz already exists
             {
-                log::info!("Hentai {} already exists. Skipped download.", self.id);
+                log::info!("Hentai already exists. Skipped download.");
                 return Ok(()); // skip download
             }
             if o.is_dir() // if cbz filepath blocked by directory
             {
-                log::error!("\"{}\" already exists as directory. Skipped download.", cbz_final_filepath);
-                return Err(Error::BlockedByDirectory {directory_path: cbz_final_filepath.clone()}); // give up
+                return Err(HentaiDownloadError::BlockedByDirectory {directory_path: cbz_final_filepath.clone()}); // give up
             }
         }
 
@@ -187,7 +186,6 @@ impl Hentai
             {
                 let f_clone: scaler::Formatter = f.clone();
                 let http_client_clone: reqwest::Client = http_client.clone();
-                let id_clone: u32 = self.id;
                 let image_filepath: String = format!("{}{}/{}", self.library_path, self.id, self.images_filename.get(i).expect("Index out of bounds even though should have same size as images_url."));
                 let image_url_clone: String = self.images_url.get(i).expect("Index out of bounds even though checked before that it fits.").clone();
                 let num_pages_clone: u16 = self.num_pages;
@@ -200,40 +198,12 @@ impl Hentai
                     {
                         Ok(_) =>
                         {
-                            log::debug!("Downloaded hentai {id_clone} image {} / {}.", f_clone.format((i+1) as f64), f_clone.format(num_pages_clone as f64));
+                            log::debug!("Downloaded hentai image {} / {}.", f_clone.format((i+1) as f64), f_clone.format(num_pages_clone as f64));
                             result = Some(()); // success
                         }
                         Err(e) =>
                         {
-                            match e
-                            {
-                                Error::BlockedByDirectory {directory_path} => log::error!
-                                (
-                                    "Saving hentai {id_clone} image {} / {} failed, because \"{directory_path}\" already is a directory.",
-                                    f_clone.format((i+1) as f64),
-                                    f_clone.format(num_pages_clone as f64),
-                                ),
-                                Error::Reqwest(e) => log::error!
-                                (
-                                    "Downloading hentai {id_clone} image {} / {} from \"{}\" failed with: {e}",
-                                    f_clone.format((i+1) as f64),
-                                    f_clone.format(num_pages_clone as f64),
-                                    e.url().map_or_else(|| "<unknown>", |o| o.as_str()),
-                                ),
-                                Error::ReqwestStatus {url, status} => log::error!
-                                (
-                                    "Downloading hentai {id_clone} image {} / {} from \"{url}\" failed with status code {status}.",
-                                    f_clone.format((i+1) as f64),
-                                    f_clone.format(num_pages_clone as f64),
-                                ),
-                                Error::StdIo(e) => log::error!
-                                (
-                                    "Saving hentai {id_clone} image {} / {} failed with: {e}",
-                                    f_clone.format((i+1) as f64),
-                                    f_clone.format(num_pages_clone as f64),
-                                ),
-                                _ => panic!("Unhandled error: {e}"),
-                            }
+                            log::warn!("{e}");
                             result = None; // failure
                         }
                     }
@@ -247,8 +217,8 @@ impl Hentai
             }
             if image_download_success {break;} // if all images were downloaded successfully: continue with cbz creation
         }
-        if !image_download_success {return Err(Error::Download {})}; // if after 5 attempts still not all images downloaded successfully: give up
-        log::info!("Downloaded hentai {} images.", self.id);
+        if !image_download_success {return Err(HentaiDownloadError::Download {})}; // if after 5 attempts still not all images downloaded successfully: give up
+        log::info!("Downloaded hentai images.");
 
 
         let zip_file: std::fs::File;
@@ -274,7 +244,7 @@ impl Hentai
             std::fs::File::open(format!("{}{}/{image_filename}", self.library_path, self.id))?.read_to_end(&mut image)?; // open image file, read image into memory
             zip_writer.start_file(image_filename, zip::write::SimpleFileOptions::default().unix_permissions(0o666))?; // create image file in cbz with permissions "rw-rw-rw-"
             zip_writer.write_all(&image)?; // write image into cbz
-            log::debug!("Saved hentai {} image {} / {} in cbz.", self.id, f.format((i+1) as f64), f.format(self.num_pages));
+            log::debug!("Saved hentai image {} / {} in cbz.", f.format((i+1) as f64), f.format(self.num_pages));
         }
         #[cfg(target_family = "unix")]
         zip_writer.start_file("ComicInfo.xml", zip::write::SimpleFileOptions::default().unix_permissions(0o666))?; // create metadata file in cbz with permissions "rw-rw-rw-"
@@ -292,7 +262,7 @@ impl Hentai
             if let Some(parent) = std::path::Path::new(cbz_final_filepath.as_str()).parent() {tokio::fs::DirBuilder::new().recursive(true).create(parent).await?;} // create all parent directories
         }
         tokio::fs::rename(cbz_temp_filepath, cbz_final_filepath).await?; // move finished cbz to final location in library
-        log::info!("Saved hentai {} cbz.", self.id);
+        log::info!("Saved hentai cbz.");
 
 
         if let Err(e) = tokio::fs::remove_dir_all(format!("{}{}", self.library_path, self.id)).await // cleanup, delete image directory
@@ -314,31 +284,55 @@ impl Hentai
     ///
     /// # Returns
     /// - nothing or error
-    async fn download_image(http_client: &reqwest::Client, image_url: &str, image_filepath: &str) -> Result<()>
+    async fn download_image(http_client: &reqwest::Client, image_url: &str, image_filepath: &str) -> Result<(), HentaiDownloadImageError>
     {
         if let Ok(o) = tokio::fs::metadata(image_filepath).await
         {
             if o.is_file() {return Ok(());} // if image already exists: skip download
-            if o.is_dir() {return Err(Error::BlockedByDirectory {directory_path: image_filepath.to_owned()});} // if image filepath blocked by directory: give up
+            if o.is_dir() {return Err(HentaiDownloadImageError::BlockedByDirectory {directory_path: image_filepath.to_owned()});} // if image filepath blocked by directory: give up
         }
 
 
         let r: reqwest::Response = http_client.get(image_url).send().await?; // tag search, page
-        if r.status() != reqwest::StatusCode::OK {return Err(Error::ReqwestStatus {url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
+        if r.status() != reqwest::StatusCode::OK {return Err(HentaiDownloadImageError::ReqwestStatus {url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
 
 
         let mut file: tokio::fs::File;
         #[cfg(target_family = "unix")]
         {
-            if let Some(parent) = std::path::Path::new(image_filepath).parent() {tokio::fs::DirBuilder::new().recursive(true).mode(0o777).create(parent).await?;} // create all parent directories with permissions "drwxrwxrwx"
-            file = tokio::fs::OpenOptions::new().create_new(true).mode(0o666).write(true).open(image_filepath).await?;
+            if let Some(parent) = std::path::Path::new(image_filepath).parent() // create all parent directories with permissions "drwxrwxrwx"
+            {
+                if let Err(e) = tokio::fs::DirBuilder::new().recursive(true).mode(0o777).create(parent).await
+                {
+                    return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});
+                }
+            }
+            match tokio::fs::OpenOptions::new().create_new(true).mode(0o666).write(true).open(image_filepath).await
+            {
+                Ok(o) => file = o,
+                Err(e) => {return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});}
+            }
         }
         #[cfg(not(target_family = "unix"))]
         {
-            if let Some(parent) = std::path::Path::new(image_filepath).parent() {tokio::fs::DirBuilder::new().recursive(true).create(parent).await?;} // create all parent directories
-            file = tokio::fs::OpenOptions::new().create_new(true).write(true).open(image_filepath).await?;
+            if let Some(parent) = std::path::Path::new(image_filepath).parent() // create all parent directories
+            {
+                if let Err(e) = tokio::fs::DirBuilder::new().recursive(true).create(parent).await
+                {
+                    return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});
+                }
+            }
+            match tokio::fs::OpenOptions::new().create_new(true).write(true).open(image_filepath).await
+            {
+                Ok(o) => file = o,
+                Err(e) => {return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});}
+            }
         }
-        file.write_all_buf(&mut r.bytes().await?).await?; // save image with permissions "rw-rw-rw-"
+
+        if let Err(e) = file.write_all_buf(&mut r.bytes().await?).await // save image with permissions "rw-rw-rw-"
+        {
+            return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});
+        }
 
         return Ok(());
     }

@@ -9,18 +9,18 @@ license     = "MIT"
 name        = "nhentai_archivist"
 readme      = "readme.md"
 repository  = "https://github.com/9-FS/nhentai_archivist"
-version     = "3.0.3"
+version     = "3.1.0"
 
 [dependencies]
 chrono = { version = "^0.4.0", features = ["serde"] }
-load_config = { git = "https://github.com/9-FS/load_config", tag = "1.0.0", features = [
+load_config = { git = "https://github.com/9-FS/load_config", tag = "1.1.0", features = [
     "toml_file",
 ] }
 log = "^0.4.0"
-openssl = { version = "^0.10.0", features = [
-    "vendored",
-] } # because otherwise some wild fuckywuckys during cross compilation
-reqwest = { version = "^0.12.0", features = ["cookies"] }
+reqwest = { version = "^0.12.0", default-features = false, features = [
+    "cookies",
+    "rustls-tls",
+] }
 scaler = "^1.0.0"
 serde = { version = "^1.0.0", features = ["derive"] }
 serde-xml-rs = "^0.6.0"
