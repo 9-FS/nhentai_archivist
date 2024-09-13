@@ -944,8 +944,8 @@ checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
 
 [[package]]
 name = "load_config"
-version = "1.1.0"
-source = "git+https://github.com/9-FS/load_config?tag=1.1.0#5ba280fa9333b5c18e6ece44612ea3b2386ee855"
+version = "1.1.1"
+source = "git+https://github.com/9-FS/load_config?tag=1.1.1#b32327108d4ed68c07604dcf954c5d6fc969d75b"
 dependencies = [
  "figment",
  "serde",
@@ -1036,7 +1036,7 @@ dependencies = [
 
 [[package]]
 name = "nhentai_archivist"
-version = "3.1.0"
+version = "3.1.1"
 dependencies = [
  "chrono",
  "load_config",
@@ -1656,8 +1656,8 @@ dependencies = [
 
 [[package]]
 name = "setup_logging"
-version = "2.1.0"
-source = "git+https://github.com/9-FS/setup_logging?tag=2.1.0#692cfdcb6422427e55d04170b065f7c0dd5bad95"
+version = "2.1.1"
+source = "git+https://github.com/9-FS/setup_logging?tag=2.1.1#2eb6368acfd01126be1aa5c88685c7ea1d4f75ee"
 dependencies = [
  "chrono",
  "fern",
@@ -2263,9 +2263,9 @@ checksum = "52ea75f83c0137a9b98608359a5f1af8144876eb67bcb1ce837368e906a9f524"
 
 [[package]]
 name = "unicode-segmentation"
-version = "1.11.0"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4c87d22b6e3f4a18d4d40ef354e97c90fcb14dd91d7dc0aa9d8a1172ebf7202"
+checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
 
 [[package]]
 name = "unicode_categories"

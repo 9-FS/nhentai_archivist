@@ -9,11 +9,11 @@ license     = "MIT"
 name        = "nhentai_archivist"
 readme      = "readme.md"
 repository  = "https://github.com/9-FS/nhentai_archivist"
-version     = "3.1.0"
+version     = "3.1.1"
 
 [dependencies]
 chrono = { version = "^0.4.0", features = ["serde"] }
-load_config = { git = "https://github.com/9-FS/load_config", tag = "1.1.0", features = [
+load_config = { git = "https://github.com/9-FS/load_config", tag = "1.1.1", features = [
     "toml_file",
 ] }
 log = "^0.4.0"
@@ -25,7 +25,7 @@ scaler = "^1.0.0"
 serde = { version = "^1.0.0", features = ["derive"] }
 serde-xml-rs = "^0.6.0"
 serde_json = "^1.0.0"
-setup_logging = { git = "https://github.com/9-FS/setup_logging", tag = "2.1.0" }
+setup_logging = { git = "https://github.com/9-FS/setup_logging", tag = "2.1.1" }
 sqlx = { version = "^0.8.0", features = [
     "chrono",
     "runtime-tokio-rustls",

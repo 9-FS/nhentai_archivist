@@ -3,7 +3,7 @@ version: "3"
 services:
     nhentai_archivist:
         container_name: "nhentai_archivist"
-        image: "ghcr.io/9-fs/nhentai_archivist:3.1.0"
+        image: "ghcr.io/9-fs/nhentai_archivist:3.1.1"
         environment:
             HOST_OS: "Unraid"
             PGID: 100
