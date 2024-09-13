@@ -72,20 +72,16 @@ fn main() -> std::process::ExitCode
                     log::error!("{e}"); // log error
                     match e
                     {
-                        Error::Reqwest(e) => log::error!("{e}"),
-                        Error::ReqwestClientBuilder { source } => log::error!("{source}"),
+                        #[allow(unused_variables)]
                         Error::ReqwestStatus {url, status} =>
                         {
-                            if status == reqwest::StatusCode::FORBIDDEN
+                            if status == reqwest::StatusCode::FORBIDDEN // if status is forbidden
                             {
-                                log::error!("Test connecting to \"{url}\" failed with status code {status}. Check if cookies \"cf_clearance\", \"csrftoken\", and user agent are set and current.");
-                            }
-                            else
-                            {
-                                log::error!("Test connecting to \"{url}\" failed with status code {status}.");
+                                log::error!("Are \"CF_CLEARANCE\", \"CSRFTOKEN\", and \"USER_AGENT\" set and current?"); // add hint
                             }
                         }
-                        Error::Sqlx(e) => log::error!("{e}"),
+                        Error::Sqlx(_) => log::error!("Have you created the database directory? By default, that's \"./db/\"."), // add hint
+                        _ => {},
                     }
                     return std::process::ExitCode::FAILURE;
                 }
