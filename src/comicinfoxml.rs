@@ -69,7 +69,7 @@ fn filter_and_combine_tags(tags: &[Tag], types: &[&str], display_type: bool) -> 
         .collect();
     tags_filtered.sort(); // sort alphabetically
     let tags_filtered_combined: Option<String> = Some(tags_filtered.join(",")) // join at ","
-        .map(|s| if s.is_empty() {None} else {Some(s)}).flatten(); // convert Some("") to None, otherwise forward unchanged
+        .and_then(|s| if s.is_empty() {None} else {Some(s)}); // convert Some("") to None, otherwise forward unchanged
 
     tags_filtered_combined
 }
