@@ -37,9 +37,9 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 
 Further settings:
 
-- `NHENTAI_TAG`
+- `NHENTAI_TAGS`
 
-    Setting this will trigger "server mode". If no file at `DOWNLOADME_FILEPATH` is found, it will generate one by searching for the tags specified. After all hentai on the downloadme have been downloaded, it will wait for `SLEEP_INTERVAL` seconds and restart the search. This is useful to keep a self-hosted library up-to-date with the latest releases from the specified tag.
+    Setting this will trigger "server mode". If no file at `DOWNLOADME_FILEPATH` is found, it will generate one by searching for the tags specified. After all hentai on the downloadme have been downloaded, it will wait for `SLEEP_INTERVAL` seconds and restart the search. This is useful to keep a self-hosted library up-to-date with the latest releases from the specified tag search. Multiple tags and tag exclusions can be specified and are connected via logical AND. This means results must fullfill all criteria specified.
 
     Examples:
 
@@ -60,12 +60,12 @@ Further settings:
 
 - `LIBRARY_SPLIT`
 
-    Setting this to a value other than 0 splits the library at `LIBRARY_PATH` into sub-directories with a maximum number of `LIBRARY_SPLIT` hentai allowed per sub-directory. It is recommended if the number of hentai in 1 directory starts to affect file explorer performance. This _should_ not affect you if you plan to keep less than 10.000 files in your `LIBRARY_PATH` directory, otherwise the recommended setting is "LIBRARY_SPLIT = 10000".
+    Setting this to a value other than 0 splits the library at `LIBRARY_PATH` into sub-directories with a maximum number of `LIBRARY_SPLIT` hentai allowed per sub-directory. It is recommended if the number of hentai in 1 directory starts to affect file explorer performance. This _should_ not affect you if you plan to keep less than 10.000 files in your `LIBRARY_PATH` directory, otherwise the recommended setting is `LIBRARY_SPLIT = 10000`.
 
 ## Usage
 ### Download a Few Quickly
 
-1. Run the program as is. Do not set `NHENTAI_TAG` and make sure there is no file at `DOWNLOADME_FILEPATH`.
+1. Run the program as is. Do not set `NHENTAI_TAGS` and make sure there is no file at `DOWNLOADME_FILEPATH`.
 1. Enter the nhentai ID you want to download separated by spaces.
 
 Example `./config/.env`:
@@ -82,7 +82,7 @@ USER_AGENT = your user agent here
 
 ### Download a Bit More From a File
 
-1. Do not set `NHENTAI_TAG`.
+1. Do not set `NHENTAI_TAGS`.
 1. Create a file at `DOWNLOADME_FILEPATH` and enter the nhentai ID you want to download separated by linebreaks.
 
 Example `./config/.env`:
@@ -99,7 +99,7 @@ USER_AGENT = your user agent here
 
 ### Ich mein's ernst: Keeping a Self-Hosted Library Up-to-Date
 
-1. Set `NHENTAI_TAG` to the tag you want to keep up-to-date. For a very comprehensive library, set it to "NHENTAI_TAG = language:english".
+1. Set `NHENTAI_TAGS` to define the tag search that you want to use to keep your library up-to-date.
 1. Make sure there is no file at `DOWNLOADME_FILEPATH` otherwise it will be downloaded first.
 1. Consider setting `LIBRARY_SPLIT` to a value other than 0 if you plan to keep more than 10.000 files in your `LIBRARY_PATH` directory.
 1. Consider setting `SLEEP_INTERVAL` to wait a bit between searches. I recommend a value of at least 50.000.
