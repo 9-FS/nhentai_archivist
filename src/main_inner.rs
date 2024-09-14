@@ -106,5 +106,5 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
         log::info!("--------------------------------------------------");
     }
 
-    Ok(())
+    return Ok(());
 }

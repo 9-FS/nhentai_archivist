@@ -104,7 +104,7 @@ impl Hentai
         }
         cbz_filename = format!("{id} {cbz_filename}.cbz"); // prepend id, append extension
 
-        Ok(Self
+        return Ok(Self
         {
             id,
             cbz_filename,
@@ -118,7 +118,7 @@ impl Hentai
             tags,
             title_pretty: hentai_table_row.title_pretty,
             upload_date: hentai_table_row.upload_date,
-        })
+        });
     }
 
 
@@ -268,7 +268,7 @@ impl Hentai
             log::warn!("Deleting \"{}/\" failed with: {e}", format!("{}{}", self.library_path, self.id));
         }
 
-        Ok(())
+        return Ok(());
     }
 
 
@@ -332,7 +332,7 @@ impl Hentai
             return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});
         }
 
-        Ok(())
+        return Ok(());
     }
 }
 

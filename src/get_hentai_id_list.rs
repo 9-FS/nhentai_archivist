@@ -121,5 +121,5 @@ pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest
         if !hentai_id_list.is_empty() {break;} // if hentai_id_list is not empty: work is done
     }
     log::debug!("{hentai_id_list:?}");
-    hentai_id_list
+    return hentai_id_list;
 }

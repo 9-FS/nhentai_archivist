@@ -71,5 +71,5 @@ fn filter_and_combine_tags(tags: &[Tag], types: &[&str], display_type: bool) -> 
     let tags_filtered_combined: Option<String> = Some(tags_filtered.join(",")) // join at ","
         .and_then(|s| if s.is_empty() {None} else {Some(s)}); // convert Some("") to None, otherwise forward unchanged
 
-    tags_filtered_combined
+    return tags_filtered_combined;
 }
