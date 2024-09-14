@@ -14,7 +14,7 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 
 1. Execute the program once to create a default `./config/.env`. This means that in the directory of the executable, there should now be a directory called "config" containing a file called ".env". You might need to enable seeing hidden files in the file explorer.
 1. Confirm the database directory at `DATABASE_URL` exists, which is `./db/` by default. It is possible that it is not created automatically because the URL could point to a remote directory. The database file will and should be created automatically.
-1. If you have problems with nhentai's bot protection (error 403), set `CF_CLEARANCE`, `CSRFTOKEN`, and `USER_AGENT`. Though I recommend setting the latter 2 in any case.
+1. If you have problems with nhentai's bot protection (error 403), set `CF_CLEARANCE`, `CSRFTOKEN`, and `USER_AGENT`. Though I recommend setting the latter 2 in any case. `CF_CLEARANCE` is only available if "under attack" mode is enabled. If you can't find it next to `CSRFTOKEN`, it is likely not enabled and thus not required.
 
     ### Mozilla Firefox
 
@@ -39,16 +39,20 @@ Further settings:
 
 - `NHENTAI_TAG`
 
-    Setting this will trigger "server mode". If no file at `DOWNLOADME_FILEPATH` is found, it will generate one by searching for the tag specified. After all hentai on the downloadme have been downloaded, it will wait for `SLEEP_INTERVAL` seconds and restart the search. This is useful to keep a self-hosted library up-to-date with the latest releases from the specified tag.
+    Setting this will trigger "server mode". If no file at `DOWNLOADME_FILEPATH` is found, it will generate one by searching for the tags specified. After all hentai on the downloadme have been downloaded, it will wait for `SLEEP_INTERVAL` seconds and restart the search. This is useful to keep a self-hosted library up-to-date with the latest releases from the specified tag.
 
     Examples:
 
-    - "NHENTAI_TAG = language:english": all english hentai
-    - "NHENTAI_TAG = tag:big-breasts": all hentai with the tag "big breasts"
-    - "NHENTAI_TAG = parody:kono-subarashii-sekai-ni-syukufuku-o": all hentai from the anime "Kono Subarashii Sekai ni Syukufuku o"
-    - "NHENTAI_TAG = artist:shindol": all hentai by Shindol
+    ```TOML
+    NHENTAI_TAGS = ['language:"english"'] # all english hentai
+    NHENTAI_TAGS = ['tag:"big breasts"'] # all hentai with the tag "big breasts"
+    NHENTAI_TAGS = ['parody:"kono subarashii sekai ni syukufuku o"'] # all hentai from the anime "Kono Subarashii Sekai ni Syukufuku o"
+    NHENTAI_TAGS = ['artist:"shindol"'] #all hentai by Shindol
+    NHENTAI_TAGS = ['character:"frieren"'] # all hentai with character "Frieren"
+    NHENTAI_TAGS = ['tag:"ffm threesome"', 'tag:"sister"', '-tag:"full censorship"', '-tag:"mind control"'] # all hentai with the tags "ffm threesome" and "sister" but without the tags "full censorship" and "mind control"
+    ```
 
-    More information can be found [here](https://nhentai.net/info/).
+    Pay attention to copy the format exactly as shown in the examples. That includes the usage of single quotation marks outside and double quotation marks inside. If the format is not being copied exactly, at least searching by tags that contain a space leads to erroneous API responses. More information can be found [here](https://nhentai.net/info/).
 
 - `LIBRARY_PATH`
 
@@ -110,7 +114,7 @@ DATABASE_URL = "./db/db.sqlite"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"
 LIBRARY_SPLIT = 10000
-NHENTAI_TAG = "language:english"
+NHENTAI_TAGS = ['language:"english"']
 SLEEP_INTERVAL = 50000
 USER_AGENT = your user agent here
 ```
