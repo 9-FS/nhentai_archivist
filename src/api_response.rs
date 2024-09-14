@@ -85,7 +85,7 @@ impl HentaiSearchResponse
         }
 
         query.execute(db).await?;
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -125,9 +125,9 @@ impl<'de> serde::Deserialize<'de> for ImageType
         let s_de: String = String::deserialize(deserializer)?;
         match Self::from_str(s_de.as_str())
         {
-            Ok(o) => return Ok(o),
-            _ => return Err(serde::de::Error::custom(format!("Invalid image type: \"{s_de}\""))),
-        };
+            Ok(o) => Ok(o),
+            _ => Err(serde::de::Error::custom(format!("Invalid image type: \"{s_de}\""))),
+        }
     }
 }
 
@@ -146,14 +146,14 @@ impl std::fmt::Debug for ImageType
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result // ImageType -> str
     {
-        return write!(f, "{}",
+        write!(f, "{}",
             match self
             {
                 Self::Gif => "g", // only short form in program context (database)
                 Self::Jpg => "j",
                 Self::Png => "p",
             }
-        );
+        )
     }
 }
 
@@ -161,14 +161,14 @@ impl std::fmt::Display for ImageType
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result // ImageType -> str
     {
-        return write!(f, "{}",
+        write!(f, "{}",
             match self
             {
                 Self::Gif => "gif", // long form for output
                 Self::Jpg => "jpg",
                 Self::Png => "png",
             }
-        );
+        )
     }
 }
 
@@ -184,7 +184,7 @@ impl std::str::FromStr for ImageType
             "p" | "png" => Self::Png,
             _ => return Err(format!("Invalid image type: \"{s}\"")),
         };
-        return Ok(image_type);
+        Ok(image_type)
     }
 }
 
@@ -288,7 +288,7 @@ impl TagSearchResponse
         }
 
         query.execute(db).await?;
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -324,5 +324,5 @@ where
         _ => return Err(serde::de::Error::custom(format!("Value \"{value}\" is neither a number nor a string.")))?,
     };
 
-    return Ok(number);
+    Ok(number)
 }

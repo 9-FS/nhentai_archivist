@@ -71,5 +71,5 @@ fn filter_and_combine_tags(tags: &Vec<Tag>, types: &Vec<&str>, display_type: boo
     let tags_filtered_combined: Option<String> = Some(tags_filtered.join(",")) // join at ","
         .map(|s| if s.is_empty() {None} else {Some(s)}).flatten(); // convert Some("") to None, otherwise forward unchanged
 
-    return tags_filtered_combined;
+    tags_filtered_combined
 }

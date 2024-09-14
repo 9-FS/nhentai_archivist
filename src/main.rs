@@ -66,7 +66,7 @@ fn main() -> std::process::ExitCode
         {
             match result
             {
-                Ok(()) => {return std::process::ExitCode::SUCCESS;} // program executed successfully
+                Ok(()) => {std::process::ExitCode::SUCCESS} // program executed successfully
                 Err(e) => // program failed in a controlled manner
                 {
                     log::error!("{e}"); // log error
@@ -83,10 +83,10 @@ fn main() -> std::process::ExitCode
                         Error::Sqlx(_) => log::error!("Have you created the database directory? By default, that's \"./db/\"."), // add hint
                         _ => {},
                     }
-                    return std::process::ExitCode::FAILURE;
+                    std::process::ExitCode::FAILURE
                 }
             }
         }
-        Err(_) => {return std::process::ExitCode::FAILURE;} // program crashed with panic, dis not good
-    };
+        Err(_) => {std::process::ExitCode::FAILURE} // program crashed with panic, dis not good
+    }
 }

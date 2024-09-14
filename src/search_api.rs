@@ -117,7 +117,7 @@ pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url
     }
     hentai_id_list.sort(); // sort hentai id ascending
 
-    return Ok(hentai_id_list);
+    Ok(hentai_id_list)
 }
 
 
@@ -180,5 +180,5 @@ async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_
         hentai_id_list.push(hentai.id);
     }
 
-    return Ok(hentai_id_list);
+    Ok(hentai_id_list)
 }

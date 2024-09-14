@@ -81,5 +81,5 @@ pub async fn connect_to_db(database_url: &str) -> Result<sqlx::sqlite::SqlitePoo
         log::info!("Connected to database at \"{}\".", database_url);
     }
 
-    return Ok(db);
+    Ok(db)
 }
