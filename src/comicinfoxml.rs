@@ -20,7 +20,7 @@ pub struct ComicInfoXml
 
 }
 // ComicInfo.xml schema: https://anansi-project.github.io/docs/comicinfo/documentation
-// Komga interpretation: https://komga.org/docs/guides/scan-analysis-refresh
+// Komga interpretation: https://komga.org/docs/guides/scan-analysis-refresh/#import-metadata-for-cbrcbz-containing-a-comicinfoxml-file
 
 
 impl From<Hentai> for ComicInfoXml
