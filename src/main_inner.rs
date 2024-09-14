@@ -61,7 +61,7 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
                 config.DOWNLOADME_FILEPATH.as_str(),
                 &http_client,
                 NHENTAI_TAG_SEARCH_URL,
-                &config.NHENTAI_TAG,
+                config.NHENTAI_TAGS.clone(),
                 &db,
             ).await;
 
@@ -94,7 +94,7 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
             db.close().await; // close database connection
             log::info!("Disconnected from database at \"{}\".", config.DATABASE_URL);
 
-            if config.NHENTAI_TAG.is_none() {break;} // if tag not set: client mode, exit
+            if config.NHENTAI_TAGS.is_none() {break;} // if tag not set: client mode, exit
 
             if let Err(e) = tokio::fs::remove_file(&config.DOWNLOADME_FILEPATH).await // server mode cleanup, delete downloadme
             {

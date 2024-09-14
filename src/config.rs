@@ -14,7 +14,7 @@ pub struct Config
     pub DOWNLOADME_FILEPATH: String, // path to file containing hentai ID to download
     pub LIBRARY_PATH: String, // path to download hentai to
     pub LIBRARY_SPLIT: u32, // split library into subdirectories of maximum this many hentai, 0 to disable
-    pub NHENTAI_TAG: Option<String>, // keep creating downloadme.txt from this tag and keep downloading (server mode), normal tags are in format "tag:{tag}" for example "tag:ffm-threesome"; if None: don't generate downloadme.txt, download hentai once (client mode)
+    pub NHENTAI_TAGS: Option<Vec<String>>, // keep creating downloadme.txt from these tags and keep downloading (server mode), normal tags are in format "tag:{tag}" for example "tag:ffm-threesome"; if None: don't generate downloadme.txt, download hentai once (client mode)
     pub SLEEP_INTERVAL: Option<u64>, // sleep interval in seconds between checking for new hentai to download (server mode)
     pub USER_AGENT: String, // bypass bot protection
 }
@@ -23,18 +23,18 @@ impl Default for Config
 {
     fn default() -> Self
     {
-        Config
+        Self
         {
-            CF_CLEARANCE: "".to_string(),
-            CSRFTOKEN: "".to_string(),
+            CF_CLEARANCE: "".to_owned(),
+            CSRFTOKEN: "".to_owned(),
             DATABASE_URL: "./db/db.sqlite".to_owned(),
             DEBUG: None, // no entry in default config, defaults to false
             DOWNLOADME_FILEPATH: "./config/downloadme.txt".to_owned(),
-            LIBRARY_PATH: "./hentai/".to_string(),
+            LIBRARY_PATH: "./hentai/".to_owned(),
             LIBRARY_SPLIT: 0,
-            NHENTAI_TAG: None,
-            SLEEP_INTERVAL: None,
-            USER_AGENT: "".to_string(),
+            NHENTAI_TAGS: None,
+            SLEEP_INTERVAL: Some(50000),
+            USER_AGENT: "".to_owned(),
         }
     }
 }

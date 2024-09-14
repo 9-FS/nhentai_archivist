@@ -44,17 +44,17 @@ pub async fn search_by_id(http_client: &reqwest::Client, nhentai_hentai_search_u
 
 
 /// # Summary
-/// Searches nhentai.net for all hentai ID with tag `nhentai_tag` and returns them in a sorted list. Updates database while doing so.
+/// Searches nhentai.net for all hentai ID with tags from `nhentai_tags` and returns them in a sorted list. Updates database while doing so.
 ///
 /// # Arguments
 /// - `http_client`: reqwest http client
 /// - `nhentai_tag_search_url`: nhentai.net tag search API URL
-/// - `nhentai_tag`: tag to search for
+/// - `nhentai_tags`: tags to search for
 /// - `db`: database connection
 ///
 /// # Returns
 /// - list of hentai ID to download or error
-pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url: &str, nhentai_tag: &str, db: &sqlx::sqlite::SqlitePool) -> Result<Vec<u32>, SearchByTagError>
+pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url: &str, nhentai_tags: &Vec<String>, db: &sqlx::sqlite::SqlitePool) -> Result<Vec<u32>, SearchByTagError>
 {
     const WORKERS: usize = 2; // number of concurrent workers
     let f = scaler::Formatter::new()
@@ -67,7 +67,8 @@ pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url
 
 
     {
-        let r: reqwest::Response = http_client.get(nhentai_tag_search_url).query(&[("query", nhentai_tag), ("page", "1")]).send().await?; // tag search, page
+        let r: reqwest::Response = http_client.get(format!("{nhentai_tag_search_url}?query={}&page=1", nhentai_tags.join("+"))).send().await?; // tag search, page, do not use .query() because it converts "+" between multiple tags to "%2B"
+        log::debug!("{}", r.url());
         if r.status() != reqwest::StatusCode::OK {return Err(SearchByTagError::ReqwestStatus {url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
         r_serialised = serde_json::from_str(r.text().await?.as_str())?; // deserialise json, get this response here to get number of pages before starting parallel workers
         if let Err(e) = r_serialised.write_to_db(db).await // save data to database, if unsuccessful: warning
@@ -88,14 +89,14 @@ pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url
         let db_clone: sqlx::Pool<sqlx::Sqlite> = db.clone();
         let f_clone: scaler::Formatter = f.clone();
         let http_client_clone: reqwest::Client = http_client.clone();
-        let nhentai_tag: String = nhentai_tag.to_owned();
         let nhentai_tag_search_url_clone: String = nhentai_tag_search_url.to_owned();
+        let nhentai_tags_clone: Vec<String> = nhentai_tags.to_owned();
 
         let permit: tokio::sync::OwnedSemaphorePermit = worker_sem.clone().acquire_owned().await.expect("Something closed semaphore even though it should never be closed."); // acquire semaphore
         handles.push(tokio::spawn(async move
         {
             let result: Option<Vec<u32>>;
-            match search_by_tag_on_page(http_client_clone, nhentai_tag_search_url_clone.clone(), nhentai_tag.clone(), page_no, r_serialised.num_pages, db_clone).await
+            match search_by_tag_on_page(http_client_clone, nhentai_tag_search_url_clone, nhentai_tags_clone, page_no, r_serialised.num_pages, db_clone).await
             {
                 Ok(o) =>
                 {
@@ -123,18 +124,18 @@ pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url
 
 
 /// # Summary
-/// Searches nhentai.net for all hentai ID with tag `nhentai_tag` on page `page_no` and returns them in a list. Updates database while doing so.
+/// Searches nhentai.net for all hentai ID with tag from `nhentai_tags` on page `page_no` and returns them in a list. Updates database while doing so.
 ///
 /// # Arguments
 /// - `http_client`: reqwest http client
 /// - `nhentai_tag_search_url`: nhentai.net tag search api url
-/// - `nhentai_tag`: tag to search for
+/// - `nhentai_tags`: tags to search for
 /// - `page_no`: page number
 /// - `db`: database connection
 ///
 /// # Returns
 /// - list of hentai ID to download or error
-async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_url: String, nhentai_tag: String, page_no: u32, num_pages: u32, db: sqlx::sqlite::SqlitePool) -> Result<Vec<u32>, SearchByTagOnPageError>
+async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_url: String, nhentai_tags: Vec<String>, page_no: u32, num_pages: u32, db: sqlx::sqlite::SqlitePool) -> Result<Vec<u32>, SearchByTagOnPageError>
 {
     let f = scaler::Formatter::new()
         .set_scaling(scaler::Scaling::None)
@@ -147,7 +148,7 @@ async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_
 
     loop
     {
-        match http_client.get(nhentai_tag_search_url.clone()).query(&[("query", nhentai_tag.clone()), ("page", page_no.to_string())]).send().await // tag search, page
+        match http_client.get(format!("{nhentai_tag_search_url}?query={}&page={page_no}", nhentai_tags.join("+"))).send().await // tag search, page, do not use .query() because it converts "+" between multiple tags to "%2B"
         {
             Ok(o) => r = o,
             Err(e) => return Err(SearchByTagOnPageError::Reqwest {page_no, num_pages, source: e}),

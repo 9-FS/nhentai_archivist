@@ -6,19 +6,19 @@ use tokio::io::AsyncWriteExt;
 /// # Summary
 /// Tries to return hentai ID list to download from the following sources with respective descending priority:
 /// 1. if it exists: load from `downloadme_filepath`
-/// 1. if `nhentai_tag` set: by searching on nhentai.net for all hentai ID with tag `nhentai_tag`
+/// 1. if `nhentai_tags` set: by searching on nhentai.net for all hentai ID with tags from `nhentai_tags`
 /// 1. manual user input, separated by spaces
 ///
 /// # Arguments
 /// - `downloadme_filepath`: path to file containing hentai ID list
 /// - `http_client`: reqwest http client
 /// - `nhentai_tag_search_url`: nhentai.net tag search API URL
-/// - `nhentai_tag`: tag to search for
+/// - `nhentai_tags`: tags to search for
 /// - `db`: database connection
 ///
 /// # Returns
 /// - list of hentai ID to download
-pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest::Client, nhentai_tag_search_url: &str, nhentai_tag: &Option<String>, db: &sqlx::sqlite::SqlitePool) -> Vec<u32>
+pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest::Client, nhentai_tag_search_url: &str, nhentai_tags: Option<Vec<String>>, db: &sqlx::sqlite::SqlitePool) -> Vec<u32>
 {
     let mut hentai_id_list: Vec<u32> = Vec::new(); // list of hentai id to download
 
@@ -45,15 +45,14 @@ pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest
         return hentai_id_list;
     }
 
-    if nhentai_tag.is_some() // if nhentai_tag is set: search nhentai.net for hentai ID with tag
+    if nhentai_tags.is_some() // if nhentai_tags are set: search nhentai.net for hentai ID with tag
     {
-        log::info!("\"NHENTAI_TAG\" is set.");
-        let nhentai_tag_unwrapped: &str = nhentai_tag.as_deref().expect("nhentai_tag lifting crashed even though previous line ensured Option is Some.");
+        log::info!("\"NHENTAI_TAGS\" are set.");
         match search_by_tag
         (
             http_client,
             nhentai_tag_search_url,
-            nhentai_tag_unwrapped,
+            &nhentai_tags.expect("nhentai_tags lifting crashed even though previous line ensured Option is Some."),
             db,
         ).await
         {
@@ -61,9 +60,9 @@ pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest
             Err(e) => log::error!("{e}"),
         }
     }
-    else // if nhentai_tag is not set: request manual user input
+    else // if nhentai_tags are not set: request manual user input
     {
-        log::info!("\"NHENTAI_TAG\" is not set.");
+        log::info!("\"NHENTAI_TAGS\" are not set.");
     }
     if !hentai_id_list.is_empty() // if hentai_id_list is not empty: save tag search in downloadme.txt, work is done
     {
