@@ -211,7 +211,7 @@ impl Hentai
             }
             for handle in handles
             {
-                if let None = handle.await.unwrap() {image_download_success = false;} // collect results, forward panics, if any image download failed: set flag and abandon creation of cbz later but continue downloading other images
+                if handle.await.unwrap().is_none() {image_download_success = false;} // collect results, forward panics, if any image download failed: set flag and abandon creation of cbz later but continue downloading other images
             }
             if image_download_success {break;} // if all images were downloaded successfully: continue with cbz creation
         }
