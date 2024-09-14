@@ -27,7 +27,7 @@ impl Default for Config
         {
             CF_CLEARANCE: "".to_string(),
             CSRFTOKEN: "".to_string(),
-            DATABASE_URL: "sqlite://./db/db.sqlite".to_owned(),
+            DATABASE_URL: "./db/db.sqlite".to_owned(),
             DEBUG: None, // no entry in default config, defaults to false
             DOWNLOADME_FILEPATH: "./config/downloadme.txt".to_owned(),
             LIBRARY_PATH: "./hentai/".to_string(),

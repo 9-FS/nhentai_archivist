@@ -13,7 +13,7 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 ## Installation
 
 1. Execute the program once to create a default `./config/.env`. This means that in the directory of the executable, there should now be a directory called "config" containing a file called ".env". You might need to enable seeing hidden files in the file explorer.
-1. Confirm the database directory in `DATABASE_URL` exists already, which is `./db/` by default. It is not created automatically because the URL could point to a remote directory, though I am open to suggestions here. The database file will and should be created automatically.
+1. Confirm the database directory at `DATABASE_URL` exists, which is `./db/` by default. It is possible that it is not created automatically because the URL could point to a remote directory. The database file will and should be created automatically.
 1. If you have problems with nhentai's bot protection (error 403), set `CF_CLEARANCE`, `CSRFTOKEN`, and `USER_AGENT`. Though I recommend setting the latter 2 in any case.
 
     ### Mozilla Firefox

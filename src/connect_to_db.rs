@@ -50,6 +50,23 @@ pub async fn connect_to_db(database_url: &str) -> Result<sqlx::sqlite::SqlitePoo
 
     if !sqlx::sqlite::Sqlite::database_exists(database_url).await? // if database does not exist
     {
+        match std::path::Path::new(database_url).parent()
+        {
+            Some(parent) =>
+            {
+                #[cfg(target_family = "unix")]
+                if let Err(e) = tokio::fs::DirBuilder::new().recursive(true).mode(0o777).create(parent).await // create all parent directories with permissions "drwxrwxrwx"
+                {
+                    log::warn!("Creating parent directories for new database at \"{database_url}\" failed with {e}.\nThis could be expected behaviour, usually if this is a remote pointing URL and not a local filepath. In that case create the parent directories manually.");
+                }
+                #[cfg(not(target_family = "unix"))]
+                if let Err(e) = tokio::fs::DirBuilder::new().recursive(true).create(parent).await // create all parent directories
+                {
+                    log::warn!("Creating parent directories for new database at \"{database_url}\" failed with {e}.\nThis could be expected behaviour, usually if this is a remote pointing URL and not a local filepath. In that case create the parent directories manually.");
+                }
+            }
+            None => log::warn!("Creating parent directories for new database at \"{database_url}\", because the directory part could not be parsed.\nThis could be expected behaviour, usually if this is a remote pointing URL and not a local filepath. In that case create the parent directories manually."),
+        }
         sqlx::sqlite::Sqlite::create_database(database_url).await?; // create new database
         log::info!("Created new database at \"{}\".", database_url);
 
