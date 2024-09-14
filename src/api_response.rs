@@ -60,10 +60,10 @@ impl HentaiSearchResponse
             .bind(self.num_favorites)
             .bind(self.num_pages)
             .bind(self.images.pages.iter().map(|page| format!("{:?}", page.t)).collect::<Vec<String>>().join("")) // collapse all page types into 1 string, otherwise have to create huge Hentai_Pages table or too many Hentai_{id}_Pages tables
-            .bind(self.scanlator.clone().map(|s| if s.is_empty() {None} else {Some(s)}).flatten()) // convert Some("") to None, otherwise forward unchanged
-            .bind(self.title.english.clone().map(|s| if s.is_empty() {None} else {Some(s)}).flatten())
-            .bind(self.title.japanese.clone().map(|s| if s.is_empty() {None} else {Some(s)}).flatten())
-            .bind(self.title.pretty.clone().map(|s| if s.is_empty() {None} else {Some(s)}).flatten())
+            .bind(self.scanlator.clone().and_then(|s| if s.is_empty() {None} else {Some(s)})) // convert Some("") to None, otherwise forward unchanged
+            .bind(self.title.english.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
+            .bind(self.title.japanese.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
+            .bind(self.title.pretty.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
             .bind(self.upload_date);
 
         for tag in self.tags.iter() // bind Tag values to placeholders
@@ -255,10 +255,10 @@ impl TagSearchResponse
                 .bind(hentai.num_favorites)
                 .bind(hentai.num_pages)
                 .bind(hentai.images.pages.iter().map(|page| format!("{:?}", page.t)).collect::<Vec<String>>().join("")) // collapse all page types into 1 string, otherwise have to create huge Hentai_Pages table or too many Hentai_{id}_Pages tables
-                .bind(hentai.scanlator.clone().map(|s| if s.is_empty() {None} else {Some(s)}).flatten()) // convert Some("") to None, otherwise forward unchanged
-                .bind(hentai.title.english.clone().map(|s| if s.is_empty() {None} else {Some(s)}).flatten())
-                .bind(hentai.title.japanese.clone().map(|s| if s.is_empty() {None} else {Some(s)}).flatten())
-                .bind(hentai.title.pretty.clone().map(|s| if s.is_empty() {None} else {Some(s)}).flatten())
+                .bind(hentai.scanlator.clone().and_then(|s| if s.is_empty() {None} else {Some(s)})) // convert Some("") to None, otherwise forward unchanged
+                .bind(hentai.title.english.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
+                .bind(hentai.title.japanese.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
+                .bind(hentai.title.pretty.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
                 .bind(hentai.upload_date);
         }
 
