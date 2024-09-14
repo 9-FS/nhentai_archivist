@@ -225,7 +225,7 @@ impl Hentai
         #[cfg(target_family = "unix")]
         {
             tokio::fs::DirBuilder::new().recursive(true).mode(0o777).create(std::path::Path::new(format!("{}{}", self.library_path, self.id).as_str())).await?; // create all parent directories with permissions "drwxrwxrwx"
-            zip_file = std::fs::OpenOptions::new().create(true).mode(0o666).write(true).open(cbz_temp_filepath.clone())?; // create temporary cbz file with permissions "rw-rw-rw-", overwrite if already exists
+            zip_file = std::fs::OpenOptions::new().create(true).mode(0o666).truncate(true).write(true).open(cbz_temp_filepath.clone())?; // create temporary cbz file with permissions "rw-rw-rw-", overwrite if already exists
             if let Err(e) = zip_file.set_permissions(std::fs::Permissions::from_mode(0o666)) // set permissions
             {
                 log::warn!("Setting permissions \"rw-rw-rw-\"for hentai {} failed with: {e}", self.id);
