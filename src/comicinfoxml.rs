@@ -33,12 +33,12 @@ impl From<Hentai> for ComicInfoXml
             Year: hentai.upload_date.format("%Y").to_string().parse::<i16>().unwrap_or_else(|_| panic!("Converting year \"{}\" to i16 failed even though it comes directly from chrono::DateTime.", hentai.upload_date.format("%Y"))),
             Month: hentai.upload_date.format("%m").to_string().parse::<u8>().unwrap_or_else(|_| panic!("Converting month \"{}\" to u8 failed even though it comes directly from chrono::DateTime.", hentai.upload_date.format("%m"))),
             Day: hentai.upload_date.format("%d").to_string().parse::<u8>().unwrap_or_else(|_| panic!("Converting day \"{}\" to u8 failed even though it comes directly from chrono::DateTime.", hentai.upload_date.format("%d"))),
-            Writer: filter_and_combine_tags(&hentai.tags, &vec!["artist"], false),
+            Writer: filter_and_combine_tags(&hentai.tags, &["artist"], false),
             Translator: hentai.scanlator,
-            Publisher: filter_and_combine_tags(&hentai.tags, &vec!["group"], false),
-            Genre: filter_and_combine_tags(&hentai.tags, &vec!["category"], false),
+            Publisher: filter_and_combine_tags(&hentai.tags, &["group"], false),
+            Genre: filter_and_combine_tags(&hentai.tags, &["category"], false),
             Web: format!("https://nhentai.net/g/{id}/", id=hentai.id),
-            Tags: filter_and_combine_tags(&hentai.tags, &vec!["character", "language", "parody", "tag"], true),
+            Tags: filter_and_combine_tags(&hentai.tags, &["character", "language", "parody", "tag"], true),
         }
     }
 }
@@ -54,7 +54,7 @@ impl From<Hentai> for ComicInfoXml
 ///
 /// # Returns
 /// - filtered and combined tags or None
-fn filter_and_combine_tags(tags: &Vec<Tag>, types: &Vec<&str>, display_type: bool) -> Option<String>
+fn filter_and_combine_tags(tags: &[Tag], types: &[&str], display_type: bool) -> Option<String>
 {
     let mut tags_filtered: Vec<String> = tags.iter()
         .filter(|tag| types.contains(&tag.r#type.as_str())) // only keep tags with type in types
