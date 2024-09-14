@@ -16,6 +16,7 @@ mod search_api;
 fn main() -> std::process::ExitCode
 {
     let mut crate_logging_level: std::collections::HashMap<String, log::Level> = std::collections::HashMap::new(); // logging level for individual crates
+    let config: Config; // config, settings
     let tokio_rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().expect("Creating tokio runtime failed."); // async runtime
 
 
@@ -25,9 +26,7 @@ fn main() -> std::process::ExitCode
         log::error!("{}", std::backtrace::Backtrace::capture()); // log backtrace
     }));
 
-    // config, settings
-    // load config
-    let config: Config = match load_config::load_config
+    match load_config::load_config // load config
     (
         vec!
         [
@@ -37,14 +36,14 @@ fn main() -> std::process::ExitCode
         Some(load_config::SourceFile::Toml("./config/.env".to_string())),
     )
     {
-        Ok(o) => o, // loaded config successfully
+        Ok(o) => config = o, // loaded config successfully
         Err(e) => // loading config failed
         {
             setup_logging::setup_logging(log::Level::Info, None, "./log/%Y-%m-%d.log"); // setup logging with default settings to log error
             log::error!("{e}");
             return std::process::ExitCode::FAILURE;
         }
-    };
+    }
 
     crate_logging_level.insert("hyper_util".to_owned(), log::Level::Info); // shut up
     crate_logging_level.insert("serde_xml_rs".to_owned(), log::Level::Error); // shut up

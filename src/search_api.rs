@@ -17,6 +17,9 @@ use crate::hentai::*;
 /// - HentaiTableRow entry or error
 pub async fn search_by_id(http_client: &reqwest::Client, nhentai_hentai_search_url: &str, id: u32, db: &sqlx::sqlite::SqlitePool) -> Result<HentaiTableRow, SearchByIdError>
 {
+    let r_serialised: HentaiSearchResponse; // response in json format
+
+
     let r: reqwest::Response = http_client.get(format!("{nhentai_hentai_search_url}{id}").as_str()).send().await?; // search hentai
     if r.status() != reqwest::StatusCode::OK {return Err(SearchByIdError::ReqwestStatus {url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
     // response in json format
@@ -91,19 +94,20 @@ pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url
         let permit: tokio::sync::OwnedSemaphorePermit = worker_sem.clone().acquire_owned().await.expect("Something closed semaphore even though it should never be closed."); // acquire semaphore
         handles.push(tokio::spawn(async move
         {
-            let result: Option<Vec<u32>> = match search_by_tag_on_page(http_client_clone, nhentai_tag_search_url_clone.clone(), nhentai_tag.clone(), page_no, r_serialised.num_pages, db_clone).await
+            let result: Option<Vec<u32>>;
+            match search_by_tag_on_page(http_client_clone, nhentai_tag_search_url_clone.clone(), nhentai_tag.clone(), page_no, r_serialised.num_pages, db_clone).await
             {
                 Ok(o) =>
                 {
                     log::info!("Downloaded hentai metadata page {} / {}.", f_clone.format(page_no), f_clone.format(r_serialised.num_pages));
-                    Some(o)
+                    result = Some(o);
                 }
                 Err(e) =>
                 {
                     log::warn!("{e}");
-                    None
+                    result = None;
                 }
-            };
+            }
             drop(permit); // release semaphore
             result // return result into handle
         })); // search all pages in parallel
@@ -137,6 +141,9 @@ async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_
         .set_rounding(scaler::Rounding::Magnitude(0)); // formatter
     let mut hentai_id_list: Vec<u32> = Vec::new(); // list of hentai id to download
     let mut r: reqwest::Response; // nhentai.net api response
+    let r_serialised: TagSearchResponse; // response in json format+
+    let r_text: String; // response text
+
 
     loop
     {
@@ -154,20 +161,16 @@ async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_
         if r.status() != reqwest::StatusCode::OK {return Err(SearchByTagOnPageError::ReqwestStatus {page_no, num_pages, url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
         break; // everything went well, continue with processing
     }
-
-    // get response text
-    let r_text: String = match r.text().await 
+    match r.text().await // get response text
     {
-        Ok(o) => o,
+        Ok(o) => r_text = o,
         Err(e) => return Err(SearchByTagOnPageError::Reqwest {page_no, num_pages, source: e}),
-    };
-
-    // response in json format+
-    let r_serialised: TagSearchResponse = match serde_json::from_str(r_text.as_str()) // deserialise json
+    }
+    match serde_json::from_str(r_text.as_str()) // deserialise json
     {
-        Ok(o) => o,
+        Ok(o) => r_serialised = o,
         Err(e) => return Err(SearchByTagOnPageError::SerdeJson {page_no, num_pages, source: e}),
-    };
+    }
     if let Err(e) = r_serialised.write_to_db(&db).await // save data to database
     {
         log::warn!("Saving hentai metadata page {} / {} in database failed with: {e}", f.format(page_no), f.format(num_pages));

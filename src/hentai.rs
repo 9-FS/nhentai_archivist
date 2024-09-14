@@ -57,6 +57,8 @@ impl Hentai
         let hentai_table_row: HentaiTableRow;
         let mut images_filename: Vec<String> = Vec::new();
         let mut images_url: Vec<String> = Vec::new();
+        let tags: Vec<Tag>;
+
 
         if let Ok(Some(s)) = sqlx::query_as("SELECT id, media_id, num_pages, page_types, scanlator, title_english, title_pretty, upload_date FROM Hentai WHERE id = ?")
             .bind(id)
@@ -72,7 +74,7 @@ impl Hentai
             log::info!("Downloaded hentai metadata.");
         }
 
-        let tags: Vec<Tag> = sqlx::query_as("SELECT Tag.* FROM Tag JOIN (SELECT tag_id FROM Hentai_Tag WHERE hentai_id = ?) AS tags_attached_to_hentai_desired ON Tag.id = tags_attached_to_hentai_desired.tag_id")
+        tags = sqlx::query_as("SELECT Tag.* FROM Tag JOIN (SELECT tag_id FROM Hentai_Tag WHERE hentai_id = ?) AS tags_attached_to_hentai_desired ON Tag.id = tags_attached_to_hentai_desired.tag_id")
             .bind(id)
             .fetch_all(db).await?; // load tags from database
         log::info!("Loaded hentai tags from database.");
@@ -134,7 +136,7 @@ impl Hentai
     pub async fn download(&self, http_client: &reqwest::Client) -> Result<(), HentaiDownloadError>
     {
         const WORKERS: usize = 5; // number of parallel workers
-        //filepath to final cbz in library
+        let cbz_final_filepath: String; //filepath to final cbz in library
         let cbz_temp_filepath: String = format!("{}{}/{}", self.library_path, self.id, self.cbz_filename); //filepath to temporary cbz, cbz is created here and when finished moved to final location, roundabout way over temporary cbz filepath in case program gets stopped while creating cbz, so no half finished cbz remains in library
         let f = scaler::Formatter::new()
             .set_scaling(scaler::Scaling::None)
@@ -144,21 +146,22 @@ impl Hentai
         let worker_sem: std::sync::Arc<tokio::sync::Semaphore> = std::sync::Arc::new(tokio::sync::Semaphore::new(WORKERS)); // limit number of concurrent workers otherwise api enforces rate limit
         let mut zip_writer: zip::ZipWriter<std::fs::File>; // write to zip file
 
-        let cbz_final_filepath: String = if self.library_split == 0 // no library split
+
+        if self.library_split == 0 // no library split
         {
-            format!("{}{}", self.library_path, self.cbz_filename)
+            cbz_final_filepath = format!("{}{}", self.library_path, self.cbz_filename);
         }
         else // with library split
         {
-            format!
+            cbz_final_filepath = format!
             (
                 "{}{}~{}/{}",
                 self.library_path.to_owned(),
                 self.id.div_euclid(self.library_split) * self.library_split,
                 (self.id.div_euclid(self.library_split) + 1) * self.library_split - 1,
                 self.cbz_filename,
-            )
-        };
+            );
+        }
 
         if let Ok(o) = tokio::fs::metadata(cbz_final_filepath.as_str()).await
         {
@@ -190,21 +193,20 @@ impl Hentai
                 let permit: tokio::sync::OwnedSemaphorePermit = worker_sem.clone().acquire_owned().await.expect("Something closed semaphore even though it should never be closed."); // acquire semaphore
                 handles.push(tokio::spawn(async move
                 {
-                    let result: Option<()> = match Self::download_image(&http_client_clone, &image_url_clone, &image_filepath).await // download image
+                    let result: Option<()>;
+                    match Self::download_image(&http_client_clone, &image_url_clone, &image_filepath).await // download image
                     {
                         Ok(_) =>
                         {
-                            // success
                             log::debug!("Downloaded hentai image {} / {}.", f_clone.format((i+1) as f64), f_clone.format(num_pages_clone as f64));
-                            Some(())
+                            result = Some(()); // success
                         }
                         Err(e) =>
                         {
-                            // failure
                             log::warn!("{e}");
-                            None
+                            result = None; // failure
                         }
-                    };
+                    }
                     drop(permit); // release semaphore
                     result // return result into handle
                 })); // search all pages in parallel

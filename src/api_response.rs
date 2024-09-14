@@ -35,6 +35,8 @@ impl HentaiSearchResponse
     pub async fn write_to_db(&self, db: &sqlx::sqlite::SqlitePool) -> Result<(), sqlx::Error>
     {
         let mut query: sqlx::query::Query<'_, _, _>; // query to update all tables
+        let query_string: String; // sql query string
+
 
         let hentai_query_string: String = // query string for Hentai table
             "INSERT OR REPLACE INTO Hentai (id, cover_type, media_id, num_favorites, num_pages, page_types, scanlator, title_english, title_japanese, title_pretty, upload_date) VALUES
@@ -49,8 +51,7 @@ impl HentaiSearchResponse
             "DELETE FROM Hentai_Tag WHERE hentai_id = ?;\nINSERT INTO Hentai_Tag (hentai_id, tag_id) VALUES\n{};", // delete all Hentai_Tag entries with same hentai_id before in case hentai had some tags untagged
             self.tags.iter().map(|_| "(?, ?)").collect::<Vec<&str>>().join(",\n")
         );
-        // sql query string
-        let query_string: String = format!("PRAGMA foreign_keys = OFF;\nBEGIN TRANSACTION;\n{}\n{}\n{}\nCOMMIT;\nPRAGMA foreign_keys = ON;", hentai_query_string, tag_query_string, hentai_tag_query_string); // combine all tables into one transaction, foreign key validation is too slow for inserts at this scale
+        query_string = format!("PRAGMA foreign_keys = OFF;\nBEGIN TRANSACTION;\n{}\n{}\n{}\nCOMMIT;\nPRAGMA foreign_keys = ON;", hentai_query_string, tag_query_string, hentai_tag_query_string); // combine all tables into one transaction, foreign key validation is too slow for inserts at this scale
 
         query = sqlx::query(query_string.as_str());
         query = query // bind Hentai values to placeholders
@@ -221,6 +222,8 @@ impl TagSearchResponse
     pub async fn write_to_db(&self, db: &sqlx::sqlite::SqlitePool) -> Result<(), sqlx::Error> // separate function to create 1 big transaction instead of 1 transaction per Hentai, tag search requires this performance
     {
         let mut query: sqlx::query::Query<'_, _, _>; // query to update all tables
+        let query_string: String; // sql query string
+
 
         let hentai_query_string: String = format! // query string for Hentai table
         (
@@ -241,8 +244,7 @@ impl TagSearchResponse
                 hentai.tags.iter().map(|_| "(?, ?)").collect::<Vec<&str>>().join(",\n")
             ).as_str();
         }
-        // sql query string
-        let query_string: String = format!("PRAGMA foreign_keys = OFF;\nBEGIN TRANSACTION;\n{}\n{}\n{}\nCOMMIT;\nPRAGMA foreign_keys = ON;", hentai_query_string, tag_query_string, hentai_tag_query_string); // combine all tables into one transaction, foreign key validation is too slow for inserts at this scale
+        query_string = format!("PRAGMA foreign_keys = OFF;\nBEGIN TRANSACTION;\n{}\n{}\n{}\nCOMMIT;\nPRAGMA foreign_keys = ON;", hentai_query_string, tag_query_string, hentai_tag_query_string); // combine all tables into one transaction, foreign key validation is too slow for inserts at this scale
 
         query = sqlx::query(query_string.as_str());
 
@@ -313,11 +315,12 @@ where
     D: serde::Deserializer<'de>,
 {
     let value: serde_json::Value = serde::Deserialize::deserialize(deserializer)?;
+    let number: u32;
 
-    let number: u32 = match value
+    match value
     {
-        serde_json::Value::Number(n) => n.as_u64().ok_or_else(|| serde::de::Error::custom(format!("Converting number {n} to u64 failed. Subsequent converion to u32 has been aborted.")))? as u32,
-        serde_json::Value::String(s) => s.parse::<u32>().map_err(|e| serde::de::Error::custom(format!("Parsing string {s} to u32 failed with: {e}")))?,
+        serde_json::Value::Number(n) => number = n.as_u64().ok_or_else(|| serde::de::Error::custom(format!("Converting number {n} to u64 failed. Subsequent converion to u32 has been aborted.")))? as u32,
+        serde_json::Value::String(s) => number = s.parse::<u32>().map_err(|e| serde::de::Error::custom(format!("Parsing string {s} to u32 failed with: {e}")))?,
         _ => return Err(serde::de::Error::custom(format!("Value \"{value}\" is neither a number nor a string.")))?,
     };
 
