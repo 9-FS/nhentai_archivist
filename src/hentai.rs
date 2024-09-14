@@ -275,7 +275,7 @@ impl Hentai
 
 
     /// # Summary
-    /// Downloads an image from `image_url` and saves it to `image_filepath`.
+    /// Downloads an image from `image_url` and saves it to `image_filepath`. If confronted with an error 404, retries other media servers before giving up and forwarding the error.
     ///
     /// # Arguments
     /// - `http_client`: reqwest http client
@@ -286,6 +286,9 @@ impl Hentai
     /// - nothing or error
     async fn download_image(http_client: &reqwest::Client, image_url: &str, image_filepath: &str) -> Result<(), HentaiDownloadImageError>
     {
+        const MEDIA_SERVERS: [u8; 4] = [2, 3, 5, 7]; // media servers to try if image not found, general first, after that explicit
+
+
         if let Ok(o) = tokio::fs::metadata(image_filepath).await
         {
             if o.is_file() {return Ok(());} // if image already exists: skip download
@@ -293,9 +296,18 @@ impl Hentai
         }
 
 
-        let r: reqwest::Response = http_client.get(image_url).send().await?; // tag search, page
-        if r.status() != reqwest::StatusCode::OK {return Err(HentaiDownloadImageError::ReqwestStatus {url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
-
+        let mut r: reqwest::Response = http_client.get(image_url).send().await?; // tag search on general media server, page
+        if r.status() == reqwest::StatusCode::NOT_FOUND // if status not found: retry with other media servers
+        {
+            for media_server in MEDIA_SERVERS // try all media servers
+            {
+                log::debug!("{}", image_url.replace("i.nhentai.net", format!("i{media_server}.nhentai.net").as_str()));
+                r = http_client.get(image_url.replace("i.nhentai.net", format!("i{media_server}.nhentai.net").as_str())).send().await?; // tag search, page, insert media server
+                log::debug!("{}", r.status());
+                if r.status() != reqwest::StatusCode::NOT_FOUND {break;} // if not found: try again
+            }
+        }
+        if r.status() != reqwest::StatusCode::OK {return Err(HentaiDownloadImageError::ReqwestStatus {url: image_url.to_owned(), status: r.status()});} // if status still not ok: something went wrong
 
         let mut file: tokio::fs::File;
         #[cfg(target_family = "unix")]
