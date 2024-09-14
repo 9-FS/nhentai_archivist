@@ -232,7 +232,7 @@ impl Hentai
         #[cfg(not(target_family = "unix"))]
         {
             tokio::fs::DirBuilder::new().recursive(true).create(std::path::Path::new(format!("{}{}", self.library_path, self.id).as_str())).await?; // create all parent directories
-            zip_file = std::fs::OpenOptions::new().create(true).write(true).open(cbz_temp_filepath.clone())?; // create temporary cbz file, overwrite if already exists
+            zip_file = std::fs::OpenOptions::new().create(true).truncate(true).write(true).open(cbz_temp_filepath.clone())?; // create temporary cbz file, overwrite if already exists
         }
 
         zip_writer = zip::ZipWriter::new(zip_file); // create cbz writer
