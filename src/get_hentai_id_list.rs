@@ -103,8 +103,7 @@ pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest
         let mut input: String = String::new();
         _ = std::io::stdin().read_line(&mut input);
         log::debug!("{input}");
-        hentai_id_list = input.trim()
-            .split_whitespace()
+        hentai_id_list = input.split_whitespace()
             .filter_map(|line|
             {
                 match line.parse::<u32>()
