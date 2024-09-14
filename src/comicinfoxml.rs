@@ -30,9 +30,9 @@ impl From<Hentai> for ComicInfoXml
         return Self
         {
             Title: format!("{} {}", hentai.id, hentai.title_pretty.unwrap_or_default()), // id and actual title, because can't search for field "Number" in komga
-            Year: hentai.upload_date.format("%Y").to_string().parse::<i16>().expect(format!("Converting year \"{}\" to i16 failed even though it comes directly from chrono::DateTime.", hentai.upload_date.format("%Y").to_string()).as_str()),
-            Month: hentai.upload_date.format("%m").to_string().parse::<u8>().expect(format!("Converting month \"{}\" to u8 failed even though it comes directly from chrono::DateTime.", hentai.upload_date.format("%m").to_string()).as_str()),
-            Day: hentai.upload_date.format("%d").to_string().parse::<u8>().expect(format!("Converting day \"{}\" to u8 failed even though it comes directly from chrono::DateTime.", hentai.upload_date.format("%d").to_string()).as_str()),
+            Year: hentai.upload_date.format("%Y").to_string().parse::<i16>().expect(format!("Converting year \"{}\" to i16 failed even though it comes directly from chrono::DateTime.", hentai.upload_date.format("%Y")).as_str()),
+            Month: hentai.upload_date.format("%m").to_string().parse::<u8>().expect(format!("Converting month \"{}\" to u8 failed even though it comes directly from chrono::DateTime.", hentai.upload_date.format("%m")).as_str()),
+            Day: hentai.upload_date.format("%d").to_string().parse::<u8>().expect(format!("Converting day \"{}\" to u8 failed even though it comes directly from chrono::DateTime.", hentai.upload_date.format("%d")).as_str()),
             Writer: filter_and_combine_tags(&hentai.tags, &vec!["artist"], false),
             Translator: hentai.scanlator,
             Publisher: filter_and_combine_tags(&hentai.tags, &vec!["group"], false),
