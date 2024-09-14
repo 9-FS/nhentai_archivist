@@ -24,7 +24,6 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
     {
         {
             let db: sqlx::sqlite::SqlitePool; // database containing all metadata from nhentai.net api
-            let hentai_id_list: Vec<u32>; // list of hentai id to download
             let http_client: reqwest::Client; // http client
 
 
@@ -56,7 +55,8 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
             }
 
             db = connect_to_db(&config.DATABASE_URL).await?; // connect to database
-            hentai_id_list = get_hentai_id_list
+            // list of hentai id to download
+            let hentai_id_list: Vec<u32> = get_hentai_id_list
             (
                 config.DOWNLOADME_FILEPATH.as_str(),
                 &http_client,
@@ -70,18 +70,17 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
             {
                 log::info!("--------------------------------------------------");
                 log::info!("{} / {} ({}) | hentai {hentai_id}", f0.format((i+1) as f64), f0.format(hentai_id_list.len() as f64), fm2.format((i+1) as f64 / hentai_id_list.len() as f64));
-                let hentai: Hentai; // hentai to download
 
-
-                match Hentai::new(*hentai_id, &db, &http_client, NHENTAI_HENTAI_SEARCH_URL, &config.LIBRARY_PATH, config.LIBRARY_SPLIT).await
+                // hentai to download
+                let hentai: Hentai = match Hentai::new(*hentai_id, &db, &http_client, NHENTAI_HENTAI_SEARCH_URL, &config.LIBRARY_PATH, config.LIBRARY_SPLIT).await
                 {
-                    Ok(o) => hentai = o, // hentai created successfully
+                    Ok(o) => o, // hentai created successfully
                     Err(e) => // hentai creation failed
                     {
                         log::error!("{e}");
                         continue; // skip download
                     }
-                }
+                };
 
                 if let Err(e) = hentai.download(&http_client).await
                 {
