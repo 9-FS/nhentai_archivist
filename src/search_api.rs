@@ -22,8 +22,9 @@ pub async fn search_by_id(http_client: &reqwest::Client, nhentai_hentai_search_u
 
     let r: reqwest::Response = http_client.get(format!("{nhentai_hentai_search_url}{id}").as_str()).send().await?; // search hentai
     if r.status() != reqwest::StatusCode::OK {return Err(SearchByIdError::ReqwestStatus {url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
+    // response in json format
     r_serialised = serde_json::from_str(r.text().await?.as_str())?; // deserialise json, get this response here to get number of pages before starting parallel workers
-    if let Err(e) = r_serialised.write_to_db(&db).await // save data to database, if unsuccessful: warning
+    if let Err(e) = r_serialised.write_to_db(db).await // save data to database, if unsuccessful: warning
     {
         log::warn!("Saving hentai \"{id}\" metadata in database failed with: {e}");
     }
@@ -69,7 +70,7 @@ pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url
         let r: reqwest::Response = http_client.get(nhentai_tag_search_url).query(&[("query", nhentai_tag), ("page", "1")]).send().await?; // tag search, page
         if r.status() != reqwest::StatusCode::OK {return Err(SearchByTagError::ReqwestStatus {url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
         r_serialised = serde_json::from_str(r.text().await?.as_str())?; // deserialise json, get this response here to get number of pages before starting parallel workers
-        if let Err(e) = r_serialised.write_to_db(&db).await // save data to database, if unsuccessful: warning
+        if let Err(e) = r_serialised.write_to_db(db).await // save data to database, if unsuccessful: warning
         {
             log::warn!("Saving hentai metadata page 1 / {} in database failed with: {e}", f.format(r_serialised.num_pages));
         }
