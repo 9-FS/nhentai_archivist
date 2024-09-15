@@ -7,14 +7,19 @@ nHentai Archivist is not connected to your nHentai account in any way. Automatic
 
 Why CBZ? CBZ is a widespread standard and basically just a ZIP file containing the images and a metadata file. This enables NHentai Archivist to **keep the tags** which wouldn't be possible with PDF as far as I know.
 
-Big thanks go out to [h3nTa1m4st3r_xx69](https://github.com/sam-k0), who helped me with using nhentai's completely undocumented API. Without him this project could not have been reactivated.
+Big thanks go out to [h3nTa1m4st3r_xx69](https://github.com/sam-k0), who helped me with using nHentai's completely undocumented API. Without him this project could not have been reactivated.
 I'm happy about anyone who finds my software useful and feedback is also always welcome. Happy downloading~
+
+## Quick Start
+
+1. Execute the program once to create a default `./config/.env`.
+1. Execute the program again and enter the nHentai ID you want to download separated by spaces.
 
 ## Installation
 
-1. Execute the program once to create a default `./config/.env`. This means that in the directory of the executable, there should now be a directory called "config" containing a file called ".env". You might need to enable seeing hidden files in the file explorer.
-1. Confirm the database directory at `DATABASE_URL` exists, which is `./db/` by default. It is possible that it is not created automatically because the URL could point to a remote directory. The database file will and should be created automatically.
-1. If you have problems with nhentai's bot protection (error 403), set `CF_CLEARANCE`, `CSRFTOKEN`, and `USER_AGENT`. Though I recommend setting the latter 2 in any case. `CF_CLEARANCE` is only available if "under attack" mode is enabled. If you can't find it next to `CSRFTOKEN`, it is likely not enabled and thus not required.
+1. Execute the program once to create a default `./config/.env`.\
+    This means that in the directory of the executable, there should now be a directory called "config" containing a file called ".env". You might need to enable seeing hidden files in the file explorer.
+1. I recommend setting the `CSRFTOKEN` cookie and `USER_AGENT`. If you start having problems with nHentai's bot protection (error 403), setting these is mandatory. If a `CF_CLEARANCE` cookie is available, it should be set as well.
 
     ### Mozilla Firefox
 
@@ -33,9 +38,14 @@ I'm happy about anyone who finds my software useful and feedback is also always 
     1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `./config/.env`.
 
 > [!NOTE]
-> If nhentai has "under attack" mode enabled, clearing the Cloudflare prompt and updating `CF_CLEARANCE` seem to be required daily.
+> If nHentai has "under attack" mode enabled, clearing the Cloudflare prompt and updating `CF_CLEARANCE` seem to be required daily.
 
 Further settings:
+
+- `DATABASE_URL`
+
+    This is the path to the SQLite database file. If you changed `DATABASE_URL`, confirm the database directory already exists. It is possible that it is not created automatically because the URL could point to a remote directory. The database file will and should be created automatically.
+
 
 - `NHENTAI_TAGS`
 
@@ -66,7 +76,7 @@ Further settings:
 ### Download a Few Quickly
 
 1. Run the program as is. Do not set `NHENTAI_TAGS` and make sure there is no file at `DOWNLOADME_FILEPATH`.
-1. Enter the nhentai ID you want to download separated by spaces.
+1. Enter the nHentai ID you want to download separated by spaces. This might not work using docker.
 
 Example `./config/.env`:
 
@@ -83,7 +93,7 @@ USER_AGENT = your user agent here
 ### Download a Bit More From a File
 
 1. Do not set `NHENTAI_TAGS`.
-1. Create a file at `DOWNLOADME_FILEPATH` and enter the nhentai ID you want to download separated by linebreaks.
+1. Create a file at `DOWNLOADME_FILEPATH` and enter the nHentai ID you want to download separated by linebreaks.
 
 Example `./config/.env`:
 
@@ -118,3 +128,9 @@ NHENTAI_TAGS = ['language:"english"']
 SLEEP_INTERVAL = 50000
 USER_AGENT = your user agent here
 ```
+
+## Known Issues
+
+- Searching by tags / downloading metadata often results in error 404 on seemingly random pages. This behaviour is consistent even when the URL is opened by a browser, so I assume the problem to be on nHentai's side. Just ignore the warnings and let nHentai Archivist search and download multiple times to get everything reliably, ideally with a `SLEEP_INTERVAL` of at least 50.000 so searches are guaranteed to be far enough apart. After a few runs, you will notice all but the newest hentai being skipped during the download phase. That's when you know you got everything.
+
+- nHentai contains a lot of duplicates. There is currently no way to filter them out.
