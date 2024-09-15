@@ -3,8 +3,6 @@
 
 nHentai Archivist is a tool to download hentai from https://nhentai.net and convert them to CBZ files. From quickly downloading a few hentai specified in the console, downloading a few hundred hentai specified in a downloadme.txt, up to automatically keeping a massive self-hosted library up-to-date by automatically generating a downloadme.txt from a search by tag. (For that use-case it has been optimised to tag the CBZ files in a way that [Komga](https://komga.org/) in [oneshot mode](https://komga.org/docs/guides/oneshots) interprets everything correctly.)
 
-nHentai Archivist is not connected to your nHentai account in any way. Automatically generating a `downloadme.txt` from your list of favourites is beyond the scope of this tool. However, once you compiled your favourites as a list of ID separated by line breaks, nHentai Archivist can take over.
-
 Why CBZ? CBZ is a widespread standard and basically just a ZIP file containing the images and a metadata file. This enables NHentai Archivist to **keep the tags** which wouldn't be possible with PDF as far as I know.
 
 Big thanks go out to [h3nTa1m4st3r_xx69](https://github.com/sam-k0), who helped me with using nHentai's completely undocumented API. Without him this project could not have been reactivated.
@@ -129,10 +127,23 @@ SLEEP_INTERVAL = 50000
 USER_AGENT = your user agent here
 ```
 
+## Exporting Favourites
+
+nHentai Archivist is not connected to your nHentai account in any way. Automatically generating a `downloadme.txt` from your list of favourites is beyond the scope of this tool. However, once you compiled your favourites as a list of ID separated by line breaks, nHentai Archivist can take over. Other users were quick to automate this process, I have linked a few of the provided solutions:
+
+- https://www.reddit.com/r/DataHoarder/comments/1fg5yzy/comment/ln3m11g/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+
+- https://www.reddit.com/r/animepiracy/comments/1fg6crs/comment/ln4dwvv/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+
+- https://github.com/phillychi3/nhentai-favorites
+
+> [!CAUTION]
+> I have not tested any of these scripts. I am linking them in good faith and rely on the feedback of the community.
+
 ## Known Issues
 
 - Searching by tags / downloading metadata often results in error 404 on seemingly random pages. This behaviour is consistent even when the URL is opened by a browser, so I assume the problem to be on nHentai's side. Just ignore the warnings and let nHentai Archivist search and download multiple times to get everything reliably, ideally with a `SLEEP_INTERVAL` of at least 50.000 so searches are guaranteed to be far enough apart. After a few runs, you will notice all but the newest hentai being skipped during the download phase. That's when you know you got everything. See [issue #3](https://github.com/9-FS/nhentai_archivist/issues/3).
 
 - nHentai contains a lot of duplicates. There is currently no way to filter them out. See [issue #6](https://github.com/9-FS/nhentai_archivist/issues/6).
 
-- The [nHentai search API](https://nhentai.net/info/) does not match whole words only; or at least I can't figure out how. For example, searching the artist "mana" will download "mana-ko" and "aoi manabu", everything with mana in it. See [issue #10](https://github.com/9-FS/nhentai_archivist/issues/10).
+- The [nHentai search API](https://nhentai.net/info/) does not match whole words only; or at least I can't figure out how. For example, searching the artist "mana" will download "mana-ko" and "aoi manabu", everything with mana in it. This does not affect (normal) tags as far as I have experienced. I recommend to always double check your `NHENTAI_TAGS` with a search on nhentai.net. See [issue #10](https://github.com/9-FS/nhentai_archivist/issues/10).
