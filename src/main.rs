@@ -40,7 +40,11 @@ fn main() -> std::process::ExitCode
         Err(e) => // loading config failed
         {
             setup_logging::setup_logging(log::Level::Info, None, "./log/%Y-%m-%d.log"); // setup logging with default settings to log error
-            log::error!("{e}");
+            match e
+            {
+                load_config::Error::CreatedDefaultFile {..} => log::info!("{e}"), // if default file created successfully: log as info
+                _ => log::error!("{e}"),
+            }
             return std::process::ExitCode::FAILURE;
         }
     }

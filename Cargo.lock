@@ -944,8 +944,8 @@ checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
 
 [[package]]
 name = "load_config"
-version = "1.1.2"
-source = "git+https://github.com/9-FS/load_config?tag=1.1.2#e6b732da500ab9a38a76a4ecc3b647b15ffc45b9"
+version = "1.2.0"
+source = "git+https://github.com/9-FS/load_config?tag=1.2.0#19c4d4fc2bdc6da865c5e147815c0cabaf469995"
 dependencies = [
  "figment",
  "serde",
@@ -1036,7 +1036,7 @@ dependencies = [
 
 [[package]]
 name = "nhentai_archivist"
-version = "3.2.0"
+version = "3.2.1"
 dependencies = [
  "chrono",
  "load_config",
