@@ -49,18 +49,35 @@ Further settings:
 
     Setting this will trigger "server mode". If no file at `DOWNLOADME_FILEPATH` is found, it will generate one by searching for the tags specified. After all hentai on the downloadme have been downloaded, it will wait for `SLEEP_INTERVAL` seconds and restart the search. This is useful to keep a self-hosted library up-to-date with the latest releases from the specified tag search. Multiple tags and tag exclusions can be specified and are connected via logical AND. This means results must fullfill all criteria specified.
 
-    Examples:
+    `./config/.env` examples:
 
     ```TOML
     NHENTAI_TAGS = ['language:"english"'] # all english hentai
     NHENTAI_TAGS = ['tag:"big breasts"'] # all hentai with the tag "big breasts"
     NHENTAI_TAGS = ['parody:"kono subarashii sekai ni syukufuku o"'] # all hentai from the anime "Kono Subarashii Sekai ni Syukufuku o"
-    NHENTAI_TAGS = ['artist:"shindol"'] #all hentai by Shindol
+    NHENTAI_TAGS = ['artist:"shindol"'] # all hentai by Shindol
     NHENTAI_TAGS = ['character:"frieren"'] # all hentai with character "Frieren"
     NHENTAI_TAGS = ['tag:"ffm threesome"', 'tag:"sister"', '-tag:"full censorship"', '-tag:"mind control"'] # all hentai with the tags "ffm threesome" and "sister" but without the tags "full censorship" and "mind control"
     ```
 
+    `docker-compose.yaml` examples:
+
+    ```YAML
+    environment:
+        - NHENTAI_TAGS: '[language:"english"]' # all english hentai
+        - NHENTAI_TAGS: '[tag:"big breasts"]' # all hentai with the tag "big breasts"
+        - NHENTAI_TAGS: '[parody:"kono subarashii sekai ni syukufuku o"]' # all hentai from the anime "Kono Subarashii Sekai ni Syukufuku o"
+        - NHENTAI_TAGS: '[artist:"shindol"]' # all hentai by Shindol
+        - NHENTAI_TAGS: '[character:"frieren"]' # all hentai with character "Frieren"
+        - NHENTAI_TAGS: '[tag:"ffm threesome", tag:"sister", -tag:"full censorship", -tag:"mind control"]' # all hentai with the tags "ffm threesome" and "sister" but without the tags "full censorship" and "mind control"
+    ```
+
     Pay attention to copy the format exactly as shown in the examples. That includes the usage of single quotation marks outside and double quotation marks inside. If the format is not being copied exactly, at least searching by tags that contain a space leads to erroneous API responses. More information can be found [here](https://nhentai.net/info/).
+
+    The docker compose method can be especially useful if altering quickly between searches, or configs in general, is desired. Just define a `docker-compose.yaml` for each config and then simply spinning down and up stacks is all that is needed to switch between them.
+
+> [!WARNING]
+> I advise against running multiple instances of nHentai Archivist at the same time.
 
 - `LIBRARY_PATH`
 
