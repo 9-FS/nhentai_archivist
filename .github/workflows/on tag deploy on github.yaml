@@ -18,14 +18,22 @@ jobs:
         runs-on: "ubuntu-latest"
 
         steps:
+            -   name: "Checkout Repository"
+                uses: "actions/checkout@v4" # makes repository structure available
+                with:
+                    fetch-depth: 0 # fetch all commits, so all tags can be accessed
+
             -   name: "NOW"
                 id: "now"
                 run: "echo \"NOW=$(date +'%Y-%m-%dT%H:%M:%S')\" >> $GITHUB_OUTPUT"  # get datetime, save in NOW, push to output
 
-            -   name: "Parse Tag"
-                id: "parse_tag"
-                run: "echo \"TAG=${GITHUB_REF#refs/tags/*}\" >> $GITHUB_OUTPUT" # parse tag because github.ref provides tag as f"refs/tags/{tag}"
-                shell: "bash"                                                   # must be bash even on windows, because command to apply value to variable works differently in powershell
+            -   name: "TAG"
+                id: "tag"
+                run: "echo \"TAG=$(git describe --tags --abbrev=0)\" >> $GITHUB_OUTPUT" # get tag, save in TAG, push to output
+
+            -   name: "TAG_PREVIOUS"
+                id: "tag_previous"
+                run: "echo \"TAG_PREVIOUS=$(git tag --sort=-creatordate | sed -n '2p')\" >> $GITHUB_OUTPUT" # get previous tag, save in TAG_PREVIOUS, push to output
 
             -   name: "TODAY"
                 id: "today"
@@ -33,7 +41,8 @@ jobs:
 
         outputs:    # set step output as job output so other jobs can access
             NOW: ${{steps.now.outputs.NOW}}
-            TAG: ${{steps.parse_tag.outputs.TAG}}
+            TAG: ${{steps.tag.outputs.TAG}}
+            TAG_PREVIOUS: ${{steps.tag_previous.outputs.TAG_PREVIOUS}}
             TODAY: ${{steps.today.outputs.TODAY}}
 
 
@@ -75,13 +84,30 @@ jobs:
         runs-on: "ubuntu-latest"
 
         steps:
+            -   name: "Checkout Repository"
+                uses: "actions/checkout@v4" # makes repository structure available
+                with:
+                    fetch-depth: 0 # fetch all commits, so we can access all tags
+
+            -   name: "Generate Changelog"
+                id: "generate_changelog"
+                run: |
+                    commit_messages=$(git log --pretty=format:'- %h: %s' '${{needs.initialisation.outputs.TAG_PREVIOUS}}'..'${{needs.initialisation.outputs.TAG}}')
+                    {
+                        echo "changelog<<EOF" # use heredoc to handle multiline output properly
+                        echo "## Changelog"
+                        echo ""
+                        echo "$commit_messages"
+                        echo "EOF"
+                    } >> $GITHUB_OUTPUT
+
             -   name: "Create Release"
                 env:
                     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
                 id: "create_release"
                 uses: "actions/create-release@v1"                                                                                       # function that creates release
                 with:                                                                                                                   # parameters
-                    body:                                                                                                               # release text
+                    body: ${{steps.generate_changelog.outputs.changelog}}                                                               # release text
                     draft: false
                     prerelease: false
                     release_name: "${{needs.initialisation.outputs.TODAY}} ${{env.REPO_NAME}} ${{needs.initialisation.outputs.TAG}}"    # release title
