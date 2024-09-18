@@ -164,3 +164,5 @@ nHentai Archivist is not connected to your nHentai account in any way. Automatic
 - nHentai contains a lot of duplicates. There is currently no way to filter them out. See [issue #6](https://github.com/9-FS/nhentai_archivist/issues/6).
 
 - The [nHentai search API](https://nhentai.net/info/) does not match whole words only; or at least I can't figure out how. For example, searching the artist "mana" will download "mana-ko" and "aoi manabu", everything with mana in it. This does not affect (normal) tags as far as I have experienced. I recommend to always double check your `NHENTAI_TAGS` with a search on nhentai.net. See [issue #10](https://github.com/9-FS/nhentai_archivist/issues/10).
+
+- Multiple tag searches can not be combined via logical OR. The current workaround is to have multiple `docker-compose.yaml` each defining a different search by defining `NHENTAI_TAGS` in their environment section and then playing round robin with the container that is being used. See [issue #11](https://github.com/9-FS/nhentai_archivist/issues/11).
