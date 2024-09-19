@@ -133,11 +133,12 @@ impl Hentai
     ///
     /// # Returns
     /// - nothing or error
-    pub async fn download(&self, http_client: &reqwest::Client) -> Result<(), HentaiDownloadError>
+    pub async fn download(&self, http_client: &reqwest::Client, cleanup_temporary_files: bool) -> Result<(), HentaiDownloadError>
     {
         const WORKERS: usize = 5; // number of parallel workers
         let cbz_final_filepath: String; //filepath to final cbz in library
         let cbz_temp_filepath: String = format!("{}{}/{}", self.library_path, self.id, self.cbz_filename); //filepath to temporary cbz, cbz is created here and when finished moved to final location, roundabout way over temporary cbz filepath in case program gets stopped while creating cbz, so no half finished cbz remains in library
+        let comicinfoxml_filepath: String = format!("{}{}/ComicInfo.xml", self.library_path, self.id); // filepath to metadata file if cleanup_temporary_files is false
         let f = scaler::Formatter::new()
             .set_scaling(scaler::Scaling::None)
             .set_rounding(scaler::Rounding::Magnitude(0)); // formatter
@@ -261,13 +262,46 @@ impl Hentai
         {
             if let Some(parent) = std::path::Path::new(cbz_final_filepath.as_str()).parent() {tokio::fs::DirBuilder::new().recursive(true).create(parent).await?;} // create all parent directories
         }
-        tokio::fs::rename(cbz_temp_filepath, cbz_final_filepath).await?; // move finished cbz to final location in library
-        log::info!("Saved hentai cbz.");
+        tokio::fs::rename(cbz_temp_filepath, &cbz_final_filepath).await?; // move finished cbz to final location in library
+        log::info!("Saved hentai cbz at \"{cbz_final_filepath}\".");
 
 
-        if let Err(e) = tokio::fs::remove_dir_all(format!("{}{}", self.library_path, self.id)).await // cleanup, delete image directory
+        if cleanup_temporary_files // if temporary files should be cleaned up
         {
-            log::warn!("Deleting \"{}/\" failed with: {e}", format!("{}{}", self.library_path, self.id));
+            match tokio::fs::remove_dir_all(format!("{}{}", self.library_path, self.id)).await // cleanup, delete image directory
+            {
+                Ok(_) => log::debug!("Deleted \"{}{}/\".", self.library_path, self.id),
+                Err(e) => log::warn!("Deleting \"{}{}/\" failed with: {e}", self.library_path, self.id),
+            }
+        }
+        else // if temporary files should not be cleaned up
+        {
+            #[cfg(target_family = "unix")]
+            match tokio::fs::OpenOptions::new().create_new(true).mode(0o666).write(true).open(&comicinfoxml_filepath).await
+            {
+                Ok(mut file) =>
+                {
+                    match file.write_all(serde_xml_rs::to_string(&ComicInfoXml::from(self.clone()))?.as_bytes()).await // even add the ComicInfo.xml to the directory
+                    {
+                        Ok(_) => log::info!("Saved hentai metadata file at \"{comicinfoxml_filepath}\"."),
+                        Err(e) => log::warn!("Writing hentai metadata to \"{comicinfoxml_filepath}\" failed with: {e}"),
+                    }
+                },
+                Err(e) => log::warn!("Saving hentai metadata at \"{comicinfoxml_filepath}\" failed with: {e}"),
+            }
+            #[cfg(not(target_family = "unix"))]
+            match tokio::fs::OpenOptions::new().create_new(true).write(true).open(&comicinfoxml_filepath).await
+            {
+                Ok(mut file) =>
+                {
+                    match file.write_all(serde_xml_rs::to_string(&ComicInfoXml::from(self.clone()))?.as_bytes()).await // even add the ComicInfo.xml to the directory
+                    {
+                        Ok(_) => log::info!("Saved hentai metadata file."),
+                        Err(e) => log::warn!("Writing hentai metadata to \"{comicinfoxml_filepath}\" failed with: {e}"),
+                    }
+                },
+                Err(e) => log::warn!("Saving hentai metadata at \"{comicinfoxml_filepath}\" failed with: {e}"),
+            }
         }
 
         return Ok(());
