@@ -50,7 +50,10 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
                 Err(e) => return Err(Error::ReqwestClientBuilder {source: e}),
             }
             let r: reqwest::Response = http_client.get(NHENTAI_TAG_SEARCH_URL).query(&[("query", "language:english"), ("page", "1")]).send().await?; // send test request
-            if r.status() != reqwest::StatusCode::OK && r.status() != reqwest::StatusCode::TOO_MANY_REQUESTS // if status is not ok and not too many requests: something went wrong, abort
+            if
+                r.status() != reqwest::StatusCode::OK  // if status is not ok
+                && r.status() != reqwest::StatusCode::NOT_FOUND // and except for not found and too many requests: something went wrong, abort
+                && r.status() != reqwest::StatusCode::TOO_MANY_REQUESTS // not found included because of nhentai api's random 404 fuckywuckys
             {
                 return Err(Error::ReqwestStatus {url: r.url().to_string(), status: r.status()});
             }

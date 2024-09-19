@@ -1036,7 +1036,7 @@ dependencies = [
 
 [[package]]
 name = "nhentai_archivist"
-version = "3.3.0"
+version = "3.3.1"
 dependencies = [
  "chrono",
  "load_config",
