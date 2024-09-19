@@ -8,6 +8,7 @@
 pub struct Config
 {
     pub CF_CLEARANCE: String, // bypass bot protection
+    pub CLEANUP_TEMPORARY_FILES: bool, // clean up temporary files after downloading? some prefer off for deduplication or compatibility with other tools
     pub CSRFTOKEN: String, // bypass bot protection
     pub DATABASE_URL: String, // url to database file
     pub DEBUG: Option<bool>, // debug mode?
@@ -26,6 +27,7 @@ impl Default for Config
         Self
         {
             CF_CLEARANCE: "".to_owned(),
+            CLEANUP_TEMPORARY_FILES: true,
             CSRFTOKEN: "".to_owned(),
             DATABASE_URL: "./db/db.sqlite".to_owned(),
             DEBUG: None, // no entry in default config, defaults to false

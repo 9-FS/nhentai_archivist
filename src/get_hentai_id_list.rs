@@ -73,11 +73,11 @@ pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest
             {
                 match file.write_all(hentai_id_list.iter().map(|id| id.to_string()).collect::<Vec<String>>().join("\n").as_bytes()).await
                 {
-                    Ok(_) => log::info!("Saved hentai ID list from tag search in {downloadme_filepath}."),
-                    Err(e) => log::warn!("Writing hentai ID list to {downloadme_filepath} failed with: {e}"),
+                    Ok(_) => log::info!("Saved hentai ID list from tag search at \"{downloadme_filepath}\"."),
+                    Err(e) => log::warn!("Writing hentai ID list to \"{downloadme_filepath}\" failed with: {e}"),
                 }
             },
-            Err(e) => log::warn!("Saving hentai ID list at {downloadme_filepath} failed with: {e}"),
+            Err(e) => log::warn!("Saving hentai ID list at \"{downloadme_filepath}\" failed with: {e}"),
         }
         #[cfg(not(target_family = "unix"))]
         match tokio::fs::OpenOptions::new().create_new(true).write(true).open(downloadme_filepath).await
@@ -86,11 +86,11 @@ pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest
             {
                 match file.write_all(hentai_id_list.iter().map(|id| id.to_string()).collect::<Vec<String>>().join("\n").as_bytes()).await
                 {
-                    Ok(_) => log::info!("Saved hentai ID list from tag search in {downloadme_filepath}."),
-                    Err(e) => log::warn!("Writing hentai ID list to {downloadme_filepath} failed with: {e}"),
+                    Ok(_) => log::info!("Saved hentai ID list from tag search at \"{downloadme_filepath}\"."),
+                    Err(e) => log::warn!("Writing hentai ID list to \"{downloadme_filepath}\" failed with: {e}"),
                 }
             },
-            Err(e) => log::warn!("Saving hentai ID list at {downloadme_filepath} failed with: {e}"),
+            Err(e) => log::warn!("Saving hentai ID list at \"{downloadme_filepath}\" failed with: {e}"),
         }
         log::debug!("{hentai_id_list:?}");
         return hentai_id_list;
