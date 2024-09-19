@@ -1,4 +1,12 @@
 # nhentai_archivist
+
+> [!IMPORTANT]
+> If you have any questions, **consult the readme first**.
+>
+> I spend a lot of effort to keep the readme up-to-date and chances are high that your problem has already been addressed here. If you still require assistance after reading the readme, post it publicly, preferably as a GitHub issue, so others can benefit from the troubleshooting as well.
+>
+> **Private or insultingly lazy requests for help will not be answered any more.**
+
 ## Introduction
 
 nHentai Archivist is a tool to download hentai from https://nhentai.net and convert them to CBZ files. From quickly downloading a few hentai specified in the console, downloading a few hundred hentai specified in a downloadme.txt, up to automatically keeping a massive self-hosted library up-to-date by automatically generating a downloadme.txt from a search by tag. (For that use-case it has been optimised to tag the CBZ files in a way that [Komga](https://komga.org/) in [oneshot mode](https://komga.org/docs/guides/oneshots) interprets everything correctly.)
