@@ -3,7 +3,7 @@
 
 nHentai Archivist is a tool to download hentai from https://nhentai.net and convert them to CBZ files. From quickly downloading a few hentai specified in the console, downloading a few hundred hentai specified in a downloadme.txt, up to automatically keeping a massive self-hosted library up-to-date by automatically generating a downloadme.txt from a search by tag. (For that use-case it has been optimised to tag the CBZ files in a way that [Komga](https://komga.org/) in [oneshot mode](https://komga.org/docs/guides/oneshots) interprets everything correctly.)
 
-Why CBZ? CBZ is a widespread standard and basically just a ZIP file containing the images and a metadata file. This enables NHentai Archivist to **keep the tags** which wouldn't be possible with PDF as far as I know.
+Why CBZ? CBZ is a widespread standard and basically just a ZIP file containing the images and a metadata file. This enables nHentai Archivist to **keep the tags** which wouldn't be possible with PDF as far as I know.
 
 Big thanks go out to [h3nTa1m4st3r_xx69](https://github.com/sam-k0), who helped me with using nHentai's completely undocumented API. Without him this project could not have been reactivated.
 I'm happy about anyone who finds my software useful and feedback is also always welcome. Happy downloading~
@@ -159,7 +159,9 @@ nHentai Archivist is not connected to your nHentai account in any way. Automatic
 
 ## Known Issues
 
-- Searching by tags / downloading metadata often results in error 404 on seemingly random pages. This behaviour is consistent even when the URL is opened by a browser, so I assume the problem to be on nHentai's side. Just ignore the warnings and let nHentai Archivist search and download multiple times to get everything reliably, ideally with a `SLEEP_INTERVAL` of at least 50.000 so searches are guaranteed to be far enough apart. After a few runs, you will notice all but the newest hentai being skipped during the download phase. That's when you know you got everything. See [issue #3](https://github.com/9-FS/nhentai_archivist/issues/3).
+- Searching by tags / downloading metadata often results in error 404 on seemingly random pages. This behaviour is consistent even when the URL is opened by a browser, so I assume the problem to be on nHentai's side.\
+If error 404 occurs on page 1, you're out of luck as that page is required to get the total number of pages. In that case you will have to wait until the error disappears again or temporarily change the search query.\
+In any other case just ignore the warnings and let nHentai Archivist search and download multiple times to get everything reliably, ideally with a `SLEEP_INTERVAL` of at least 50.000 so searches are guaranteed to be far enough apart. After a few runs, you will notice all but the newest hentai being skipped during the download phase. That's when you know you got everything. See [issue #3](https://github.com/9-FS/nhentai_archivist/issues/3).
 
 - nHentai contains a lot of duplicates. There is currently no way to filter them out. See [issue #6](https://github.com/9-FS/nhentai_archivist/issues/6).
 
