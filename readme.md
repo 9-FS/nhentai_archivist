@@ -1,7 +1,7 @@
 # nhentai_archivist
 
 > [!IMPORTANT]
-> If you have any questions, **consult the readme first**.
+> If you have any questions, please **consult the readme first**.
 >
 > I spend a lot of effort to keep the readme up-to-date and chances are high that your problem has already been addressed here. If you still require assistance after reading the readme, post it publicly, preferably as a GitHub issue, so others can benefit from the troubleshooting as well.
 >
