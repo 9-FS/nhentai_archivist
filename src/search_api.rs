@@ -54,7 +54,7 @@ pub async fn search_by_id(http_client: &reqwest::Client, nhentai_hentai_search_u
 ///
 /// # Returns
 /// - list of hentai ID to download or error
-pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url: &str, nhentai_tags: &Vec<String>, db: &sqlx::sqlite::SqlitePool) -> Result<Vec<u32>, SearchByTagError>
+pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url: &str, nhentai_tags: &Vec<String>, db: &sqlx::sqlite::SqlitePool) -> Result<Vec<u32>, SearchByTagOnPageError>
 {
     const WORKERS: usize = 2; // number of concurrent workers
     let f = scaler::Formatter::new()
@@ -62,29 +62,34 @@ pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url
         .set_rounding(scaler::Rounding::Magnitude(0)); // formatter
     let mut handles: Vec<tokio::task::JoinHandle<Option<Vec<u32>>>> = Vec::new(); // list of handles to tag_search_page
     let mut hentai_id_list: Vec<u32> = Vec::new(); // list of hentai id to download
-    let r_serialised: TagSearchResponse; // response in json format
+    let mut num_pages: Option<u32> = None; // number of search result pages, at the beginning unknown
     let worker_sem: std::sync::Arc<tokio::sync::Semaphore> = std::sync::Arc::new(tokio::sync::Semaphore::new(WORKERS)); // limit number of concurrent workers otherwise api enforces rate limit
 
 
+    let mut page_no: u32 = 1;
+    while page_no <= 10 // search first pages sequentially to try to get total number of pages
     {
-        let r: reqwest::Response = http_client.get(format!("{nhentai_tag_search_url}?query={}&page=1", nhentai_tags.join("+"))).send().await?; // tag search, page, do not use .query() because it converts "+" between multiple tags to "%2B"
-        log::debug!("{}", r.url());
-        if r.status() != reqwest::StatusCode::OK {return Err(SearchByTagError::ReqwestStatus {url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
-        r_serialised = serde_json::from_str(r.text().await?.as_str())?; // deserialise json, get this response here to get number of pages before starting parallel workers
-        if let Err(e) = r_serialised.write_to_db(db).await // save data to database, if unsuccessful: warning
+        match search_by_tag_on_page(http_client.clone(), nhentai_tag_search_url.to_owned(), nhentai_tags.clone(), page_no, num_pages, db.clone()).await
         {
-            log::warn!("Saving hentai metadata page 1 / {} in database failed with: {e}", f.format(r_serialised.num_pages));
+            Ok(o) =>
+            {
+                log::info!("Downloaded hentai metadata page {} / {}.", f.format(page_no), f.format(o.0));
+                num_pages = Some(o.0); // set number of pages
+                hentai_id_list.extend(o.1);
+                page_no += 1;
+                break; // initiate parallel search
+            }
+            Err(e) =>
+            {
+                if page_no < 10 {log::warn!("{e}");} // if not last page: only log error, retry with next page
+                else {return Err(e);} // if last page and still error: return error
+            }
         }
-        log::info!("Downloaded hentai metadata page 1 / {}.", f.format(r_serialised.num_pages));
-    }
-
-    for hentai in r_serialised.result // collect hentai id
-    {
-        hentai_id_list.push(hentai.id);
+        page_no += 1;
     }
 
 
-    for page_no in 2..=r_serialised.num_pages // for each page, search in parallel
+    for page_no in page_no..=num_pages.expect("num_pages is None even though made sure it should be initialised.") // continue with parallel search
     {
         let db_clone: sqlx::Pool<sqlx::Sqlite> = db.clone();
         let f_clone: scaler::Formatter = f.clone();
@@ -96,11 +101,11 @@ pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url
         handles.push(tokio::spawn(async move
         {
             let result: Option<Vec<u32>>;
-            match search_by_tag_on_page(http_client_clone, nhentai_tag_search_url_clone, nhentai_tags_clone, page_no, r_serialised.num_pages, db_clone).await
+            match search_by_tag_on_page(http_client_clone, nhentai_tag_search_url_clone, nhentai_tags_clone, page_no, num_pages, db_clone).await
             {
-                Ok(o) =>
+                Ok((_, o)) =>
                 {
-                    log::info!("Downloaded hentai metadata page {} / {}.", f_clone.format(page_no), f_clone.format(r_serialised.num_pages));
+                    log::info!("Downloaded hentai metadata page {} / {}.", f_clone.format(page_no), f_clone.format(num_pages.expect("num_pages is None even though made sure it should be initialised.")));
                     result = Some(o);
                 }
                 Err(e) =>
@@ -131,11 +136,14 @@ pub async fn search_by_tag(http_client: &reqwest::Client, nhentai_tag_search_url
 /// - `nhentai_tag_search_url`: nhentai.net tag search api url
 /// - `nhentai_tags`: tags to search for
 /// - `page_no`: page number
+/// - `num_pages`: number of search result pages, if already known
 /// - `db`: database connection
 ///
 /// # Returns
-/// - list of hentai ID to download or error
-async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_url: String, nhentai_tags: Vec<String>, page_no: u32, num_pages: u32, db: sqlx::sqlite::SqlitePool) -> Result<Vec<u32>, SearchByTagOnPageError>
+/// - number of search result pages
+/// - list of hentai ID to download
+/// - or error
+async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_url: String, nhentai_tags: Vec<String>, page_no: u32, num_pages: Option<u32>, db: sqlx::sqlite::SqlitePool) -> Result<(u32, Vec<u32>), SearchByTagOnPageError>
 {
     let f = scaler::Formatter::new()
         .set_scaling(scaler::Scaling::None)
@@ -174,7 +182,7 @@ async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_
     }
     if let Err(e) = r_serialised.write_to_db(&db).await // save data to database
     {
-        log::warn!("Saving hentai metadata page {} / {} in database failed with: {e}", f.format(page_no), f.format(num_pages));
+        log::warn!("Saving hentai metadata page {} / {} in database failed with: {e}", f.format(page_no), num_pages.map_or("<unknown>".to_owned(), |o| f.format(o)));
     }
 
     for hentai in r_serialised.result // collect hentai id
@@ -182,5 +190,5 @@ async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_
         hentai_id_list.push(hentai.id);
     }
 
-    return Ok(hentai_id_list);
+    return Ok((r_serialised.num_pages, hentai_id_list));
 }

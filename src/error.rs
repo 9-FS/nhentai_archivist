@@ -89,44 +89,30 @@ pub enum SearchByIdError
 
 
 #[derive(Debug, thiserror::Error)]
-pub enum SearchByTagError
-{
-    #[error("Downloading hentai metadata page 1 from \"{}\" failed with: {0}", .0.url().map_or_else(|| "<unknown>", |o| o.as_str()))]
-    Reqwest(#[from] reqwest::Error),
-
-    #[error("Downloading hentai metadata page 1 from \"{url}\" failed with status code {status}.")]
-    ReqwestStatus {url: String, status: reqwest::StatusCode},
-
-    #[error("Saving hentai metadata page 1 in database failed with: {0}")]
-    SerdeJson(#[from] serde_json::Error),
-}
-
-
-#[derive(Debug, thiserror::Error)]
 pub enum SearchByTagOnPageError
 {
     #[error
     (
         "Downloading hentai metadata page {} / {} from \"{}\" failed with: {source}",
         scaler::Formatter::new().set_scaling(scaler::Scaling::None).set_rounding(scaler::Rounding::Magnitude(0)).format(*page_no),
-        scaler::Formatter::new().set_scaling(scaler::Scaling::None).set_rounding(scaler::Rounding::Magnitude(0)).format(*num_pages),
+        num_pages.map_or("<unknown>".to_owned(), |o| scaler::Formatter::new().set_scaling(scaler::Scaling::None).set_rounding(scaler::Rounding::Magnitude(0)).format(o)),
         source.url().map_or_else(|| "<unknown>", |o| o.as_str())
     )]
-    Reqwest {page_no: u32, num_pages: u32, source: reqwest::Error},
+    Reqwest {page_no: u32, num_pages: Option<u32>, source: reqwest::Error},
 
     #[error
     (
         "Downloading hentai metadata page {} / {} from \"{url}\" failed with status code {status}.",
         scaler::Formatter::new().set_scaling(scaler::Scaling::None).set_rounding(scaler::Rounding::Magnitude(0)).format(*page_no),
-        scaler::Formatter::new().set_scaling(scaler::Scaling::None).set_rounding(scaler::Rounding::Magnitude(0)).format(*num_pages),
+        num_pages.map_or("<unknown>".to_owned(), |o| scaler::Formatter::new().set_scaling(scaler::Scaling::None).set_rounding(scaler::Rounding::Magnitude(0)).format(o)),
     )]
-    ReqwestStatus {page_no: u32, num_pages: u32, url: String, status: reqwest::StatusCode},
+    ReqwestStatus {page_no: u32, num_pages: Option<u32>, url: String, status: reqwest::StatusCode},
 
     #[error
     (
         "Saving hentai metadata page {} / {} in database failed with: {source}",
         scaler::Formatter::new().set_scaling(scaler::Scaling::None).set_rounding(scaler::Rounding::Magnitude(0)).format(*page_no),
-        scaler::Formatter::new().set_scaling(scaler::Scaling::None).set_rounding(scaler::Rounding::Magnitude(0)).format(*num_pages),
+        num_pages.map_or("<unknown>".to_owned(), |o| scaler::Formatter::new().set_scaling(scaler::Scaling::None).set_rounding(scaler::Rounding::Magnitude(0)).format(o)),
     )]
-    SerdeJson {page_no: u32, num_pages: u32, source: serde_json::Error},
+    SerdeJson {page_no: u32, num_pages: Option<u32>, source: serde_json::Error},
 }

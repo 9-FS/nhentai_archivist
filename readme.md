@@ -168,8 +168,7 @@ nHentai Archivist is not connected to your nHentai account in any way. Automatic
 ## Known Issues
 
 - Searching by tags / downloading metadata often results in error 404 on seemingly random pages. This behaviour is consistent even when the URL is opened by a browser, so I assume the problem to be on nHentai's side.\
-If error 404 occurs on page 1, you're out of luck as that page is required to get the total number of pages. In that case you will have to wait until the error disappears again or temporarily change the search query.\
-In any other case just ignore the warnings and let nHentai Archivist search and download multiple times to get everything reliably, ideally with a `SLEEP_INTERVAL` of at least 50.000 so searches are guaranteed to be far enough apart. After a few runs, you will notice all but the newest hentai being skipped during the download phase. That's when you know you got everything. See [issue #3](https://github.com/9-FS/nhentai_archivist/issues/3).
+Just ignore the warnings and let nHentai Archivist search and download multiple times to get everything reliably, ideally with a `SLEEP_INTERVAL` of at least 50.000 so searches are guaranteed to be far enough apart. After a few runs, you will notice all but the newest hentai being skipped during the download phase. That's when you know you got everything. See [issue #3](https://github.com/9-FS/nhentai_archivist/issues/3).
 
 - nHentai contains a lot of duplicates. There is currently no way to filter them out. See [issue #6](https://github.com/9-FS/nhentai_archivist/issues/6).
 
