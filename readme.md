@@ -167,11 +167,61 @@ nHentai Archivist is not connected to your nHentai account in any way. Automatic
 
 ## Known Issues
 
-- Searching by tags / downloading metadata often results in error 404 on seemingly random pages. This behaviour is consistent even when the URL is opened by a browser, so I assume the problem to be on nHentai's side.\
-Just ignore the warnings and let nHentai Archivist search and download multiple times to get everything reliably, ideally with a `SLEEP_INTERVAL` of at least 50.000 so searches are guaranteed to be far enough apart. After a few runs, you will notice all but the newest hentai being skipped during the download phase. That's when you know you got everything. See [issue #3](https://github.com/9-FS/nhentai_archivist/issues/3).
+- Searching by tags / downloading metadata often results in error 404 on seemingly random pages.\
+This behaviour is consistent even when the URL is opened by a browser, so I assume the problem to be on nHentai's side. Just ignore the warnings and let nHentai Archivist search and download multiple times to get everything reliably, ideally with a `SLEEP_INTERVAL` of at least 50.000 so searches are guaranteed to be far enough apart. After a few runs, you will notice all but the newest hentai being skipped during the download phase. That's when you know you got everything. See [issue #3](https://github.com/9-FS/nhentai_archivist/issues/3).
 
-- nHentai contains a lot of duplicates. There is currently no way to filter them out. See [issue #6](https://github.com/9-FS/nhentai_archivist/issues/6).
+- nHentai contains a lot of duplicates.\
+    There is currently no way to filter them out. Setting `CLEANUP_TEMPORARY_FILES` has been added to improve interoperability  with third party deduplication software. See [issue #6](https://github.com/9-FS/nhentai_archivist/issues/6).
 
-- The [nHentai search API](https://nhentai.net/info/) does not match whole words only; or at least I can't figure out how. For example, searching the artist "mana" will download "mana-ko" and "aoi manabu", everything with mana in it. This does not affect (normal) tags as far as I have experienced. I recommend to always double check your `NHENTAI_TAGS` with a search on nhentai.net. See [issue #10](https://github.com/9-FS/nhentai_archivist/issues/10).
+- The [nHentai search API](https://nhentai.net/info/) does not match whole words only; or at least I can't figure out how. For example, searching the artist "mana" will download "mana-ko" and "aoi manabu", everything with mana in it. This does not affect (normal) tags as far as I have experienced.\
+    I recommend to always double check your `NHENTAI_TAGS` with a search on nhentai.net. See [issue #10](https://github.com/9-FS/nhentai_archivist/issues/10).
 
-- Multiple tag searches can not be combined via logical OR. The current workaround is to have multiple `docker-compose.yaml` each defining a different search by defining `NHENTAI_TAGS` in their environment section and then playing round robin with the container that is being used. See [issue #11](https://github.com/9-FS/nhentai_archivist/issues/11).
+- Multiple tag searches can not be combined via logical OR.\
+    The current workaround is to have multiple `docker-compose.yaml` each defining a different search by defining `NHENTAI_TAGS` in their environment section and then playing round robin with the container that is being used. See [issue #11](https://github.com/9-FS/nhentai_archivist/issues/11).
+
+- I have upgraded from an older version and now nHentai Archivist complains about missing or invalid settings.\
+    Either follow the error message's instructions and manually make the necessary changes or delete `./config/.env` and execute the program once to create a new default one.
+
+- 177013 "Metamorphosis" has been purged!\
+    Apparently, only the gallery page has been purged and the images themselves are still available on the media servers; as long as you happen to remember the media ID from before the purge _wink wink_. By executing the following SQL commands, you can manually add the required metadata to the database and then download the images as usual. Huge thanks to a friendly redditor for this information.
+
+    ```SQL
+    INSERT
+    INTO Hentai (id, cover_type, media_id, num_favorites, num_pages, page_types, scanlator, title_english, title_japanese, title_pretty, upload_date)
+    VALUES (177013, 'j', media_id, 0, 225, 'jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj', NULL, '[ShindoLA] METAMORPHOSIS (Complete) [English]', NULL, 'METAMORPHOSIS', '2016-10-19T00:00:00Z');
+
+    INSERT
+    INTO Hentai_Tag (hentai_id, tag_id)
+    VALUES
+    (177013, 8010),
+    (177013, 14283),
+    (177013, 24201),
+    (177013, 10314),
+    (177013, 13720),
+    (177013, 29859),
+    (177013, 13989),
+    (177013, 22942),
+    (177013, 22945),
+    (177013, 19018),
+    (177013, 20035),
+    (177013, 29224),
+    (177013, 27384),
+    (177013, 8739),
+    (177013, 7256),
+    (177013, 6343),
+    (177013, 22079),
+    (177013, 12695),
+    (177013, 5820),
+    (177013, 29182),
+    (177013, 25050),
+    (177013, 32996),
+    (177013, 10542),
+    (177013, 53449),
+    (177013, 7288),
+    (177013, 13722),
+    (177013, 21112),
+    (177013, 3981),
+    (177013, 17249),
+    (177013, 12227),
+    (177013, 33173);
+    ```
