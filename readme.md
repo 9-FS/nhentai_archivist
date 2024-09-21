@@ -105,12 +105,13 @@ Example `./config/.env`:
 
 ```TOML
 CF_CLEARANCE = ""
-CSRFTOKEN = your token here
+CLEANUP_TEMPORARY_FILES = true
+CSRFTOKEN = ""
 DATABASE_URL = "./db/db.sqlite"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"
 LIBRARY_SPLIT = 0
-USER_AGENT = your user agent here
+USER_AGENT = ""
 ```
 
 ### Download a Bit More From a File
@@ -122,12 +123,13 @@ Example `./config/.env`:
 
 ```TOML
 CF_CLEARANCE = ""
-CSRFTOKEN = your token here
+CLEANUP_TEMPORARY_FILES = true
+CSRFTOKEN = "your token here"
 DATABASE_URL = "./db/db.sqlite"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"
 LIBRARY_SPLIT = 0
-USER_AGENT = your user agent here
+USER_AGENT = "your user agent here"
 ```
 
 ### Ich mein's ernst: Keeping a Self-Hosted Library Up-to-Date
@@ -142,14 +144,15 @@ Example `./config/.env`:
 
 ```TOML
 CF_CLEARANCE = ""
-CSRFTOKEN = your token here
+CLEANUP_TEMPORARY_FILES = true
+CSRFTOKEN = "your token here"
 DATABASE_URL = "./db/db.sqlite"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"
 LIBRARY_SPLIT = 10000
 NHENTAI_TAGS = ['language:"english"']
 SLEEP_INTERVAL = 50000
-USER_AGENT = your user agent here
+USER_AGENT = "your user agent here"
 ```
 
 ## Exporting Favourites
