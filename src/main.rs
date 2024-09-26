@@ -76,8 +76,7 @@ fn main() -> std::process::ExitCode
                     log::error!("{e}"); // log error
                     match e
                     {
-                        #[allow(unused_variables)]
-                        Error::ReqwestStatus {url, status} =>
+                        Error::ReqwestStatus {status, ..} =>
                         {
                             if status == reqwest::StatusCode::FORBIDDEN // if status is forbidden
                             {
