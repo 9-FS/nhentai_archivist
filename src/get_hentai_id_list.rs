@@ -11,6 +11,7 @@ use tokio::io::AsyncWriteExt;
 ///
 /// # Arguments
 /// - `downloadme_filepath`: path to file containing hentai ID list
+/// - `dontdownloadme_filepath`: path to file containing hentai ID to not download, blacklist
 /// - `http_client`: reqwest http client
 /// - `nhentai_tag_search_url`: nhentai.net tag search API URL
 /// - `nhentai_tags`: tags to search for
@@ -18,12 +19,12 @@ use tokio::io::AsyncWriteExt;
 ///
 /// # Returns
 /// - list of hentai ID to download
-pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest::Client, nhentai_tag_search_url: &str, nhentai_tags: Option<Vec<String>>, db: &sqlx::sqlite::SqlitePool) -> Vec<u32>
+pub async fn get_hentai_id_list(downloadme_filepath: &str, dontdownloadme_filepath: &Option<String>, http_client: &reqwest::Client, nhentai_tag_search_url: &str, nhentai_tags: Option<Vec<String>>, db: &sqlx::sqlite::SqlitePool) -> Vec<u32>
 {
     let mut hentai_id_list: Vec<u32> = Vec::new(); // list of hentai id to download
 
 
-    if std::path::Path::new(downloadme_filepath).exists() // only try loading if downloadme_filepath actually exists, so only non trivial errors are logged with log::error!
+    if std::path::Path::new(downloadme_filepath).is_file() // only try loading if downloadme_filepath actually exists, so only non trivial errors are logged with log::error!
     {
         match tokio::fs::read_to_string(downloadme_filepath).await // try to load downloadme
         {
@@ -38,6 +39,10 @@ pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest
     else
     {
         log::info!("No hentai ID list found at \"{downloadme_filepath}\".");
+    }
+    if let Some(dontdownloadme_filepath) = dontdownloadme_filepath
+    {
+        hentai_id_list = remove_blacklisted_hentai_id(hentai_id_list, dontdownloadme_filepath).await; // remove blacklisted hentai id
     }
     if !hentai_id_list.is_empty() // if hentai_id_list is not empty: work is done
     {
@@ -63,6 +68,10 @@ pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest
     else // if nhentai_tags are not set: request manual user input
     {
         log::info!("\"NHENTAI_TAGS\" are not set.");
+    }
+    if let Some(dontdownloadme_filepath) = dontdownloadme_filepath
+    {
+        hentai_id_list = remove_blacklisted_hentai_id(hentai_id_list, dontdownloadme_filepath).await; // remove blacklisted hentai id
     }
     if !hentai_id_list.is_empty() // if hentai_id_list is not empty: save tag search in downloadme.txt, work is done
     {
@@ -117,8 +126,45 @@ pub async fn get_hentai_id_list(downloadme_filepath: &str, http_client: &reqwest
             })
             .collect(); // String -> Vec<u32>, discard unparseable lines with warning
 
+        if let Some(dontdownloadme_filepath) = dontdownloadme_filepath
+        {
+            hentai_id_list = remove_blacklisted_hentai_id(hentai_id_list, dontdownloadme_filepath).await; // remove blacklisted hentai id
+        }
         if !hentai_id_list.is_empty() {break;} // if hentai_id_list is not empty: work is done
     }
     log::debug!("{hentai_id_list:?}");
+    return hentai_id_list;
+}
+
+
+/// # Summary
+/// Removes blacklisted hentai ID from list of hentai ID to download.
+///
+/// # Arguments
+/// - `hentai_id_list`: list of hentai ID to download
+/// - `dontdownloadme_filepath`: path to file containing hentai ID to not download, blacklist
+///
+/// # Returns
+/// - list of hentai ID to download with blacklisted hentai ID removed
+async fn remove_blacklisted_hentai_id(mut hentai_id_list: Vec<u32>, dontdownloadme_filepath: &str) -> Vec<u32>
+{
+    let mut blacklist: Vec<u32> = Vec::new(); // list of hentai id to not download
+
+
+    if !std::path::Path::new(dontdownloadme_filepath).is_file() {return hentai_id_list;} // only try loading if dontdownloadme_filepath actually exists, so only non trivial errors are logged with log::error!
+
+    match tokio::fs::read_to_string(dontdownloadme_filepath).await // try to load dontdownloadme
+    {
+        Ok(content) =>
+        {
+            blacklist = content.lines().filter_map(|line| line.parse::<u32>().ok()).collect(); // String -> Vec<u32>, discard unparseable lines
+            log::debug!("Loaded hentai ID blacklist from \"{dontdownloadme_filepath}\".");
+        },
+        Err(e) => log::warn!("Loading hentai ID blacklist from \"{dontdownloadme_filepath}\" failed with: {e}"),
+    };
+
+
+    hentai_id_list.retain(|id| !blacklist.contains(id)); // remove blacklisted hentai id
+
     return hentai_id_list;
 }

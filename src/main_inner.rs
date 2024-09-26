@@ -89,6 +89,7 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
             hentai_id_list = get_hentai_id_list
             (
                 config.DOWNLOADME_FILEPATH.as_str(),
+                &config.DONTDOWNLOADME_FILEPATH,
                 &http_client,
                 NHENTAI_TAG_SEARCH_URL,
                 config.NHENTAI_TAGS.clone(),

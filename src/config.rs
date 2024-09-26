@@ -12,6 +12,7 @@ pub struct Config
     pub CSRFTOKEN: String, // bypass bot protection
     pub DATABASE_URL: String, // url to database file
     pub DEBUG: Option<bool>, // debug mode?
+    pub DONTDOWNLOADME_FILEPATH: Option<String>, // path to file containing hentai ID to not download, blacklist
     pub DOWNLOADME_FILEPATH: String, // path to file containing hentai ID to download
     pub LIBRARY_PATH: String, // path to download hentai to
     pub LIBRARY_SPLIT: u32, // split library into subdirectories of maximum this many hentai, 0 to disable
@@ -31,6 +32,7 @@ impl Default for Config
             CSRFTOKEN: "".to_owned(),
             DATABASE_URL: "./db/db.sqlite".to_owned(),
             DEBUG: None, // no entry in default config, defaults to false
+            DONTDOWNLOADME_FILEPATH: Some("./config/dontdownloadme.txt".to_owned()),
             DOWNLOADME_FILEPATH: "./config/downloadme.txt".to_owned(),
             LIBRARY_PATH: "./hentai/".to_owned(),
             LIBRARY_SPLIT: 0,
