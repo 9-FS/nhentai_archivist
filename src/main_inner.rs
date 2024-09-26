@@ -20,8 +20,9 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
     let f4 = scaler::Formatter::new(); // formatter
 
 
-    loop // keep running for server mode
+    'program: loop // keep running for server mode
     {
+        'iteration: // particular iteration of gathering id to download and downloading, client mode does only does 1 iteration, server mode unlimited
         {
             let db: sqlx::sqlite::SqlitePool; // database containing all metadata from nhentai.net api
             let hentai_id_list: Vec<u32>; // list of hentai id to download
@@ -47,18 +48,44 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
                 .build()
             {
                 Ok(o) => http_client = o,
-                Err(e) => return Err(Error::ReqwestClientBuilder {source: e}),
+                Err(e) =>
+                {
+                    if config.NHENTAI_TAGS.is_none() {return Err(Error::ReqwestClientBuilder {source: e});} // if client mode: abort completely with error
+                    log::error!("{}", Error::ReqwestClientBuilder {source: e});
+                    break 'iteration; // if server mode: only abort iteration, go straight to sleeping
+                }
             }
-            let r: reqwest::Response = http_client.get(NHENTAI_TAG_SEARCH_URL).query(&[("query", "language:english"), ("page", "1")]).send().await?; // send test request
+            let r: reqwest::Response;
+            match http_client.get(NHENTAI_TAG_SEARCH_URL).query(&[("query", "language:english"), ("page", "1")]).send().await // send test request
+            {
+                Ok(o) => r = o,
+                Err(e) =>
+                {
+                    if config.NHENTAI_TAGS.is_none() {return Err(e.into());} // if client mode: abort completely with error
+                    log::error!("{e}");
+                    break 'iteration; // if server mode: only abort iteration, go straight to sleeping
+                }
+            }
             if
                 r.status() != reqwest::StatusCode::OK  // if status is not ok
                 && r.status() != reqwest::StatusCode::NOT_FOUND // and except for not found and too many requests: something went wrong, abort
                 && r.status() != reqwest::StatusCode::TOO_MANY_REQUESTS // not found included because of nhentai api's random 404 fuckywuckys
             {
-                return Err(Error::ReqwestStatus {url: r.url().to_string(), status: r.status()});
+                if config.NHENTAI_TAGS.is_none() {return Err(Error::ReqwestStatus {url: r.url().to_string(), status: r.status()});} // if client mode: abort completely with error
+                log::error!("{}", Error::ReqwestStatus {url: r.url().to_string(), status: r.status()});
+                break 'iteration; // if server mode: only abort iteration, go straight to sleeping
             }
 
-            db = connect_to_db(&config.DATABASE_URL).await?; // connect to database
+            match connect_to_db(&config.DATABASE_URL).await // connect to database
+            {
+                Ok(o) => db = o,
+                Err(e) =>
+                {
+                    if config.NHENTAI_TAGS.is_none() {return Err(e.into());} // if client mode: abort completely with error
+                    log::error!("{e}");
+                    break 'iteration; // if server mode: only abort iteration, go straight to sleeping
+                }
+            }
             hentai_id_list = get_hentai_id_list
             (
                 config.DOWNLOADME_FILEPATH.as_str(),
@@ -97,7 +124,7 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
             db.close().await; // close database connection
             log::info!("Disconnected from database at \"{}\".", config.DATABASE_URL);
 
-            if config.NHENTAI_TAGS.is_none() {break;} // if tag not set: client mode, exit
+            if config.NHENTAI_TAGS.is_none() {break 'program;} // if tag not set: client mode, exit
 
             if let Err(e) = tokio::fs::remove_file(&config.DOWNLOADME_FILEPATH).await // server mode cleanup, delete downloadme
             {
