@@ -48,12 +48,31 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 
 Further settings:
 
+- `CLEANUP_TEMPORARY_FILES`, optional, defaults to `true`
+
+    Setting this to `false` prevents the temporary directory containing the original images from being deleted after the CBZ file has been created. In addition to that it also saves a `ComicBook.xml` in the directory. This can be useful to improve compatibility with third party readers or deduplication software.
+
 - `DATABASE_URL`
 
     This is the path to the SQLite database file. If you changed `DATABASE_URL`, confirm the database directory already exists. It is possible that it is not created automatically because the URL could point to a remote directory. The database file will and should be created automatically.
 
+- `DONTDOWNLOADME_FILEPATH`, optional, defaults to `None`
 
-- `NHENTAI_TAGS`
+    This is the path to the file containing the nHentai ID you explicitly do not want to download, separated by line breaks. It has priority over all input methods. If you want to systematically exclude hentai by tag, use the `-` operator in the tag search instead.
+
+- `DOWNLOADME_FILEPATH`, optional, defaults to `None`
+
+    This is the path to the file containing the nHentai ID you want to download, separated by line breaks. If this file exists, it has priority over tag search and console input.
+
+- `LIBRARY_PATH`
+
+    This is the directory temporary images and finished CBZ files are download to. By default, it will download to `./hentai/`.
+
+- `LIBRARY_SPLIT`, optional, defaults to `0`
+
+    Setting this to a value other than 0 splits the library at `LIBRARY_PATH` into sub-directories with a maximum number of `LIBRARY_SPLIT` hentai allowed per sub-directory. It is recommended if the number of hentai in 1 directory starts to affect file explorer performance. This _should_ not affect you if you plan to keep less than 10.000 files in your `LIBRARY_PATH` directory, otherwise the recommended setting is `LIBRARY_SPLIT = 10000`.
+
+- `NHENTAI_TAGS`, optional, defaults to `None` (client mode)
 
     Setting this will trigger "server mode". If no file at `DOWNLOADME_FILEPATH` is found, it will generate one by searching for the tags specified. After all hentai on the downloadme have been downloaded, it will wait for `SLEEP_INTERVAL` seconds and restart the search. This is useful to keep a self-hosted library up-to-date with the latest releases from the specified tag search. Multiple tags and tag exclusions can be specified and are connected via logical AND. This means results must fullfill all criteria specified.
 
@@ -87,14 +106,6 @@ Further settings:
 > [!WARNING]
 > I advise against running multiple instances of nHentai Archivist at the same time.
 
-- `LIBRARY_PATH`
-
-    This is the directory temporary images and finished CBZ files are download to. By default, it will download to `./hentai/`.
-
-- `LIBRARY_SPLIT`
-
-    Setting this to a value other than 0 splits the library at `LIBRARY_PATH` into sub-directories with a maximum number of `LIBRARY_SPLIT` hentai allowed per sub-directory. It is recommended if the number of hentai in 1 directory starts to affect file explorer performance. This _should_ not affect you if you plan to keep less than 10.000 files in your `LIBRARY_PATH` directory, otherwise the recommended setting is `LIBRARY_SPLIT = 10000`.
-
 ## Usage
 ### Download a Few Quickly
 
@@ -104,38 +115,31 @@ Further settings:
 Example `./config/.env`:
 
 ```TOML
-CF_CLEARANCE = ""
-CLEANUP_TEMPORARY_FILES = true
-CSRFTOKEN = ""
 DATABASE_URL = "./db/db.sqlite"
-DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"
-LIBRARY_SPLIT = 0
-USER_AGENT = ""
 ```
 
 ### Download a Bit More From a File
 
 1. Do not set `NHENTAI_TAGS`.
-1. Create a file at `DOWNLOADME_FILEPATH` and enter the nHentai ID you want to download separated by linebreaks.
+1. Set `DOWNLOADME_FILEPATH` and create a file there.
+1. Enter the nHentai ID you want to download separated by linebreaks.
 
 Example `./config/.env`:
 
 ```TOML
-CF_CLEARANCE = ""
-CLEANUP_TEMPORARY_FILES = true
 CSRFTOKEN = "your token here"
 DATABASE_URL = "./db/db.sqlite"
+DONTDOWNLOADME_FILEPATH = "./config/dontdownloadme.txt"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"
-LIBRARY_SPLIT = 0
 USER_AGENT = "your user agent here"
 ```
 
 ### Ich mein's ernst: Keeping a Self-Hosted Library Up-to-Date
 
 1. Set `NHENTAI_TAGS` to define the tag search that you want to use to keep your library up-to-date.
-1. Make sure there is no file at `DOWNLOADME_FILEPATH` otherwise it will be downloaded first.
+1. Set `DOWNLOADME_FILEPATH` but ensure there is no file actually there, otherwise it will be downloaded first.
 1. Consider setting `LIBRARY_SPLIT` to a value other than 0 if you plan to keep more than 10.000 files in your `LIBRARY_PATH` directory.
 1. Consider setting `SLEEP_INTERVAL` to wait a bit between searches. I recommend a value of at least 50.000.
 1. Searching by tag results in seemingly random error 404 on some pages. Let it search and download multiple times to get everything reliably.
@@ -144,9 +148,9 @@ Example `./config/.env`:
 
 ```TOML
 CF_CLEARANCE = ""
-CLEANUP_TEMPORARY_FILES = true
 CSRFTOKEN = "your token here"
 DATABASE_URL = "./db/db.sqlite"
+DONTDOWNLOADME_FILEPATH = "./config/dontdownloadme.txt"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"
 LIBRARY_SPLIT = 10000
