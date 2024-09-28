@@ -1,5 +1,3 @@
-version: "3"
-
 services:
     nhentai_archivist:
         container_name: "nhentai_archivist"
