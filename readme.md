@@ -54,7 +54,7 @@ Further settings:
 
 - `DATABASE_URL`
 
-    This is the path to the SQLite database file. If you changed `DATABASE_URL`, confirm the database directory already exists. It is possible that it is not created automatically because the URL could point to a remote directory. The database file will and should be created automatically.
+    This is the URL to the SQLite database file. If you changed `DATABASE_URL`, confirm the database directory already exists. It is possible that it is not created automatically because the URL could point to a remote directory. The database file will and should be created automatically.
 
 - `DONTDOWNLOADME_FILEPATH`, optional, defaults to `None`
 
