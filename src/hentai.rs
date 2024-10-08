@@ -331,14 +331,14 @@ impl Hentai
 
 
         let mut r: reqwest::Response = http_client.get(image_url).send().await?; // tag search on general media server, page
-        if r.status() == reqwest::StatusCode::NOT_FOUND // if status not found: retry with other media servers
+        if r.status() != reqwest::StatusCode::OK // if status not ok: retry with other media servers
         {
             for media_server in MEDIA_SERVERS // try all media servers
             {
                 log::debug!("{}", image_url.replace("i.nhentai.net", format!("i{media_server}.nhentai.net").as_str()));
                 r = http_client.get(image_url.replace("i.nhentai.net", format!("i{media_server}.nhentai.net").as_str())).send().await?; // tag search, page, insert media server
                 log::debug!("{}", r.status());
-                if r.status() != reqwest::StatusCode::NOT_FOUND {break;} // if not found: try again
+                if r.status() == reqwest::StatusCode::OK {break;} // if not ok: try again
             }
         }
         if r.status() != reqwest::StatusCode::OK {return Err(HentaiDownloadImageError::ReqwestStatus {url: image_url.to_owned(), status: r.status()});} // if status still not ok: something went wrong
