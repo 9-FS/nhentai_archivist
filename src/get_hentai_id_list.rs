@@ -53,7 +53,7 @@ pub async fn get_hentai_id_list(downloadme_filepath: &Option<String>, dontdownlo
         return hentai_id_list;
     }
 
-    if nhentai_tags.is_some() // if nhentai_tags are set: search nhentai.net for hentai ID with tag
+    if nhentai_tags.is_some() // if nhentai_tags are set (server mode): search nhentai.net for hentai ID with tag
     {
         log::info!("\"NHENTAI_TAGS\" are set.");
         match search_by_tag
@@ -67,17 +67,6 @@ pub async fn get_hentai_id_list(downloadme_filepath: &Option<String>, dontdownlo
             Ok(o) => hentai_id_list = o,
             Err(e) => log::error!("{e}"),
         }
-    }
-    else // if nhentai_tags are not set: request manual user input
-    {
-        log::info!("\"NHENTAI_TAGS\" are not set.");
-    }
-    if let Some(dontdownloadme_filepath) = dontdownloadme_filepath
-    {
-        hentai_id_list = remove_blacklisted_hentai_id(hentai_id_list, dontdownloadme_filepath).await; // remove blacklisted hentai id
-    }
-    if !hentai_id_list.is_empty() // if hentai_id_list is not empty: save tag search in downloadme.txt, work is done
-    {
         if let Some(s) = downloadme_filepath
         {
             #[cfg(target_family = "unix")]
@@ -107,36 +96,44 @@ pub async fn get_hentai_id_list(downloadme_filepath: &Option<String>, dontdownlo
                 Err(e) => log::warn!("Saving hentai ID list at \"{s}\" failed with: {e}"),
             }
         }
-        log::debug!("{hentai_id_list:?}");
-        return hentai_id_list;
     }
 
-    loop // if everything else fails: request manual user input
+    else // if nhentai_tags are not set (client mode): request manual user input
     {
-        log::info!("Enter the holy numbers: ");
-        let mut input: String = String::new();
-        _ = std::io::stdin().read_line(&mut input);
-        log::debug!("{input}");
-        hentai_id_list = input.split_whitespace()
-            .filter_map(|line|
-            {
-                match line.parse::<u32>()
-                {
-                    Ok(o) => Some(o),
-                    Err(e) =>
-                    {
-                        log::warn!("Parsing entry \"{line}\" to u32 failed with: {e}. Discarding...");
-                        None
-                    }
-                }
-            })
-            .collect(); // String -> Vec<u32>, discard unparseable lines with warning
-
-        if let Some(dontdownloadme_filepath) = dontdownloadme_filepath
+        log::info!("\"NHENTAI_TAGS\" are not set.");
+        loop
         {
-            hentai_id_list = remove_blacklisted_hentai_id(hentai_id_list, dontdownloadme_filepath).await; // remove blacklisted hentai id
+            log::info!("Enter the holy numbers: ");
+            let mut input: String = String::new();
+            _ = std::io::stdin().read_line(&mut input);
+            log::debug!("{input}");
+            hentai_id_list = input.split_whitespace()
+                .filter_map(|line|
+                {
+                    match line.parse::<u32>()
+                    {
+                        Ok(o) => Some(o),
+                        Err(e) =>
+                        {
+                            log::warn!("Parsing entry \"{line}\" to u32 failed with: {e}. Discarding...");
+                            None
+                        }
+                    }
+                })
+                .collect(); // String -> Vec<u32>, discard unparseable lines with warning
+
+            if let Some(dontdownloadme_filepath) = dontdownloadme_filepath
+            {
+                hentai_id_list = remove_blacklisted_hentai_id(hentai_id_list, dontdownloadme_filepath).await; // remove blacklisted hentai id
+            }
+            if !hentai_id_list.is_empty() {break;} // if hentai_id_list is not empty: work is done
         }
-        if !hentai_id_list.is_empty() {break;} // if hentai_id_list is not empty: work is done
+    }
+
+
+    if let Some(dontdownloadme_filepath) = dontdownloadme_filepath
+    {
+        hentai_id_list = remove_blacklisted_hentai_id(hentai_id_list, dontdownloadme_filepath).await; // remove blacklisted hentai id
     }
     log::debug!("{hentai_id_list:?}");
     return hentai_id_list;
