@@ -130,10 +130,11 @@ impl Hentai
     /// # Arguments
     /// - `http_client`: reqwest http client
     /// - `db`: database connectionc
+    /// - `webarchive`: Download from web archive? False by default.
     ///
     /// # Returns
     /// - nothing or error
-    pub async fn download(&self, http_client: &reqwest::Client, cleanup_temporary_files: bool) -> Result<(), HentaiDownloadError>
+    pub async fn download(&self, http_client: &reqwest::Client, cleanup_temporary_files: bool, webarchive: bool) -> Result<(), HentaiDownloadError>
     {
         const WORKERS: usize = 5; // number of parallel workers
         let cbz_final_filepath: String; //filepath to final cbz in library
@@ -195,7 +196,7 @@ impl Hentai
                 handles.push(tokio::spawn(async move
                 {
                     let result: Option<()>;
-                    match Self::download_image(&http_client_clone, &image_url_clone, &image_filepath).await // download image
+                    match Self::download_image(&http_client_clone, &image_url_clone, &image_filepath, webarchive).await // download image
                     {
                         Ok(_) =>
                         {
@@ -315,10 +316,11 @@ impl Hentai
     /// - `http_client`: reqwest http client
     /// - `image_url`: url of the image to download
     /// - `image_filepath`: path to save the image to
+    /// - `webarchive`: Download from web archive? False by default.
     ///
     /// # Returns
     /// - nothing or error
-    async fn download_image(http_client: &reqwest::Client, image_url: &str, image_filepath: &str) -> Result<(), HentaiDownloadImageError>
+    async fn download_image(http_client: &reqwest::Client, image_url: &str, image_filepath: &str, webarchive: bool) -> Result<(), HentaiDownloadImageError>
     {
         const MEDIA_SERVERS: [u8; 4] = [2, 3, 5, 7]; // media servers to try if image not found, general first, after that explicit
 
@@ -343,7 +345,7 @@ impl Hentai
             }
         }
 
-        if r.status() != reqwest::StatusCode::OK // finally try with archive.org
+        if r.status() != reqwest::StatusCode::OK && webarchive == true // finally try with archive.org but only if the user opted to.  False by default.
         {
             log::warn!("Pulling from the Internet Archive: {image_url}");
             log::debug!("{}", image_url.replace("https://i.nhentai.net", format!("https://web.archive.org/web/00000000000000if_/https://i.nhentai.net").as_str()));
