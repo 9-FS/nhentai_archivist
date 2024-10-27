@@ -14,12 +14,12 @@ pub struct Config
     pub DEBUG: Option<bool>, // debug mode?
     pub DONTDOWNLOADME_FILEPATH: Option<String>, // path to file containing hentai ID to not download, blacklist
     pub DOWNLOADME_FILEPATH: Option<String>, // path to file containing hentai ID to download
+    pub FALLBACK_TO_ARCHIVE_ORG: Option<bool>, // Allow pull from archive.org? False by default
     pub LIBRARY_PATH: String, // path to download hentai to
     pub LIBRARY_SPLIT: Option<u32>, // split library into subdirectories of maximum this many hentai, None or 0 to disable
     pub NHENTAI_TAGS: Option<Vec<String>>, // keep creating downloadme.txt from these tags and keep downloading (server mode), normal tags are in format "tag:{tag}" for example "tag:ffm-threesome"; if None: don't generate downloadme.txt, download hentai once (client mode)
     pub SLEEP_INTERVAL: Option<u64>, // sleep interval in seconds between checking for new hentai to download (server mode)
     pub USER_AGENT: Option<String>, // bypass bot protection
-    pub ARCHIVE_ORG: Option<bool>, // Allow pull from archive.org? False by default
 }
 
 impl Default for Config
@@ -40,7 +40,7 @@ impl Default for Config
             NHENTAI_TAGS: None,
             SLEEP_INTERVAL: Some(50000),
             USER_AGENT: Some("".to_owned()),
-            ARCHIVE_ORG: None,
+            FALLBACK_TO_ARCHIVE_ORG: None,
         }
     }
 }
