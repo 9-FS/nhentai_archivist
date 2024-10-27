@@ -196,7 +196,7 @@ impl Hentai
                 handles.push(tokio::spawn(async move
                 {
                     let result: Option<()>;
-                    match Self::download_image(&http_client_clone, &image_url_clone, &image_filepath, webarchive).await // download image
+                    match Self::download_image(&http_client_clone, &image_url_clone, &image_filepath).await // download image
                     {
                         Ok(_) =>
                         {
@@ -218,6 +218,44 @@ impl Hentai
                 if handle.await.unwrap().is_none() {image_download_success = false;} // collect results, forward panics, if any image download failed: set flag and abandon creation of cbz later but continue downloading other images
             }
             if image_download_success {break;} // if all images were downloaded successfully: continue with cbz creation
+        }
+        if !image_download_success && webarchive == true { // Web Archive Loop
+            image_download_success = true; // assume success
+            handles = Vec::new(); // reset handles
+
+            for i in 0..self.images_url.len() // for each page
+            {
+                let f_clone: scaler::Formatter = f.clone();
+                let http_client_clone: reqwest::Client = http_client.clone();
+                let image_filepath: String = format!("{}{}/{}", self.library_path, self.id, self.images_filename.get(i).expect("Index out of bounds even though should have same size as images_url."));
+                let image_url_clone: String = self.images_url.get(i).expect("Index out of bounds even though checked before that it fits.").clone();
+                let num_pages_clone: u16 = self.num_pages;
+
+                let permit: tokio::sync::OwnedSemaphorePermit = worker_sem.clone().acquire_owned().await.expect("Something closed semaphore even though it should never be closed."); // acquire semaphore
+                handles.push(tokio::spawn(async move
+                {
+                    let result: Option<()>;
+                    match Self::archive_image(&http_client_clone, &image_url_clone, &image_filepath).await // download image
+                    {
+                        Ok(_) =>
+                        {
+                            log::debug!("Downloaded hentai image {} / {}.", f_clone.format((i+1) as f64), f_clone.format(num_pages_clone as f64));
+                            result = Some(()); // success
+                        }
+                        Err(e) =>
+                        {
+                            log::warn!("{e}");
+                            result = None; // failure
+                        }
+                    }
+                    drop(permit); // release semaphore
+                    result // return result into handle
+                })); // search all pages in parallel
+            }
+            for handle in handles
+            {
+                if handle.await.unwrap().is_none() {image_download_success = false;} // collect results, forward panics, abort so we don't needlessly spam IA on a set that won't download
+            }
         }
         if !image_download_success {return Err(HentaiDownloadError::Download {})}; // if after 5 attempts still not all images downloaded successfully: give up
         log::info!("Downloaded hentai images.");
@@ -316,11 +354,10 @@ impl Hentai
     /// - `http_client`: reqwest http client
     /// - `image_url`: url of the image to download
     /// - `image_filepath`: path to save the image to
-    /// - `webarchive`: Download from web archive? False by default.
     ///
     /// # Returns
     /// - nothing or error
-    async fn download_image(http_client: &reqwest::Client, image_url: &str, image_filepath: &str, webarchive: bool) -> Result<(), HentaiDownloadImageError>
+    async fn download_image(http_client: &reqwest::Client, image_url: &str, image_filepath: &str) -> Result<(), HentaiDownloadImageError>
     {
         const MEDIA_SERVERS: [u8; 4] = [2, 3, 5, 7]; // media servers to try if image not found, general first, after that explicit
 
@@ -345,7 +382,61 @@ impl Hentai
             }
         }
 
-        if r.status() != reqwest::StatusCode::OK && webarchive == true // finally try with archive.org but only if the user opted to.  False by default.
+        if r.status() != reqwest::StatusCode::OK {return Err(HentaiDownloadImageError::ReqwestStatus {url: image_url.to_owned(), status: r.status()});} // if status still not ok: something went wrong
+
+        let mut file: tokio::fs::File;
+        #[cfg(target_family = "unix")]
+        {
+            if let Some(parent) = std::path::Path::new(image_filepath).parent() // create all parent directories with permissions "drwxrwxrwx"
+            {
+                if let Err(e) = tokio::fs::DirBuilder::new().recursive(true).mode(0o777).create(parent).await
+                {
+                    return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});
+                }
+            }
+            match tokio::fs::OpenOptions::new().create_new(true).mode(0o666).write(true).open(image_filepath).await
+            {
+                Ok(o) => file = o,
+                Err(e) => {return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});}
+            }
+        }
+        #[cfg(not(target_family = "unix"))]
+        {
+            if let Some(parent) = std::path::Path::new(image_filepath).parent() // create all parent directories
+            {
+                if let Err(e) = tokio::fs::DirBuilder::new().recursive(true).create(parent).await
+                {
+                    return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});
+                }
+            }
+            match tokio::fs::OpenOptions::new().create_new(true).write(true).open(image_filepath).await
+            {
+                Ok(o) => file = o,
+                Err(e) => {return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});}
+            }
+        }
+
+        if let Err(e) = file.write_all_buf(&mut r.bytes().await?).await // save image with permissions "rw-rw-rw-"
+        {
+            return Err(HentaiDownloadImageError::StdIo {filepath: image_filepath.to_owned(), source: e});
+        }
+
+        return Ok(());
+    }
+
+    async fn archive_image(http_client: &reqwest::Client, image_url: &str, image_filepath: &str) -> Result<(), HentaiDownloadImageError>
+    {
+
+        if let Ok(o) = tokio::fs::metadata(image_filepath).await
+        {
+            if o.is_file() {return Ok(());} // if image already exists: skip download
+            if o.is_dir() {return Err(HentaiDownloadImageError::BlockedByDirectory {directory_path: image_filepath.to_owned()});} // if image filepath blocked by directory: give up
+        }
+
+
+        let mut r: reqwest::Response = http_client.get(image_url).send().await?; // tag search on general media server, page
+
+        if r.status() != reqwest::StatusCode::OK // if status not ok: retry with other media servers
         {
             log::warn!("Pulling from the Internet Archive: {image_url}");
             log::debug!("{}", image_url.replace("https://i.nhentai.net", format!("https://web.archive.org/web/00000000000000if_/https://i.nhentai.net").as_str()));
