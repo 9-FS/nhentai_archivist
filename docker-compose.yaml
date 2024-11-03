@@ -4,20 +4,15 @@ services:
         image: "ghcr.io/9-fs/nhentai_archivist:3.5.0"
         environment:
             HOST_OS: "Unraid"
-            PGID: 100
-            PUID: 99
             TZ: "UTC"
-            UMASK: 000
         volumes:
             - "/mnt/user/appdata/nhentai_archivist/config/:/app/config/:rw"
             - "/mnt/user/appdata/nhentai_archivist/db/:/app/db/:rw"
             - "/mnt/user/appdata/nhentai_archivist/log/:/app/log/:rw"
             - "/mnt/user/media/hentai/:/app/hentai/:rw"
+        user: "99:100"
         network_mode: "bridge"
         deploy:
             resources:
                 limits:
                     memory: "1G"
-        user: "99:100"
-
-networks: {}
