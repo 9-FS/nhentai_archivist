@@ -31,7 +31,7 @@ sqlx = { version = "^0.8.0", features = [
     "runtime-tokio-rustls",
     "sqlite",
 ] }
-thiserror = "^1.0.0"
+thiserror = "^2.0.0"
 tokio = { version = "^1.0.0", features = ["rt-multi-thread"] }
 unicode-segmentation = "^1.0.0"
 zip = "^2.0.0"

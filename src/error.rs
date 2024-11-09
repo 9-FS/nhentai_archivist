@@ -4,7 +4,7 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error
 {
-    #[error("Test connecting to \"{}\" failed with: {0}", .0.url().map_or_else(|| "<unknown>", |o| o.as_str()))]
+    #[error("Test connecting to \"{}\" failed with: {}", .0.url().map_or_else(|| "<unknown>", |o| o.as_str()), .0)]
     Reqwest(#[from] reqwest::Error),
 
     #[error("Creating HTTP client failed with: {source}")]
@@ -63,7 +63,7 @@ pub enum HentaiDownloadImageError
     #[error("Saving hentai image failed, because \"{directory_path}\" already is a directory.")]
     BlockedByDirectory {directory_path: String}, // directory blocked
 
-    #[error("Downloading hentai image from \"{}\" failed with: {0}", .0.url().map_or_else(|| "<unknown>", |o| o.as_str()))]
+    #[error("Downloading hentai image from \"{}\" failed with: {}", .0.url().map_or_else(|| "<unknown>", |o| o.as_str()), .0)]
     Reqwest(#[from] reqwest::Error),
 
     #[error("Downloading hentai image from \"{url}\" failed with status code {status}.")]
@@ -77,7 +77,7 @@ pub enum HentaiDownloadImageError
 #[derive(Debug, thiserror::Error)]
 pub enum SearchByIdError
 {
-    #[error("Hentai metadata could not be loaded from database and downloading from \"{}\" failed with: {0}", .0.url().map_or_else(|| "<unknown>", |o| o.as_str()))]
+    #[error("Hentai metadata could not be loaded from database and downloading from \"{}\" failed with: {}", .0.url().map_or_else(|| "<unknown>", |o| o.as_str()), .0)]
     Reqwest(#[from] reqwest::Error),
 
     #[error("Hentai metadata could not be loaded from database and downloading from \"{url}\" failed with status code {status}.")]

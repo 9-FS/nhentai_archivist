@@ -2,7 +2,7 @@ name: "On Tag Deploy on GitHub"
 env:
     REPO_NAME: "nhentai_archivist"
     RUN_TESTS: true
-    RUST_VERSION: "1.80"
+    RUST_VERSION: "1.82"
 on:
     push:
         tags:

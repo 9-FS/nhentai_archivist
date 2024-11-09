@@ -20,7 +20,7 @@ fn main() -> std::process::ExitCode
     let tokio_rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().expect("Creating tokio runtime failed."); // async runtime
 
 
-    std::panic::set_hook(Box::new(|panic_info: &std::panic::PanicInfo| // override panic behaviour
+    std::panic::set_hook(Box::new(|panic_info: &std::panic::PanicHookInfo| // override panic behaviour
     {
         log::error!("{}", panic_info); // log panic source and reason
         log::error!("{}", std::backtrace::Backtrace::capture()); // log backtrace
