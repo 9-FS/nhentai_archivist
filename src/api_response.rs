@@ -131,6 +131,7 @@ pub enum ImageType
     Gif,
     Jpg,
     Png,
+    Webp,
 }
 
 impl<'de> serde::Deserialize<'de> for ImageType
@@ -169,6 +170,7 @@ impl std::fmt::Debug for ImageType
                 Self::Gif => "g", // only short form in program context (database)
                 Self::Jpg => "j",
                 Self::Png => "p",
+                Self::Webp => "w",
             }
         );
     }
@@ -184,6 +186,7 @@ impl std::fmt::Display for ImageType
                 Self::Gif => "gif", // long form for output
                 Self::Jpg => "jpg",
                 Self::Png => "png",
+                Self::Webp => "webp",
             }
         );
     }
@@ -199,6 +202,7 @@ impl std::str::FromStr for ImageType
             "g" | "gif" => Self::Gif,
             "j" | "jpg" => Self::Jpg,
             "p" | "png" => Self::Png,
+            "w" | "webp" => Self::Webp,
             _ => return Err(format!("Invalid image type: \"{s}\"")),
         };
         return Ok(image_type);
