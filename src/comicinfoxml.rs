@@ -17,7 +17,7 @@ pub struct ComicInfoXml
     pub Genre: Option<String>, // tag type: category
     pub Tags: Option<String>, // tag types: character, language, parody, tag; language does not get own field "LanguageISO" because it only interprets 1 language as code properly, exhaustive language code list and only keeping 1 language if multiple present is janky
     pub Web: String, // nhentai gallery
-
+    pub GTIN: String,         // id
 }
 // ComicInfo.xml schema: https://anansi-project.github.io/docs/comicinfo/documentation
 // Komga interpretation: https://komga.org/docs/guides/scan-analysis-refresh/#import-metadata-for-cbrcbz-containing-a-comicinfoxml-file
@@ -39,10 +39,28 @@ impl From<Hentai> for ComicInfoXml
             Genre: filter_and_combine_tags(&hentai.tags, &["category"], false),
             Web: format!("https://nhentai.net/g/{id}/", id=hentai.id),
             Tags: filter_and_combine_tags(&hentai.tags, &["character", "language", "parody", "tag"], true),
+            GTIN: get_gtin(hentai.id),
         }
     }
 }
 
+fn get_gtin(id: u32) -> String {
+    // create a 10 digit GTIN from the id
+    let id_str = id.to_string();
+    // add leading zeroes to make it 10 digits
+    let gtin = format!("{:0>9}", id_str);
+
+    // add check bit
+    let mut sum = 0;
+    for (i, c) in gtin.chars().enumerate() {
+        let digit = c.to_digit(10).unwrap();
+        let place = 10 - i;
+        sum += digit * place as u32;
+    }
+
+    let check_bit = (11 - (sum % 11)) % 11;
+    return format!("{}{}", gtin, check_bit);
+}
 
 /// # Summary
 /// Filters tags by type and combines the remaining into a single string. If no tags are found, returns None.
@@ -72,4 +90,16 @@ fn filter_and_combine_tags(tags: &[Tag], types: &[&str], display_type: bool) -> 
         .and_then(|s| if s.is_empty() {None} else {Some(s)}); // convert Some("") to None, otherwise forward unchanged
 
     return tags_filtered_combined;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rotate_1() {
+        assert_eq!(get_gtin(0), "0000000000");
+        assert_eq!(get_gtin(42), "0000000426");
+        assert_eq!(get_gtin(1337), "0000013374");
+    }
 }
