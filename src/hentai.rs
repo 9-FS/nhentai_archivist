@@ -91,10 +91,33 @@ impl Hentai
         }
 
         cbz_filename = if title_type.as_deref() == Some("TITLE_PRETTY") {
-            hentai_table_row.title_pretty.clone().unwrap_or_default()
+            // If TITLE_PRETTY is requested, try pretty title first, fall back to English if none
+            match (hentai_table_row.title_pretty, hentai_table_row.title_english) {
+                (Some(pretty), _) => pretty,           // Use pretty if available
+                (None, Some(english)) => {             // Fall back to English if pretty is None
+                    log::info!("No pretty title available for ID {}, falling back to English title", id);
+                    english
+                },
+                (None, None) => {                      // Neither available
+                    log::warn!("No titles available for ID {}", id);
+                    String::new()
+                }
+            }
         } else {
-            hentai_table_row.title_english.clone().unwrap_or_default()
+            // If TITLE_ENGLISH is requested (or no preference specified)
+            match (hentai_table_row.title_english, hentai_table_row.title_pretty) {
+                (Some(english), _) => english,         // Use English if available
+                (None, Some(pretty)) => {              // Fall back to pretty if English is None
+                    log::info!("No English title available for ID {}, falling back to pretty title", id);
+                    pretty
+                },
+                (None, None) => {                      // Neither available
+                    log::warn!("No titles available for ID {}", id);
+                    String::new()
+                }
+            }
         };
+        
         cbz_filename.retain(|c| !TITLE_CHARACTERS_FORBIDDEN.contains(c)); // remove forbidden characters
         if FILENAME_SIZE_MAX - 12 < cbz_filename.len() as u16 // if title size problematic
         {
