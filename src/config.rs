@@ -18,6 +18,7 @@ pub struct Config
     pub LIBRARY_SPLIT: Option<u32>, // split library into subdirectories of maximum this many hentai, None or 0 to disable
     pub NHENTAI_TAGS: Option<Vec<String>>, // keep creating downloadme.txt from these tags and keep downloading (server mode), normal tags are in format "tag:{tag}" for example "tag:ffm-threesome"; if None: don't generate downloadme.txt, download hentai once (client mode)
     pub SLEEP_INTERVAL: Option<u64>, // sleep interval in seconds between checking for new hentai to download (server mode)
+    pub TITLE_TYPE: Option<String>, // which title to use for filenames: "TITLE_PRETTY" or "TITLE_ENGLISH"
     pub USER_AGENT: Option<String>, // bypass bot protection
 }
 
@@ -31,13 +32,14 @@ impl Default for Config
             CLEANUP_TEMPORARY_FILES: None,
             CSRFTOKEN: Some("".to_owned()),
             DATABASE_URL: "./db/db.sqlite".to_owned(),
-            DEBUG: None, // no entry in default config, defaults to false
+            DEBUG: None,
             DONTDOWNLOADME_FILEPATH: Some("./config/dontdownloadme.txt".to_owned()),
             DOWNLOADME_FILEPATH: Some("./config/downloadme.txt".to_owned()),
             LIBRARY_PATH: "./hentai/".to_owned(),
             LIBRARY_SPLIT: None,
             NHENTAI_TAGS: None,
             SLEEP_INTERVAL: Some(50000),
+            TITLE_TYPE: Some("TITLE_ENGLISH".to_owned()), // default to English title for backward compatibility
             USER_AGENT: Some("".to_owned()),
         }
     }
