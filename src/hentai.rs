@@ -49,7 +49,7 @@ impl Hentai
     ///
     /// # Returns
     /// - created hentai or error
-    pub async fn new(id: u32, db: &sqlx::sqlite::SqlitePool, http_client: &reqwest::Client, nhentai_hentai_search_url: &str, library_path: &str, library_split: u32) -> Result<Self, HentaiNewError>
+    pub async fn new(id: u32, db: &sqlx::sqlite::SqlitePool, http_client: &reqwest::Client, nhentai_hentai_search_url: &str, library_path: &str, library_split: u32, title_type: &Option<String>) -> Result<Self, HentaiNewError>
     {
         const FILENAME_SIZE_MAX: u16 = 255; // maximum filename size [B]
         const TITLE_CHARACTERS_FORBIDDEN: &str = "\\/:*?\"<>|\t\n"; // forbidden characters in Windows file names
@@ -90,7 +90,11 @@ impl Hentai
             return Err(HentaiNewError::HentaiLengthInconsistency {page_types: hentai_table_row.page_types.len() as u16, num_pages: hentai_table_row.num_pages});
         }
 
-        cbz_filename = hentai_table_row.title_english.clone().unwrap_or_default();
+        cbz_filename = if title_type.as_deref() == Some("TITLE_PRETTY") {
+            hentai_table_row.title_pretty.clone().unwrap_or_default()
+        } else {
+            hentai_table_row.title_english.clone().unwrap_or_default()
+        };
         cbz_filename.retain(|c| !TITLE_CHARACTERS_FORBIDDEN.contains(c)); // remove forbidden characters
         if FILENAME_SIZE_MAX - 12 < cbz_filename.len() as u16 // if title size problematic
         {
