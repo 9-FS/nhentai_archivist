@@ -1,0 +1,162 @@
+name: "Build and Deploy"
+env:
+    REPO_NAME: "nhentai_archivist"
+    RUN_TESTS: true
+    RUST_VERSION: "1.82"
+on:
+    workflow_dispatch:  # Allow manual triggering
+        inputs:
+            release_tag:
+                description: 'Release tag (optional)'
+                required: false
+                type: string
+    push:
+        tags:
+            - "*"
+
+jobs:
+    initialisation:
+        name: "Initialisation"
+        env:
+            working-directory: ${{github.workspace}}
+        runs-on: "ubuntu-latest"
+
+        steps:
+            - name: "Checkout Repository"
+              uses: "actions/checkout@v4"
+              with:
+                  fetch-depth: 0
+
+            - name: "NOW"
+              id: "now"
+              run: "echo \"NOW=$(date +'%Y-%m-%dT%H:%M:%S')\" >> $GITHUB_OUTPUT"
+
+            - name: "Set Tag"
+              id: "tag"
+              run: |
+                if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ ! -z "${{ inputs.release_tag }}" ]; then
+                    echo "TAG=${{ inputs.release_tag }}" >> $GITHUB_OUTPUT
+                else
+                    echo "TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+                fi
+
+            - name: "TAG_PREVIOUS"
+              id: "tag_previous"
+              run: "echo \"TAG_PREVIOUS=$(git tag --sort=-creatordate | sed -n '2p')\" >> $GITHUB_OUTPUT"
+
+            - name: "TODAY"
+              id: "today"
+              run: "echo \"TODAY=$(date +'%Y-%m-%d')\" >> $GITHUB_OUTPUT"
+
+        outputs:
+            NOW: ${{steps.now.outputs.NOW}}
+            TAG: ${{steps.tag.outputs.TAG}}
+            TAG_PREVIOUS: ${{steps.tag_previous.outputs.TAG_PREVIOUS}}
+            TODAY: ${{steps.today.outputs.TODAY}}
+
+    test:
+        name: "Run Tests"
+        env:
+            working-directory: ${{github.workspace}}
+        needs: ["initialisation"]
+        runs-on: "ubuntu-latest"
+
+        steps:
+            - name: "Checkout Repository"
+              uses: "actions/checkout@v4"
+
+            - name: "Install Rust"
+              uses: "actions-rust-lang/setup-rust-toolchain@v1"
+              with:
+                  toolchain: ${{env.RUST_VERSION}}
+
+            - name: "Check Project Version and Tag Match"
+              if: ${{ github.event_name != 'workflow_dispatch' }}  # Skip version check for manual builds
+              run: |
+                  project_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+                  if [ "$project_version" == "${{needs.initialisation.outputs.TAG}}" ]; then
+                      exit 0
+                  else
+                      exit 1
+                  fi
+
+            - name: "Run Tests"
+              if: ${{env.RUN_TESTS == 'true'}}
+              run: "cargo test"
+
+    create_release:
+        name: "Create Release on GitHub"
+        env:
+            working-directory: ${{github.workspace}}
+        needs: ["initialisation", "test"]
+        runs-on: "ubuntu-latest"
+
+        steps:
+            - name: "Checkout Repository"
+              uses: "actions/checkout@v4"
+              with:
+                  fetch-depth: 0
+
+            - name: "Generate Changelog"
+              id: "generate_changelog"
+              run: |
+                  commit_messages=$(git log --pretty=format:'- %h: %s' '${{needs.initialisation.outputs.TAG_PREVIOUS}}'..'${{needs.initialisation.outputs.TAG}}')
+                  {
+                      echo "changelog<<EOF"
+                      echo "## Changelog"
+                      echo ""
+                      echo "$commit_messages"
+                      echo "EOF"
+                  } >> $GITHUB_OUTPUT
+
+            - name: "Create Release"
+              env:
+                  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+              id: "create_release"
+              uses: "actions/create-release@v1"
+              with:
+                  body: ${{steps.generate_changelog.outputs.changelog}}
+                  draft: false
+                  prerelease: false
+                  release_name: "${{needs.initialisation.outputs.TODAY}} ${{env.REPO_NAME}} ${{needs.initialisation.outputs.TAG}}"
+                  tag_name: ${{needs.initialisation.outputs.TAG}}
+
+        outputs:
+            github_release: ${{steps.create_release.outputs.upload_url}}
+
+    build_and_deploy_docker:
+        name: "Build and Deploy Docker Image"
+        env:
+            working-directory: ${{github.workspace}}
+        needs: ["initialisation", "create_release", "test"]
+        runs-on: "ubuntu-latest"
+
+        steps:
+            - name: "Checkout Repository"
+              uses: "actions/checkout@v4"
+
+            - name: "Install Docker"
+              uses: "docker/setup-buildx-action@v1"
+
+            - name: "Log In to GitHub Docker Registry"
+              run: "echo ${{secrets.GITHUB_TOKEN}} | docker login ghcr.io -u \"9-FS\" --password-stdin"
+
+            - name: "Build and Push Docker Image"
+              run: |
+                  docker build -t "ghcr.io/9-fs/${{env.REPO_NAME}}:${{needs.initialisation.outputs.TAG}}" .
+                  docker tag "ghcr.io/9-fs/${{env.REPO_NAME}}:${{needs.initialisation.outputs.TAG}}" "ghcr.io/9-fs/${{env.REPO_NAME}}:latest"
+                  docker push "ghcr.io/9-fs/${{env.REPO_NAME}}:${{needs.initialisation.outputs.TAG}}"
+                  docker push "ghcr.io/9-fs/${{env.REPO_NAME}}:latest"
+
+                  # Save image for release attachment
+                  docker save "ghcr.io/9-fs/${{env.REPO_NAME}}:${{needs.initialisation.outputs.TAG}}" > "docker-image.tar"
+
+            - name: "Attach Docker Image to Release"
+              env:
+                  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+              uses: "actions/upload-release-asset@v1"
+              with:
+                  asset_content_type: "application"
+                  asset_name: "${{needs.initialisation.outputs.TODAY}} ${{env.REPO_NAME}} ${{needs.initialisation.outputs.TAG}} docker.tar"
+                  asset_path: "docker-image.tar"
+                  upload_url: ${{needs.create_release.outputs.github_release}}
