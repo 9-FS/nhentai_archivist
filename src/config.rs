@@ -32,7 +32,7 @@ impl Default for Config
             CLEANUP_TEMPORARY_FILES: None,
             CSRFTOKEN: Some("".to_owned()),
             DATABASE_URL: "./db/db.sqlite".to_owned(),
-            DEBUG: None,
+            DEBUG: None, // no entry in default config, defaults to false
             DONTDOWNLOADME_FILEPATH: Some("./config/dontdownloadme.txt".to_owned()),
             DOWNLOADME_FILEPATH: Some("./config/downloadme.txt".to_owned()),
             LIBRARY_PATH: "./hentai/".to_owned(),
