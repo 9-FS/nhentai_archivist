@@ -1,5 +1,32 @@
 // Copyright (c) 2024 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
 
+/// # Summary
+/// Available title types for filenames
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Title {
+    /// Use English title
+    English,
+    /// Use Japanese title
+    Japanese,
+    /// Use Pretty title
+    Pretty,
+}
+
+impl std::str::FromStr for Title {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().trim() {
+            "english" => Ok(Self::English),
+            "japanese" => Ok(Self::Japanese),
+            "pretty" => Ok(Self::Pretty),
+            _ => {
+                log::warn!("Invalid title type \"{s}\", defaulting to English");
+                Ok(Self::English)
+            }
+        }
+    }
+}
 
 /// # Summary
 /// Collection of settings making up the configuration of the application.
@@ -14,11 +41,11 @@ pub struct Config
     pub DEBUG: Option<bool>, // debug mode?
     pub DONTDOWNLOADME_FILEPATH: Option<String>, // path to file containing hentai ID to not download, blacklist
     pub DOWNLOADME_FILEPATH: Option<String>, // path to file containing hentai ID to download
+    pub FILENAME_TITLE_TYPE: Option<Title>, // which title to use for filenames: English,Japanese,Pretty
     pub LIBRARY_PATH: String, // path to download hentai to
     pub LIBRARY_SPLIT: Option<u32>, // split library into subdirectories of maximum this many hentai, None or 0 to disable
     pub NHENTAI_TAGS: Option<Vec<String>>, // keep creating downloadme.txt from these tags and keep downloading (server mode), normal tags are in format "tag:{tag}" for example "tag:ffm-threesome"; if None: don't generate downloadme.txt, download hentai once (client mode)
     pub SLEEP_INTERVAL: Option<u64>, // sleep interval in seconds between checking for new hentai to download (server mode)
-    pub TITLE_TYPE: Option<String>, // which title to use for filenames: "TITLE_PRETTY" or "TITLE_ENGLISH"
     pub USER_AGENT: Option<String>, // bypass bot protection
 }
 
@@ -35,11 +62,11 @@ impl Default for Config
             DEBUG: None, // no entry in default config, defaults to false
             DONTDOWNLOADME_FILEPATH: Some("./config/dontdownloadme.txt".to_owned()),
             DOWNLOADME_FILEPATH: Some("./config/downloadme.txt".to_owned()),
+            FILENAME_TITLE_TYPE: Some(Title::English), // Default to English title
             LIBRARY_PATH: "./hentai/".to_owned(),
             LIBRARY_SPLIT: None,
             NHENTAI_TAGS: None,
             SLEEP_INTERVAL: Some(50000),
-            TITLE_TYPE: Some("TITLE_ENGLISH".to_owned()), // default to English title for backward compatibility
             USER_AGENT: Some("".to_owned()),
         }
     }
