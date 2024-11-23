@@ -49,7 +49,7 @@ impl Hentai
     ///
     /// # Returns
     /// - created hentai or error
-    pub async fn new(id: u32, db: &sqlx::sqlite::SqlitePool, http_client: &reqwest::Client, nhentai_hentai_search_url: &str, library_path: &str, library_split: u32) -> Result<Self, HentaiNewError>
+    pub async fn new(id: u32, db: &sqlx::sqlite::SqlitePool, http_client: &reqwest::Client, nhentai_hentai_search_url: &str, library_path: &str, library_split: u32, filename_title_type: &Option<Title>) -> Result<Self, HentaiNewError>
     {
         const FILENAME_SIZE_MAX: u16 = 255; // maximum filename size [B]
         const TITLE_CHARACTERS_FORBIDDEN: &str = "\\/:*?\"<>|\t\n"; // forbidden characters in Windows file names
@@ -90,7 +90,32 @@ impl Hentai
             return Err(HentaiNewError::HentaiLengthInconsistency {page_types: hentai_table_row.page_types.len() as u16, num_pages: hentai_table_row.num_pages});
         }
 
-        cbz_filename = hentai_table_row.title_english.clone().unwrap_or_default();
+        cbz_filename = match filename_title_type {
+            Some(Title::English) => hentai_table_row.title_english.clone().unwrap_or_default(), //not adding logging as english is default
+            Some(Title::Japanese) => {
+                match hentai_table_row.title_japanese.clone() {
+                    Some(title) if !title.is_empty() => title,
+                    _ => {
+                        log::warn!("Japanese title not available for hentai {}, falling back to English title", id);
+                        hentai_table_row.title_japanese.clone().unwrap_or_default()
+                    }
+                }
+            },
+            Some(Title::Pretty) => {
+                match hentai_table_row.title_pretty.clone() {
+                    Some(title) if !title.is_empty() => title,
+                    _ => {
+                        log::warn!("Pretty title not available for hentai {}, falling back to English title", id);
+                        hentai_table_row.title_pretty.clone().unwrap_or_default()
+                    }
+                }
+            },
+            None => {
+                log::debug!("No title type specified for hentai {}, using English title", id);
+                hentai_table_row.title_english.clone().unwrap_or_default()
+            }
+        };
+
         cbz_filename.retain(|c| !TITLE_CHARACTERS_FORBIDDEN.contains(c)); // remove forbidden characters
         if FILENAME_SIZE_MAX - 12 < cbz_filename.len() as u16 // if title size problematic
         {
@@ -394,6 +419,7 @@ pub struct HentaiTableRow
     pub page_types: String,
     pub scanlator: Option<String>,
     pub title_english: Option<String>,
+    pub title_japanese: Option<String>,
     pub title_pretty: Option<String>,
     pub upload_date: chrono::DateTime<chrono::Utc>,
 }
