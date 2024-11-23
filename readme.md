@@ -57,12 +57,17 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 
     This is the path to the file containing the nHentai ID you want to download, separated by line breaks. If this file exists, it has priority over tag search and console input.
 
-- `FILENAME_TITLE_TYPE`, optional, defaults to `english`
+- `FILENAME_TITLE_TYPE`, optional, defaults to `English`
 
-    Sets which title to use when naming downloaded files. Available options:
-    - `english`: Use the English title (default)
-    - `japanese`: Use the Japanese title if available, falls back to default if not present
-    - `pretty`: Use the Pretty title if available, falls back to default if not present
+    Determines which title type to use when naming downloaded hentai files. Available settings:
+    - `English`
+    - `Japanese`
+    - `Pretty`
+
+    If a Japanese or pretty title is not available, the English title will be used instead.
+
+> [!IMPORTANT]
+> If `FILENAME_TITLE_TYPE` is changed after hentai files have already been downloaded, existing files will not be renamed. They also will not be detected as already downloaded any more which can lead to duplicates. I therefore recommend to only change this setting before starting a fresh library.
 
 - `LIBRARY_PATH`
 
@@ -152,7 +157,6 @@ CSRFTOKEN = "your token here"
 DATABASE_URL = "./db/db.sqlite"
 DONTDOWNLOADME_FILEPATH = "./config/dontdownloadme.txt"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
-FILENAME_TITLE_TYPE = "english"
 LIBRARY_PATH = "./hentai/"
 LIBRARY_SPLIT = 10000
 NHENTAI_TAGS = ['language:"english"']

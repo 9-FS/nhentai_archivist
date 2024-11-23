@@ -37,6 +37,7 @@ pub async fn search_by_id(http_client: &reqwest::Client, nhentai_hentai_search_u
         page_types: r_serialised.images.pages.iter().map(|page| format!("{:?}", page.t)).collect::<Vec<String>>().join(""),
         scanlator: r_serialised.scanlator,
         title_english: r_serialised.title.english,
+        title_japanese: r_serialised.title.japanese,
         title_pretty: r_serialised.title.pretty,
         upload_date: r_serialised.upload_date,
     });

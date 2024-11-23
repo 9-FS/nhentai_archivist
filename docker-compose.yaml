@@ -1,7 +1,7 @@
 services:
     nhentai_archivist:
         container_name: "nhentai_archivist"
-        image: "ghcr.io/9-fs/nhentai_archivist:3.5.1"
+        image: "ghcr.io/9-fs/nhentai_archivist:3.6.0"
         environment:
             HOST_OS: "Unraid"
             TZ: "UTC"

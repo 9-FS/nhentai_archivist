@@ -104,7 +104,16 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
                 let hentai: Hentai; // hentai to download
 
 
-                match Hentai::new(*hentai_id, &db, &http_client, NHENTAI_HENTAI_SEARCH_URL, &config.LIBRARY_PATH, config.LIBRARY_SPLIT.unwrap_or_default(), &config.FILENAME_TITLE_TYPE ).await // create hentai, use u32 with 0 to disable library split and not Option<u32> with None, because that would make Some(0) an invalid state
+                match Hentai::new // create hentai
+                (
+                    *hentai_id,
+                    &db,
+                    &http_client,
+                    NHENTAI_HENTAI_SEARCH_URL,
+                    &config.FILENAME_TITLE_TYPE.clone().unwrap_or_default(), // if not set: default to english title
+                    &config.LIBRARY_PATH,
+                    config.LIBRARY_SPLIT.unwrap_or_default() // use u32 with 0 to disable library split and not Option<u32> with None, because that would make Some(0) an invalid state
+                ).await
                 {
                     Ok(o) => hentai = o, // hentai created successfully
                     Err(e) => // hentai creation failed
