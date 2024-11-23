@@ -96,7 +96,7 @@ impl Hentai
                 match hentai_table_row.title_japanese.clone() {
                     Some(title) if !title.is_empty() => title,
                     _ => {
-                        log::warn!("Japanese title not available for hentai {}, falling back to default", id);
+                        log::warn!("Japanese title not available for hentai {}, falling back to English title", id);
                         hentai_table_row.title_japanese.clone().unwrap_or_default()
                     }
                 }
@@ -105,13 +105,13 @@ impl Hentai
                 match hentai_table_row.title_pretty.clone() {
                     Some(title) if !title.is_empty() => title,
                     _ => {
-                        log::warn!("Pretty title not available for hentai {}, falling back to default", id);
+                        log::warn!("Pretty title not available for hentai {}, falling back to English title", id);
                         hentai_table_row.title_pretty.clone().unwrap_or_default()
                     }
                 }
             },
             None => {
-                log::debug!("No title type specified for hentai {}, using default (English)", id);
+                log::debug!("No title type specified for hentai {}, using English title", id);
                 hentai_table_row.title_english.clone().unwrap_or_default()
             }
         };
