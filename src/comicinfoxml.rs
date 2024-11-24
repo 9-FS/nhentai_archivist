@@ -62,7 +62,7 @@ fn filter_and_combine_tags(tags: &[Tag], types: &[&str], display_type: bool) -> 
         (
             |tag|
             {
-                if display_type {format!("{}: {}", tag.r#type, tag.name)}
+                if display_type {format!("{}:{}", tag.r#type, tag.name)}
                 else {tag.name.clone()}
             }
         ) // change either to "{name}" or "{type}: {name}", because ComicInfo.xml + Komga don't have proper fields for all tag types
