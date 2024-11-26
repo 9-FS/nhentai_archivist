@@ -1,6 +1,6 @@
 // Copyright (c) 2024 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
 mod api_response;
-mod comicinfoxml;
+mod comicinfo;
 mod config;
 use config::*;
 mod connect_to_db;

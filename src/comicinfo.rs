@@ -4,8 +4,11 @@ use crate::api_response::*;
 use crate::hentai::*;
 
 
+/// # Summary
+/// ComicInfo.xml schema for tags: https://anansi-project.github.io/docs/comicinfo/documentation
+/// Komga interpretation: https://komga.org/docs/guides/scan-analysis-refresh/#import-metadata-for-cbrcbz-containing-a-comicinfoxml-file
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, sqlx::FromRow)]
-pub struct ComicInfoXml
+pub struct ComicInfo // ComicInfo.xml schema, must be named "ComicInfo" and not "ComicInfoXml" because standard defines root tag as "ComicInfo" and serde serialisation uses struct name as root tag
 {
     pub Title: String, // pretty title
     pub Year: i16, // upload year
@@ -19,11 +22,9 @@ pub struct ComicInfoXml
     pub Web: String, // nhentai gallery
 
 }
-// ComicInfo.xml schema: https://anansi-project.github.io/docs/comicinfo/documentation
-// Komga interpretation: https://komga.org/docs/guides/scan-analysis-refresh/#import-metadata-for-cbrcbz-containing-a-comicinfoxml-file
 
 
-impl From<Hentai> for ComicInfoXml
+impl From<Hentai> for ComicInfo
 {
     fn from(hentai: Hentai) -> Self // Hentai -> ComicInfo
     {

@@ -1,6 +1,6 @@
 // Copyright (c) 2024 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
 use crate::api_response::*;
-use crate::comicinfoxml::*;
+use crate::comicinfo::*;
 use crate::config::*;
 use crate::error::*;
 use crate::search_api::*;
@@ -281,7 +281,7 @@ impl Hentai
         zip_writer.start_file("ComicInfo.xml", zip::write::SimpleFileOptions::default().unix_permissions(0o666))?; // create metadata file in cbz with permissions "rw-rw-rw-"
         #[cfg(not(target_family = "unix"))]
         zip_writer.start_file("ComicInfo.xml", zip::write::SimpleFileOptions::default())?; // create metadata file in cbz without permissions
-        zip_writer.write_all(serde_xml_rs::to_string(&ComicInfoXml::from(self.clone()))?.as_bytes())?; // write metadata into cbz
+        zip_writer.write_all(serde_xml_rs::to_string(&ComicInfo::from(self.clone()))?.as_bytes())?; // write metadata into cbz
         zip_writer.finish()?; // finish temporary cbz
 
         #[cfg(target_family = "unix")]
@@ -311,7 +311,7 @@ impl Hentai
             {
                 Ok(mut file) =>
                 {
-                    match file.write_all(serde_xml_rs::to_string(&ComicInfoXml::from(self.clone()))?.as_bytes()).await // even add the ComicInfo.xml to the directory
+                    match file.write_all(serde_xml_rs::to_string(&ComicInfo::from(self.clone()))?.as_bytes()).await // even add the ComicInfo.xml to the directory
                     {
                         Ok(_) => log::info!("Saved hentai metadata file at \"{comicinfoxml_filepath}\"."),
                         Err(e) => log::warn!("Writing hentai metadata to \"{comicinfoxml_filepath}\" failed with: {e}"),
@@ -324,7 +324,7 @@ impl Hentai
             {
                 Ok(mut file) =>
                 {
-                    match file.write_all(serde_xml_rs::to_string(&ComicInfoXml::from(self.clone()))?.as_bytes()).await // even add the ComicInfo.xml to the directory
+                    match file.write_all(serde_xml_rs::to_string(&ComicInfo::from(self.clone()))?.as_bytes()).await // even add the ComicInfo.xml to the directory
                     {
                         Ok(_) => log::info!("Saved hentai metadata file."),
                         Err(e) => log::warn!("Writing hentai metadata to \"{comicinfoxml_filepath}\" failed with: {e}"),
