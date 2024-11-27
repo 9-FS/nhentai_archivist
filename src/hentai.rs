@@ -167,7 +167,7 @@ impl Hentai
     {
         const WORKERS: usize = 5; // number of parallel workers
         let cbz_final_filepath: String; //filepath to final cbz in library
-        let cbz_temp_filepath: String = format!("{}{}/{}", self.library_path, self.id, self.cbz_filename); //filepath to temporary cbz, cbz is created here and when finished moved to final location, roundabout way over temporary cbz filepath in case program gets stopped while creating cbz, so no half finished cbz remains in library
+        let cbz_temp_filepath: String = format!("{}{}/{}.temp", self.library_path, self.id, self.cbz_filename); //filepath to temporary cbz, cbz is created here and when finished moved to final location, roundabout way over temporary cbz filepath in case program gets stopped while creating cbz, so no half finished cbz remains in library
         let comicinfoxml_filepath: String = format!("{}{}/ComicInfo.xml", self.library_path, self.id); // filepath to metadata file if cleanup_temporary_files is false
         let f = scaler::Formatter::new()
             .set_scaling(scaler::Scaling::None)
@@ -178,21 +178,12 @@ impl Hentai
         let mut zip_writer: zip::ZipWriter<std::fs::File>; // write to zip file
 
 
-        if self.library_split == 0 // no library split
+        cbz_final_filepath = match self.library_split // determine final cbz filepath
         {
-            cbz_final_filepath = format!("{}{}", self.library_path, self.cbz_filename);
-        }
-        else // with library split
-        {
-            cbz_final_filepath = format!
-            (
-                "{}{}~{}/{}",
-                self.library_path.to_owned(),
-                self.id.div_euclid(self.library_split) * self.library_split,
-                (self.id.div_euclid(self.library_split) + 1) * self.library_split - 1,
-                self.cbz_filename,
-            );
-        }
+            0 => format!("{}{}", self.library_path, self.cbz_filename), // no library split
+            1 => format!("{}{}/{}", self.library_path, self.id, self.cbz_filename), // library split into directories with single hentai per directory
+            _ => format!("{}{}~{}/{}", self.library_path, self.id.div_euclid(self.library_split) * self.library_split, (self.id.div_euclid(self.library_split) + 1) * self.library_split - 1, self.cbz_filename), // library split into directories with multiple hentai per directory
+        };
 
         if let Ok(o) = tokio::fs::metadata(cbz_final_filepath.as_str()).await
         {
@@ -298,10 +289,13 @@ impl Hentai
 
         if cleanup_temporary_files // if temporary files should be cleaned up
         {
-            match tokio::fs::remove_dir_all(format!("{}{}", self.library_path, self.id)).await // cleanup, delete image directory
+            for image_filename in self.images_filename.iter() // cleanup, don't just delete directory because with library split = 1 would also delete final hentai cbz
             {
-                Ok(_) => log::debug!("Deleted \"{}{}/\".", self.library_path, self.id),
-                Err(e) => log::warn!("Deleting \"{}{}/\" failed with: {e}", self.library_path, self.id),
+                match tokio::fs::remove_file(format!("{}{}/{}", self.library_path, self.id, image_filename)).await // delete images
+                {
+                    Ok(_) => log::debug!("Deleted \"{}{}/{}\".", self.library_path, self.id, image_filename),
+                    Err(e) => log::warn!("Deleting \"{}{}/{}\" failed with: {e}", self.library_path, self.id, image_filename),
+                }
             }
         }
         else // if temporary files should not be cleaned up
