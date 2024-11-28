@@ -4,6 +4,7 @@ mod comicinfo;
 mod config;
 use config::*;
 mod connect_to_db;
+mod remove_only_empty_dir;
 mod error;
 use error::*;
 mod get_hentai_id_list;

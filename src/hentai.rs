@@ -2,6 +2,7 @@
 use crate::api_response::*;
 use crate::comicinfo::*;
 use crate::config::*;
+use crate::remove_only_empty_dir::*;
 use crate::error::*;
 use crate::search_api::*;
 use std::io::Read;
@@ -296,6 +297,10 @@ impl Hentai
                     Ok(_) => log::debug!("Deleted \"{}{}/{}\".", self.library_path, self.id, image_filename),
                     Err(e) => log::warn!("Deleting \"{}{}/{}\" failed with: {e}", self.library_path, self.id, image_filename),
                 }
+            }
+            if let Err(e) = remove_only_empty_dir(format!("{}{}/", self.library_path, self.id)).await // attempt to delete empty directory, if not empty just ignore
+            {
+                log::warn!("{e}");
             }
         }
         else // if temporary files should not be cleaned up

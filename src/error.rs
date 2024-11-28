@@ -75,6 +75,14 @@ pub enum HentaiDownloadImageError
 
 
 #[derive(Debug, thiserror::Error)]
+pub enum RemoveOnlyEmptyDirError
+{
+    #[error("Removing directory \"{path}\" failed with: {source}")]
+    StdIo {path: String, source: std::io::Error},
+}
+
+
+#[derive(Debug, thiserror::Error)]
 pub enum SearchByIdError
 {
     #[error("Hentai metadata could not be loaded from database and downloading from \"{}\" failed with: {}", .0.url().map_or_else(|| "<unknown>", |o| o.as_str()), .0)]
