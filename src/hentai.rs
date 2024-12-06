@@ -123,7 +123,7 @@ impl Hentai
         };
 
         cbz_filename.retain(|c| !TITLE_CHARACTERS_FORBIDDEN.contains(c)); // remove forbidden characters
-        if FILENAME_SIZE_MAX - 12 < cbz_filename.len() as u16 // if title size problematic
+        if FILENAME_SIZE_MAX < format!("{id} {cbz_filename}.cbz").len() as u16 // if title size would cause too long filename
         {
             let mut byte_count: u16 = 0;
             cbz_filename = cbz_filename
@@ -131,8 +131,8 @@ impl Hentai
                 .take_while (|&g| // only add grapheme if it wouldn't bust limit
                 {
                     byte_count += g.len() as u16;
-                    byte_count <= FILENAME_SIZE_MAX - 12
-                }) // limit title to 243 B so filename does not exceed 255 B
+                    format!("{id} .cbz").len() as u16 + byte_count <= FILENAME_SIZE_MAX // filename overhead + title length must remain within limit
+                }) // limit filename to 255 B
                 .collect();
         }
         cbz_filename = format!("{id} {cbz_filename}.cbz"); // prepend id, append extension
