@@ -168,7 +168,7 @@ impl Hentai
     {
         const WORKERS: usize = 5; // number of parallel workers
         let cbz_final_filepath: String; //filepath to final cbz in library
-        let cbz_temp_filepath: String = format!("{}{}/{}.temp", self.library_path, self.id, self.cbz_filename); //filepath to temporary cbz, cbz is created here and when finished moved to final location, roundabout way over temporary cbz filepath in case program gets stopped while creating cbz, so no half finished cbz remains in library
+        let cbz_temp_filepath: String = format!("{}{}/{}.temp", self.library_path, self.id, self.id); //filepath to temporary cbz, cbz is created here and when finished moved to final location, roundabout way over temporary cbz filepath in case program gets stopped while creating cbz, so no half finished cbz remains in library, don't use real filename because appending "".temp" might then bust length limit
         let comicinfoxml_filepath: String = format!("{}{}/ComicInfo.xml", self.library_path, self.id); // filepath to metadata file if cleanup_temporary_files is false
         let f = scaler::Formatter::new()
             .set_scaling(scaler::Scaling::None)

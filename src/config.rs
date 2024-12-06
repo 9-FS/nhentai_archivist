@@ -37,7 +37,7 @@ impl Default for Config
             DOWNLOADME_FILEPATH: Some("./config/downloadme.txt".to_owned()),
             FILENAME_TITLE_TYPE: None, // no entry in default config, defaults to English
             LIBRARY_PATH: "./hentai/".to_owned(),
-            LIBRARY_SPLIT: None,
+            LIBRARY_SPLIT: None, // no entry in default config, defaults to 0
             NHENTAI_TAGS: None,
             SLEEP_INTERVAL: Some(50000),
             USER_AGENT: Some("".to_owned()),
