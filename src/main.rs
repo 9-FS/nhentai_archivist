@@ -52,14 +52,14 @@ fn main() -> std::process::ExitCode
 
     crate_logging_level.insert("hyper_util".to_owned(), log::Level::Info); // shut up
     crate_logging_level.insert("serde_xml_rs".to_owned(), log::Level::Error); // shut up
-    crate_logging_level.insert("sqlx::query".to_owned(), log::Level::Error); // shut up
+    crate_logging_level.insert("sqlx::query".to_owned(), log::Level::Warn); // shut up
     if config.DEBUG.unwrap_or(false) // setup logging, if DEBUG unset default to false
     {
-        setup_logging::setup_logging(log::Level::Debug, None, "./log/%Y-%m-%dT%H_%M.log");
+        setup_logging::setup_logging(log::Level::Debug, Some(crate_logging_level), "./log/%Y-%m-%dT%H_%M.log");
     }
     else
     {
-        setup_logging::setup_logging(log::Level::Info, None, "./log/%Y-%m-%d.log");
+        setup_logging::setup_logging(log::Level::Info, Some(crate_logging_level), "./log/%Y-%m-%d.log");
     }
 
     log::debug!("Loaded {config:?}."); // log loaded config

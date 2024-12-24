@@ -10,7 +10,6 @@ pub struct Config
     pub CF_CLEARANCE: Option<String>, // bypass bot protection
     pub CLEANUP_TEMPORARY_FILES: Option<bool>, // clean up temporary files after downloading? some prefer off for deduplication or compatibility with other tools
     pub CSRFTOKEN: Option<String>, // bypass bot protection
-    pub DATABASE_URL: String, // url to database file
     pub DEBUG: Option<bool>, // debug mode?
     pub DONTDOWNLOADME_FILEPATH: Option<String>, // path to file containing hentai ID to not download, blacklist
     pub DOWNLOADME_FILEPATH: Option<String>, // path to file containing hentai ID to download
@@ -31,7 +30,6 @@ impl Default for Config
             CF_CLEARANCE: None,
             CLEANUP_TEMPORARY_FILES: None,
             CSRFTOKEN: Some("".to_owned()),
-            DATABASE_URL: "./db/db.sqlite".to_owned(),
             DEBUG: None, // no entry in default config, defaults to false
             DONTDOWNLOADME_FILEPATH: Some("./config/dontdownloadme.txt".to_owned()),
             DOWNLOADME_FILEPATH: Some("./config/downloadme.txt".to_owned()),

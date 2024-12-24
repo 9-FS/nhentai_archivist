@@ -8,6 +8,8 @@ use crate::hentai::*;
 
 pub async fn main_inner(config: Config) -> Result<(), Error>
 {
+    const DB_FILEPATH: &str = "./db/db.sqlite"; // database filepath
+    const DB_MIGRATIONS_PATH: &str = "./db_migrations/"; // migrations path
     const HTTP_TIMEOUT: u64 = 30; // connection timeout
     const NHENTAI_HENTAI_SEARCH_URL: &str = "https://nhentai.net/api/gallery/"; // nhentai search by id api url
     const NHENTAI_TAG_SEARCH_URL: &str = "https://nhentai.net/api/galleries/search"; // nhentai search by tag api url
@@ -76,7 +78,7 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
                 break 'iteration; // if server mode: only abort iteration, go straight to sleeping
             }
 
-            match connect_to_db(&config.DATABASE_URL).await // connect to database
+            match connect_to_db(DB_FILEPATH, DB_MIGRATIONS_PATH).await // connect to database
             {
                 Ok(o) => db = o,
                 Err(e) =>
@@ -132,7 +134,7 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
 
 
             db.close().await; // close database connection
-            log::info!("Disconnected from database at \"{}\".", config.DATABASE_URL);
+            log::info!("Disconnected from database at \"{}\".", DB_FILEPATH);
 
             if config.NHENTAI_TAGS.is_none() {break 'program;} // if tag not set: client mode, exit
 

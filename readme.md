@@ -45,10 +45,6 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 
     Setting this to `false` prevents the temporary directory containing the original images from being deleted after the CBZ file has been created. In addition to that it also saves a `ComicBook.xml` in the directory. This can be useful to improve compatibility with third party readers or deduplication software.
 
-- `DATABASE_URL`
-
-    This is the URL to the SQLite database file. If you changed `DATABASE_URL`, confirm the database directory already exists. It is possible that it is not created automatically because the URL could point to a remote directory. The database file will and should be created automatically.
-
 - `DONTDOWNLOADME_FILEPATH`, optional, defaults to `None`
 
     This is the path to the file containing the nHentai ID you explicitly do not want to download, separated by line breaks. It has priority over all input methods. If you want to systematically exclude hentai by tag, use the `-` operator in the tag search instead.
@@ -120,7 +116,6 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 Example `./config/.env`:
 
 ```TOML
-DATABASE_URL = "./db/db.sqlite"
 LIBRARY_PATH = "./hentai/"
 ```
 
@@ -134,7 +129,6 @@ Example `./config/.env`:
 
 ```TOML
 CSRFTOKEN = "your token here"
-DATABASE_URL = "./db/db.sqlite"
 DONTDOWNLOADME_FILEPATH = "./config/dontdownloadme.txt"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"
@@ -154,7 +148,6 @@ Example `./config/.env`:
 ```TOML
 CF_CLEARANCE = ""
 CSRFTOKEN = "your token here"
-DATABASE_URL = "./db/db.sqlite"
 DONTDOWNLOADME_FILEPATH = "./config/dontdownloadme.txt"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"
