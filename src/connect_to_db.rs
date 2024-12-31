@@ -8,11 +8,10 @@ use sqlx::migrate::MigrateDatabase;
 ///
 /// # Arguments
 /// - `db_url`: url to database file, might not be local but is recommended to be so
-/// - `migrations_path`: path to directory containing migration files
 ///
 /// # Returns
 /// - connection pool to database or error
-pub async fn connect_to_db(db_url: &str, db_migrations_path: &str) -> Result<sqlx::SqlitePool, sqlx::Error>
+pub async fn connect_to_db(db_url: &str) -> Result<sqlx::SqlitePool, sqlx::Error>
 {
     let db: sqlx::SqlitePool; // database connection pool
 
@@ -51,11 +50,8 @@ pub async fn connect_to_db(db_url: &str, db_migrations_path: &str) -> Result<sql
         .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)); // ensure data is written to disk after each transaction for consistent state
     log::info!("Connected to database at \"{db_url}\".");
 
-    if std::path::Path::new(db_migrations_path).exists() // if migrations path exists
-    {
-        sqlx::migrate::Migrator::new(std::path::Path::new(db_migrations_path)).await?.run(&db).await?; // run migrations to create and update tables
-        log::debug!("Executed migrations at \"{db_migrations_path}\".");
-    }
+    sqlx::migrate!("./db_migrations/").run(&db).await?; // run migrations to create and update tables
+    log::debug!("Executed migrations at \"./db_migrations/\".");
 
     return Ok(db);
 }
