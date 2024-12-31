@@ -188,6 +188,9 @@ Seems to have been fixed upstream 2024-10-30.
 - I have upgraded from an older version and now nHentai Archivist complains about missing or invalid settings.\
     Either follow the error message's instructions and manually make the necessary changes or delete `./config/.env` and execute the program once to create a new default one.
 
+- I have upgraded from an older version to version 3.8.0 or newer and now nHentai Archivist raises database errors (code 1).\
+    This is due to me adding migrations to the database which enables me to change the database schema in the future without you having to do anything yourself. This is my very first project that utilises a proper database which is why I haven't utilised migrations from the start, I apologise for the hassle. To fix the error either add the migrations entry manually to the database, which is kinda complicated, or just delete the `./db/` directory to create a new database that works.
+
 - 177013 "Metamorphosis" has been purged!\
     Apparently, only the gallery page has been purged and the images themselves are still available on the media servers; as long as you happen to remember the media ID from before the purge _wink wink_. By executing the following SQL commands, you can manually add the required metadata to the database and then download the images as usual. Huge thanks to a friendly redditor for this information.
 
