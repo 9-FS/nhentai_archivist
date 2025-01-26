@@ -5,6 +5,7 @@ use crate::config::*;
 use crate::remove_only_empty_dir::*;
 use crate::error::*;
 use crate::search_api::*;
+use rand::seq::SliceRandom;
 use std::io::Read;
 use std::io::Write;
 #[cfg(target_family = "unix")]
@@ -226,7 +227,7 @@ impl Hentai
                         }
                         Err(e) =>
                         {
-                            log::warn!("{e}");
+                            log::warn!("Downloading hentai image {} / {} failed with: {e}", f_clone.format((i+1) as f64), f_clone.format(num_pages_clone as f64));
                             result = None; // failure
                         }
                     }
@@ -349,7 +350,8 @@ impl Hentai
     /// - nothing or error
     async fn download_image(http_client: &reqwest::Client, image_url: &str, image_filepath: &str) -> Result<(), HentaiDownloadImageError>
     {
-        const MEDIA_SERVERS: [u8; 4] = [2, 3, 5, 7]; // media servers to try if image not found, general first, after that explicit
+        const MEDIA_SERVERS: [&str; 4] = ["2", "3", "5", "7"]; // media servers to try if image not found, general first, after that explicit
+        let mut media_servers_randomised: Vec<&str>; // media servers in random order for load balancing
 
 
         if let Ok(o) = tokio::fs::metadata(image_filepath).await
@@ -358,19 +360,29 @@ impl Hentai
             if o.is_dir() {return Err(HentaiDownloadImageError::BlockedByDirectory {directory_path: image_filepath.to_owned()});} // if image filepath blocked by directory: give up
         }
 
+        media_servers_randomised = MEDIA_SERVERS.to_vec();
+        media_servers_randomised.shuffle(&mut rand::thread_rng()); // shuffle media server order
+        media_servers_randomised.insert(0, ""); // prepend "" to always try general media server first with nhentai's own load balancing
 
-        let mut r: reqwest::Response = http_client.get(image_url).send().await?; // tag search on general media server, page
-        if r.status() != reqwest::StatusCode::OK // if status not ok: retry with other media servers
+
+        let mut r: reqwest::Response = reqwest::Response::from(http::Response::new("")); // response to store image, initialised with empty dummy response so borrow checker stops complaining about r possibly not being initialised even though it is guaranteed it is
+        for (i, media_server) in media_servers_randomised.iter().enumerate() // try all media servers
         {
-            for media_server in MEDIA_SERVERS // try all media servers
+            log::debug!("{}", image_url.replace("i.nhentai.net", format!("i{media_server}.nhentai.net").as_str()));
+            match http_client.get(image_url.replace("i.nhentai.net", format!("i{media_server}.nhentai.net").as_str())).send().await // tag search, page, insert media server
             {
-                log::debug!("{}", image_url.replace("i.nhentai.net", format!("i{media_server}.nhentai.net").as_str()));
-                r = http_client.get(image_url.replace("i.nhentai.net", format!("i{media_server}.nhentai.net").as_str())).send().await?; // tag search, page, insert media server
-                log::debug!("{}", r.status());
-                if r.status() == reqwest::StatusCode::OK {break;} // if not ok: try again
+                Ok(o) => r = o,
+                Err(e) =>
+                {
+                    log::debug!("{e}");
+                    if i == media_servers_randomised.len() - 1 {return Err(HentaiDownloadImageError::ReqwestStatus {url: image_url.to_owned(), status: r.status()});} // if not ok and last media server: something went wrong, give up
+                    else {continue;} // if not ok: try next media server
+                },
             }
+            log::debug!("{}", r.status());
+            if r.status() == reqwest::StatusCode::OK {break;} // if ok: stop trying out media servers
+            else if i == media_servers_randomised.len() - 1 {return Err(HentaiDownloadImageError::ReqwestStatus {url: image_url.to_owned(), status: r.status()});} // if not ok and last media server: something went wrong, give up
         }
-        if r.status() != reqwest::StatusCode::OK {return Err(HentaiDownloadImageError::ReqwestStatus {url: image_url.to_owned(), status: r.status()});} // if status still not ok: something went wrong
 
         let mut file: tokio::fs::File;
         #[cfg(target_family = "unix")]

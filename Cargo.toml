@@ -9,14 +9,16 @@ license     = "MIT"
 name        = "nhentai_archivist"
 readme      = "readme.md"
 repository  = "https://github.com/9-FS/nhentai_archivist"
-version     = "3.8.1"
+version     = "3.8.2"
 
 [dependencies]
 chrono = { version = "^0.4.0", features = ["serde"] }
+http = { version = "^1.0.0", default-features = false }
 load_config = { git = "https://github.com/9-FS/load_config", tag = "1.2.1", features = [
     "toml_file",
 ] }
 log = "^0.4.0"
+rand = { version = "^0.8.0", default-features = false }
 reqwest = { version = "^0.12.0", default-features = false, features = [
     "cookies",
     "rustls-tls",

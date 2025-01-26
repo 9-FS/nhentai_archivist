@@ -1184,11 +1184,13 @@ dependencies = [
 
 [[package]]
 name = "nhentai_archivist"
-version = "3.8.1"
+version = "3.8.2"
 dependencies = [
  "chrono",
+ "http",
  "load_config",
  "log",
+ "rand",
  "reqwest",
  "scaler",
  "serde",

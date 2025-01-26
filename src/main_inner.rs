@@ -9,7 +9,7 @@ use crate::hentai::*;
 pub async fn main_inner(config: Config) -> Result<(), Error>
 {
     const DB_FILEPATH: &str = "./db/db.sqlite"; // database filepath
-    const HTTP_TIMEOUT: u64 = 30; // connection timeout
+    const HTTP_TIMEOUT: u64 = 10; // connection timeout
     const NHENTAI_HENTAI_SEARCH_URL: &str = "https://nhentai.net/api/gallery/"; // nhentai search by id api url
     const NHENTAI_TAG_SEARCH_URL: &str = "https://nhentai.net/api/galleries/search"; // nhentai search by tag api url
     let f0 = scaler::Formatter::new()
