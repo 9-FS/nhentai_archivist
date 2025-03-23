@@ -21,6 +21,7 @@ pub async fn search_by_id(http_client: &reqwest::Client, nhentai_hentai_search_u
 
 
     let r: reqwest::Response = http_client.get(format!("{nhentai_hentai_search_url}{id}").as_str()).send().await?; // search hentai
+    log::debug!("{}", r.status());
     if r.status() != reqwest::StatusCode::OK {return Err(SearchByIdError::ReqwestStatus {url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
     // response in json format
     r_serialised = serde_json::from_str(r.text().await?.as_str())?; // deserialise json, get this response here to get number of pages before starting parallel workers
@@ -162,6 +163,7 @@ async fn search_by_tag_on_page(http_client: reqwest::Client, nhentai_tag_search_
             Ok(o) => r = o,
             Err(e) => return Err(SearchByTagOnPageError::Reqwest {page_no, num_pages, source: e}),
         }
+        log::debug!("{}", r.status());
         if r.status() == reqwest::StatusCode::TOO_MANY_REQUESTS // if status is too many requests: wait and retry
         {
             log::debug!("Downloading hentai metadata page {} from \"{}\" failed with status code {}. Waiting 2 s and retrying...", f.format(page_no), r.url().to_string(), r.status());

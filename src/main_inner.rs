@@ -67,6 +67,7 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
                     break 'iteration; // if server mode: only abort iteration, go straight to sleeping
                 }
             }
+            log::debug!("{}", r.status());
             if
                 r.status() != reqwest::StatusCode::OK  // if status is not ok
                 && r.status() != reqwest::StatusCode::NOT_FOUND // and except for not found and too many requests: something went wrong, abort
