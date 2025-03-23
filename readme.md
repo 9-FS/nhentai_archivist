@@ -199,6 +199,41 @@ Seems to have been fixed upstream 2024-10-30.
     INTO Hentai (id, cover_type, media_id, num_favorites, num_pages, page_types, scanlator, title_english, title_japanese, title_pretty, upload_date)
     VALUES (177013, 'j', media_id, 0, 225, 'jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj', NULL, '[ShindoLA] METAMORPHOSIS (Complete) [English]', NULL, 'METAMORPHOSIS', '2016-10-19T00:00:00Z');
 
+    INSERT OR REPLACE
+    INTO Tag (id, name, type, url)
+    VALUES
+    (8010, 'group', 'tag', '/tag/group/'),
+    (14283, 'anal', 'tag', '/tag/anal/'),
+    (24201, 'stockings', 'tag', '/tag/stockings/'),
+    (10314, 'schoolgirl uniform', 'tag', '/tag/schoolgirl-uniform/'),
+    (13720, 'nakadashi', 'tag', '/tag/nakadashi/'),
+    (29859, 'blowjob', 'tag', '/tag/blowjob/'),
+    (13989, 'ahegao', 'tag', '/tag/ahegao/'),
+    (22942, 'incest', 'tag', '/tag/incest/'),
+    (22945, 'double penetration', 'tag', '/tag/double-penetration/'),
+    (19018, 'dark skin', 'tag', '/tag/dark-skin/'),
+    (20035, 'x-ray', 'tag', '/tag/x-ray/'),
+    (29224, 'impregnation', 'tag', '/tag/impregnation/'),
+    (27384, 'mind break', 'tag', '/tag/mind-break/'),
+    (8739, 'story arc', 'tag', '/tag/story-arc/'),
+    (7256, 'mmf threesome', 'tag', '/tag/mmf-threesome/'),
+    (6343, 'pregnant', 'tag', '/tag/pregnant/'),
+    (22079, 'drugs', 'tag', '/tag/drugs/'),
+    (12695, 'prostitution', 'tag', '/tag/prostitution/'),
+    (5820, 'piercing', 'tag', '/tag/piercing/'),
+    (29182, 'blackmail', 'tag', '/tag/blackmail/'),
+    (25050, 'gyaru', 'tag', '/tag/gyaru/'),
+    (32996, 'deepthroat', 'tag', '/tag/deepthroat/'),
+    (10542, 'snuff', 'tag', '/tag/snuff/'),
+    (53449, 'already uploaded', 'tag', '/tag/already-uploaded/'),
+    (7288, 'vomit', 'tag', '/tag/vomit/'),
+    (13722, 'moral degeneration', 'tag', '/tag/moral-degeneration/'),
+    (21112, 'full body tattoo', 'tag', '/tag/full-body-tattoo/'),
+    (3981, 'shindol', 'artist', '/artist/shindol/'),
+    (17249, 'translated', 'language', '/language/translated/'),
+    (12227, 'english', 'language', '/language/english/'),
+    (33173, 'manga', 'category', '/category/manga/');
+
     INSERT
     INTO Hentai_Tag (hentai_id, tag_id)
     VALUES
