@@ -40,6 +40,7 @@ pub async fn connect_to_db(db_url: &str) -> Result<sqlx::SqlitePool, sqlx::Error
     }
 
     db = sqlx::sqlite::SqlitePoolOptions::new()
+        .idle_timeout(None) // keep connection open indefinitely otherwise database locks up after timeout, closing and reconnecting manually
         .max_connections(1) // only 1 connection to database at the same time, otherwise concurrent writers fail
         .max_lifetime(None) // keep connection open indefinitely otherwise database locks up after lifetime, closing and reconnecting manually
         .connect(db_url).await?; // connect to database
