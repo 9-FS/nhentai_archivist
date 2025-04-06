@@ -22,91 +22,6 @@ pub struct HentaiSearchResponse
 }
 
 
-impl HentaiSearchResponse
-{
-    /// # Summary
-    /// Write hentai search response to database. Either creates new entries or updates existing ones with same primary key.
-    ///
-    /// # Arguments
-    /// - `db`: SQLite database
-    ///
-    /// # Returns
-    /// - nothing or sqlx::Error
-    pub async fn write_to_db(&self, db: &sqlx::sqlite::SqlitePool) -> Result<(), sqlx::Error>
-    {
-        let hentai_query_string: String; // query string for Hentai table
-        let hentai_tag_query_string: String; // query string for Hentai_Tag table
-        let mut query: sqlx::query::Query<'_, _, _>; // query to update all tables
-        let query_string: String; // final sql query string
-        let tag_query_string: String; // query string for Tag table
-
-
-        if self.images.pages.is_empty() {hentai_query_string = "".to_owned()} // no Hentai entry for hentai without pages
-        else
-        {
-            hentai_query_string = "INSERT OR REPLACE INTO Hentai (id, cover_type, media_id, num_favorites, num_pages, page_types, scanlator, title_english, title_japanese, title_pretty, upload_date) VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);".to_owned()
-        };
-        tag_query_string = format! // query string for Tag table
-        (
-            "INSERT OR REPLACE INTO Tag (id, name, type, url) VALUES\n{};",
-            self.tags.iter().map(|_| "(?, ?, ?, ?)").collect::<Vec<&str>>().join(",\n")
-        );
-        if self.images.pages.is_empty() {hentai_tag_query_string = "".to_owned()} // no Hentai entry for hentai without pages
-        else
-        {
-            hentai_tag_query_string = format! // query string for Hentai_Tag table
-            (
-                "DELETE FROM Hentai_Tag WHERE hentai_id = ?;\nINSERT INTO Hentai_Tag (hentai_id, tag_id) VALUES\n{};", // delete all Hentai_Tag entries with same hentai_id before in case hentai had some tags untagged
-                self.tags.iter().map(|_| "(?, ?)").collect::<Vec<&str>>().join(",\n")
-            )
-        };
-        query_string = format!("PRAGMA foreign_keys = OFF;\nBEGIN TRANSACTION;\n{}\n{}\n{}\nCOMMIT;\nPRAGMA foreign_keys = ON;", hentai_query_string, tag_query_string, hentai_tag_query_string); // combine all tables into one transaction, foreign key validation is too slow for inserts at this scale
-
-        query = sqlx::query(query_string.as_str());
-
-        if !self.images.pages.is_empty()
-        {
-            query = query // bind Hentai values to placeholders
-            .bind(self.id)
-            .bind(format!("{:?}", self.images.cover.t))
-            .bind(self.media_id)
-            .bind(self.num_favorites)
-            .bind(self.num_pages)
-            .bind(self.images.pages.iter().map(|page| format!("{:?}", page.t)).collect::<Vec<String>>().join("")) // collapse all page types into 1 string, otherwise have to create huge Hentai_Pages table or too many Hentai_{id}_Pages tables
-            .bind(self.scanlator.clone().and_then(|s| if s.is_empty() {None} else {Some(s)})) // convert Some("") to None, otherwise forward unchanged
-            .bind(self.title.english.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
-            .bind(self.title.japanese.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
-            .bind(self.title.pretty.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
-            .bind(self.upload_date);
-        }
-
-        for tag in self.tags.iter() // bind Tag values to placeholders
-        {
-            query = query
-                .bind(tag.id)
-                .bind(tag.name.clone())
-                .bind(tag.r#type.clone())
-                .bind(tag.url.clone());
-        }
-
-        if !self.images.pages.is_empty()
-        {
-            query = query.bind(self.id); // bind hentai id to placeholder
-            for tag in self.tags.iter() // bind Hentai_Tag values to placeholders
-            {
-                query = query
-                    .bind(self.id)
-                    .bind(tag.id);
-            }
-        }
-
-        query.execute(db).await?;
-        return Ok(());
-    }
-}
-
-
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct Image
 {
@@ -233,96 +148,103 @@ pub struct TagSearchResponse
 impl TagSearchResponse
 {
     /// # Summary
-    /// Write tag search response to database. Either creates new entries or updates existing ones with same primary key.
+    /// Write search reponse to database. A tag search response yields multiple hentai, a hentai search response 1. Either creates new entries or updates existing ones with same primary key.
     ///
     /// # Arguments
     /// - `db`: SQLite database
     ///
     /// # Returns
-    /// - nothing or sqlx::Error
-    pub async fn write_to_db(&self, db: &sqlx::sqlite::SqlitePool) -> Result<(), sqlx::Error> // separate function to create 1 big transaction instead of 1 transaction per Hentai, tag search requires this performance
+    /// - number of rows affected or sqlx::Error
+    pub async fn write_to_db(search_response: Vec<HentaiSearchResponse>, db: &sqlx::sqlite::SqlitePool) -> Result<u64, sqlx::Error> // separate function to create 1 big transaction instead of 1 transaction per Hentai, tag search requires this performance
     {
-        let hentai_query_string: String; // query string for Hentai table
-        let mut hentai_tag_query_string: String = String::new(); // query string for Hentai_Tag table
-        let mut query: sqlx::query::Query<'_, _, _>; // query to update all tables
-        let query_string: String; // final sql query string
-        let tag_query_string: String; // query string for Tag table
+        const HENTAI_QUERY_STRING: &str = "INSERT OR REPLACE INTO Hentai (id, cover_type, media_id, num_favorites, num_pages, page_types, scanlator, title_english, title_japanese, title_pretty, upload_date) "; // query string for Hentai table
+        const HENTAI_TAG_QUERY1_STRING: &str = "DELETE FROM Hentai_Tag WHERE hentai_id IN "; // cleanup query string, delete all Hentai_Tag entries with same hentai_id before in case hentai had some tags untagged
+        const HENTAI_TAG_QUERY2_STRING: &str = "INSERT INTO Hentai_Tag (hentai_id, tag_id) "; // query string for Hentai_Tag table
+        const TAG_QUERY_STRING: &str = "INSERT OR REPLACE INTO Tag (id, name, type, url) "; // query string for Tag table
+        let mut db_tx: sqlx::Transaction<'_, sqlx::Sqlite>; // transaction for all queries
+        let mut rows_affected: u64 = 0; // number of rows affected by query
 
 
-        hentai_query_string = format! // query string for Hentai table
+        db_tx = db.begin().await?; // start transaction
+
+        let mut query: sqlx::query_builder::QueryBuilder<sqlx::Sqlite> = sqlx::query_builder::QueryBuilder::new(HENTAI_QUERY_STRING); // query for Hentai table
+        query.push_values
         (
-            "INSERT OR REPLACE INTO Hentai (id, cover_type, media_id, num_favorites, num_pages, page_types, scanlator, title_english, title_japanese, title_pretty, upload_date) VALUES\n{};",
-            self.result.iter()
-                .filter(|hentai| !hentai.images.pages.is_empty()) // filter out all hentai without pages
-                .map(|_| "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-                .collect::<Vec<&str>>()
-                .join(",\n")
-        );
-        tag_query_string = format! // query string for Tag table
-        (
-            "INSERT OR REPLACE INTO Tag (id, name, type, url) VALUES\n{};",
-            self.result.iter()
-                .flat_map(|hentai| hentai.tags.iter())
-                .map(|_| "(?, ?, ?, ?)")
-                .collect::<Vec<&str>>()
-                .join(",\n")
-        );
-        for hentai in self.result.iter().filter(|hentai| !hentai.images.pages.is_empty()) // no Hentai_Tag entries for hentai without pages
-        {
-            hentai_tag_query_string += format!
-            (
-                "DELETE FROM Hentai_Tag WHERE hentai_id = ?;\nINSERT INTO Hentai_Tag (hentai_id, tag_id) VALUES\n{};", // delete all Hentai_Tag entries with same hentai_id before in case hentai had some tags untagged
-                hentai.tags.iter()
-                    .map(|_| "(?, ?)")
-                    .collect::<Vec<&str>>()
-                    .join(",\n")
-            ).as_str();
-        }
-        query_string = format!("PRAGMA foreign_keys = OFF;\nBEGIN TRANSACTION;\n{}\n{}\n{}\nCOMMIT;\nPRAGMA foreign_keys = ON;", hentai_query_string, tag_query_string, hentai_tag_query_string); // combine all tables into one transaction, foreign key validation is too slow for inserts at this scale
-
-        query = sqlx::query(query_string.as_str());
-
-        for hentai in self.result.iter().filter(|hentai| !hentai.images.pages.is_empty()) // bind Hentai values to placeholders except hentai without pages
-        {
-            query = query
-                .bind(hentai.id)
-                .bind(format!("{:?}", hentai.images.cover.t))
-                .bind(hentai.media_id)
-                .bind(hentai.num_favorites)
-                .bind(hentai.num_pages)
-                .bind(hentai.images.pages.iter().map(|page| format!("{:?}", page.t)).collect::<Vec<String>>().join("")) // collapse all page types into 1 string, otherwise have to create huge Hentai_Pages table or too many Hentai_{id}_Pages tables
-                .bind(hentai.scanlator.clone().and_then(|s| if s.is_empty() {None} else {Some(s)})) // convert Some("") to None, otherwise forward unchanged
-                .bind(hentai.title.english.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
-                .bind(hentai.title.japanese.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
-                .bind(hentai.title.pretty.clone().and_then(|s| if s.is_empty() {None} else {Some(s)}))
-                .bind(hentai.upload_date);
-        }
-
-        for hentai in self.result.iter() // bind Tag values to placeholders
-        {
-            for tag in hentai.tags.iter()
+            search_response.iter().filter(|hentai| !hentai.images.pages.is_empty()), // filter out all hentai without pages
+            |mut builder, hentai|
             {
-                query = query
-                    .bind(tag.id)
-                    .bind(tag.name.clone())
-                    .bind(tag.r#type.clone())
-                    .bind(tag.url.clone());
+                builder
+                    .push_bind(hentai.id)
+                    .push_bind(format!("{:?}", hentai.images.cover.t))
+                    .push_bind(hentai.media_id)
+                    .push_bind(hentai.num_favorites)
+                    .push_bind(hentai.num_pages)
+                    .push_bind(hentai.images.pages.iter().map(|page| format!("{:?}", page.t)).collect::<Vec<String>>().join("")) // collapse all page types into 1 string, otherwise have to create huge Hentai_Pages table or too many Hentai_{id}_Pages tables
+                    .push_bind(hentai.scanlator.as_ref().and_then(|s| if s.is_empty() {None} else {Some(s)})) // convert Some("") to None, otherwise forward unchanged
+                    .push_bind(hentai.title.english.as_ref().and_then(|s| if s.is_empty() {None} else {Some(s)}))
+                    .push_bind(hentai.title.japanese.as_ref().and_then(|s| if s.is_empty() {None} else {Some(s)}))
+                    .push_bind(hentai.title.pretty.as_ref().and_then(|s| if s.is_empty() {None} else {Some(s)}))
+                    .push_bind(hentai.upload_date);
+            }
+        );
+        rows_affected += query
+            .build()
+            .persistent(false) // don't cache query
+            .execute(&mut *db_tx).await? // execute query
+            .rows_affected(); // get number of rows affected
+
+        let mut query: sqlx::query_builder::QueryBuilder<sqlx::Sqlite> = sqlx::query_builder::QueryBuilder::new(TAG_QUERY_STRING); // query for Tag table
+        query.push_values
+        (
+            search_response.iter().flat_map(|hentai| hentai.tags.iter()), // flatten all tags into 1 iterator
+            |mut builder, tag|
+            {
+                builder
+                    .push_bind(tag.id)
+                    .push_bind(&tag.name)
+                    .push_bind(&tag.r#type)
+                    .push_bind(&tag.url);
+            }
+        );
+        rows_affected += query
+            .build()
+            .persistent(false) // don't cache query
+            .execute(&mut *db_tx).await? // execute query
+            .rows_affected(); // get number of rows affected
+
+        let mut query: sqlx::query_builder::QueryBuilder<sqlx::Sqlite> = sqlx::query_builder::QueryBuilder::new(HENTAI_TAG_QUERY1_STRING); // cleanup query for Hentai_Tag table
+        query.push("(");
+        for (i, hentai) in search_response.iter().enumerate()
+        {
+            query.push_bind(hentai.id);
+            if i < search_response.len() - 1 // if not last element
+            {
+                query.push(", "); // append comma
             }
         }
-
-        for hentai in self.result.iter().filter(|hentai| !hentai.images.pages.is_empty()) // bind Hentai_Tag values to placeholders except hentai without pages
-        {
-            query = query.bind(hentai.id); // bind hentai id to placeholder
-            for tag in hentai.tags.iter()
+        query.push(");\n");
+        query.push(HENTAI_TAG_QUERY2_STRING); // query for Hentai_Tag table
+        query.push_values
+        (
+            search_response.iter()
+                .filter(|hentai| !hentai.images.pages.is_empty()) // no Hentai_Tag entries for hentai without pages
+                .flat_map(|hentai| hentai.tags.iter().map(|tag| (hentai.id, tag.id))), // flatten all tags into 1 iterator, contains tuples of (hentai_id, tag_id)
+            |mut builder, (hentai_id, tag_id)|
             {
-                query = query
-                    .bind(hentai.id)
-                    .bind(tag.id);
+                builder
+                    .push_bind(hentai_id)
+                    .push_bind(tag_id);
             }
-        }
+        );
+        rows_affected += query
+            .build()
+            .persistent(false) // don't cache query
+            .execute(&mut *db_tx).await? // execute query
+            .rows_affected(); // get number of rows affected
 
-        query.execute(db).await?;
-        return Ok(());
+
+        db_tx.commit().await?; // commit transaction
+        return Ok(rows_affected);
     }
 }
 
