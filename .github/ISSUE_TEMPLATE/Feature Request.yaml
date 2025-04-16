@@ -1,0 +1,59 @@
+name: Feature Request
+description: Fill out this template to propose a new feature or enhancement.
+title: "[Feature Request]: "
+labels: ["feature", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to propose a feature! Please fill out the details below to help us understand your request better.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Terms Acknowledgment
+      description: Please confirm that you have read the relevant documentation.
+      options:
+        - label: I have read the relevant documentation.
+          required: true
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: Describe the feature you would like to see implemented. Explain the problem it solves or the improvement it brings.
+      placeholder: "Please describe the feature in detail..."
+      value: ""
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version are you currently using or targeting?
+      placeholder: ex. 2022.1.1
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Target Platform
+      multiple: false
+      options:
+        - Windows 
+        - MacOS
+        - Linux
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe a use case where this feature would be useful.
+      placeholder: "Please provide examples of how you would use this feature..."
+      value: ""
+    validations:
+      required: true
+  - type: textarea
+    id: additional-comments
+    attributes:
+      label: Additional Comments
+      description: Any other comments or suggestions related to this feature request?
+      placeholder: "Please share any additional thoughts..."
+      value: ""
