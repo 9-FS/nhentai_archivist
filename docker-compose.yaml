@@ -1,18 +1,10 @@
 services:
-    nhentai_archivist:
-        container_name: "nhentai_archivist"
-        image: "ghcr.io/9-fs/nhentai_archivist:3.8.3"
-        environment:
-            HOST_OS: "Unraid"
-            TZ: "UTC"
-        volumes:
-            - "/mnt/user/appdata/nhentai_archivist/config/:/app/config/:rw"
-            - "/mnt/user/appdata/nhentai_archivist/db/:/app/db/:rw"
-            - "/mnt/user/appdata/nhentai_archivist/log/:/app/log/:rw"
-            - "/mnt/user/nextcloud/media/hentai/:/app/hentai/:rw"
-        user: "99:100"
-        network_mode: "bridge"
-        deploy:
-            resources:
-                limits:
-                    memory: "1G"
+  nhentai_archivist:
+    image: ghcr.io/9-fs/nhentai_archivist_archivist:3.8.3
+    container_name: nhentai_archivist
+    volumes:
+      - /path/to/nhentai_archivist/config/:/app/config/
+      - /path/to/nhentai_archivist/db/:/app/db/
+      - /path/to/nhentai_archivist/log/:/app/log/
+      - /path/to/nhentai_archivist/hentai/:/app/hentai/
+    restart: unless-stopped
