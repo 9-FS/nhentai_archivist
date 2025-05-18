@@ -1,10 +1,12 @@
+name: "nhentai_archivist"
+
 services:
-  nhentai_archivist:
-    image: ghcr.io/9-fs/nhentai_archivist_archivist:3.8.3
-    container_name: nhentai_archivist
-    volumes:
-      - /path/to/nhentai_archivist/config/:/app/config/
-      - /path/to/nhentai_archivist/db/:/app/db/
-      - /path/to/nhentai_archivist/log/:/app/log/
-      - /path/to/nhentai_archivist/hentai/:/app/hentai/
-    restart: unless-stopped
+    nhentai_archivist:
+        container_name: "nhentai_archivist"
+        image: "ghcr.io/9-fs/nhentai_archivist:latest"
+        mem_limit: "1G"
+        volumes:
+            - "/path/to/nhentai_archivist/config/:/app/config/"
+            - "/path/to/nhentai_archivist/db/:/app/db/"
+            - "/path/to/nhentai_archivist/log/:/app/log/"
+            - "/path/to/hentai_library/:/app/hentai/"
