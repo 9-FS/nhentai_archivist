@@ -1,11 +1,11 @@
-ARG RUST_VERSION="1.82"
+ARG RUST_VERSION="1.86"
 
-FROM rust:$RUST_VERSION as builder
+FROM rust:$RUST_VERSION AS builder
 WORKDIR "/app/"
 COPY "." "."
 RUN cargo build --release
 
-FROM gcr.io/distroless/cc
+FROM alpine
 WORKDIR "/app/"
 COPY --from=builder "/app/target/release/nhentai_archivist" "."
 CMD ["./nhentai_archivist"]
