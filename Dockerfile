@@ -5,10 +5,11 @@ WORKDIR "/app/"
 COPY "." "."
 RUN cargo build --release
 
-FROM alpine
+FROM gcr.io/distroless/cc
 WORKDIR "/app/"
 COPY --from=builder "/app/target/release/nhentai_archivist" "."
-CMD ["./nhentai_archivist"]
+
+ENTRYPOINT ["./nhentai_archivist"]
 
 
 # MANUAL BUILD:
