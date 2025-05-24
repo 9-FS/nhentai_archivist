@@ -41,6 +41,10 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 > If nHentai has "under attack" mode enabled, clearing the Cloudflare prompt and updating `CF_CLEARANCE` seem to be required daily.
 
 ## Further Settings
+- `CIRCUMVENT_LOAD_BALANCER`, optional, defaults to `false`
+
+    Setting this to `true` circumvents the load balancer at `i.nhentai.net` and directly uses a random media server, for example `i2.nhentai.net`. Only use this if the load balancer is broken. You can confirm this by setting `DEBUG = true` and checking the logs for consistent download errors when using `i.nhentai.net` and success when using a specific media server like `i2.nhentai.net`.
+
 - `CLEANUP_TEMPORARY_FILES`, optional, defaults to `true`
 
     Setting this to `false` prevents the temporary directory containing the original images from being deleted after the CBZ file has been created. In addition to that it also saves a `ComicBook.xml` in the directory. This can be useful to improve compatibility with third party readers or deduplication software.
@@ -48,6 +52,12 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 - `DONTDOWNLOADME_FILEPATH`, optional, defaults to `None`
 
     This is the path to the file containing the nHentai ID you explicitly do not want to download, separated by line breaks. It has priority over all input methods. If you want to systematically exclude hentai by tag, use the `-` operator in the tag search instead.
+
+- `DOWNLOAD_WORKERS`, optional, defaults to $5$
+
+    This sets the number of download workers for parallel image downloads. More does not always mean faster! $5$ usually is a good balance between overhead and bandwidth usage.
+
+    If you had to set `CIRCUMVENT_LOAD_BALANCER = true` because the load balancer is broken, you are randomly trying out media servers directly if they happen to have the image, which will result in a lot of download errors. In this case it might make sense to set this to a higher value like $10$, because a lot of time is wasted waiting for timeouts of download requests to expire.
 
 - `DOWNLOADME_FILEPATH`, optional, defaults to `None`
 
@@ -269,3 +279,7 @@ Seems to have been fixed upstream 2024-10-30.
     (177013, 12227),
     (177013, 33173);
     ```
+
+- Downloading became unbearably slow. :(
+
+    `nhentai.net`'s load balancer most likely broke again. You can confirm this by setting `DEBUG = true` and checking the logs for consistent download errors when using `i.nhentai.net` and success when using a specific media server like `i2.nhentai.net`. In this case, I recommend setting `CIRCUMVENT_LOAD_BALANCER = true` and `DOWNLOAD_WORKERS = 10` for a temporary workaround. See [issue #62](https://github.com/9-FS/nhentai_archivist/issues/62).

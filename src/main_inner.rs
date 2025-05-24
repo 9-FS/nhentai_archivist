@@ -125,7 +125,11 @@ pub async fn main_inner(config: Config) -> Result<(), Error>
                     }
                 }
 
-                if let Err(e) = hentai.download(&http_client, config.CLEANUP_TEMPORARY_FILES.unwrap_or(true)).await
+                if config.DOWNLOAD_WORKERS.unwrap_or(5) == 0 // if download workers is set to 0: nothing will download, abort
+                {
+                    return Err(Error::SettingInvalid {reason: format!("Setting `DOWNLOAD_WORKERS` must have value greater than 0 or else nothing gets done.")});
+                }
+                if let Err(e) = hentai.download(&http_client, config.DOWNLOAD_WORKERS.unwrap_or(5), config.CIRCUMVENT_LOAD_BALANCER.unwrap_or(false), config.CLEANUP_TEMPORARY_FILES.unwrap_or(true)).await
                 {
                     log::error!{"{e}"};
                 }
