@@ -363,7 +363,7 @@ impl Hentai
         }
 
         media_servers_randomised = MEDIA_SERVERS.to_vec();
-        media_servers_randomised.shuffle(&mut rand::thread_rng()); // shuffle media server order
+        media_servers_randomised.shuffle(&mut rand::rng()); // shuffle media server order
         if !circumvent_load_balancer // if load balancer should not be circumvented
         {
             media_servers_randomised.insert(0, ""); // prepend "" to always try general media server first with nhentai's own load balancing

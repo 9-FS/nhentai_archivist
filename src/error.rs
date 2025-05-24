@@ -33,7 +33,7 @@ pub enum HentaiNewError
     HentaiLengthInconsistency {page_types: u16, num_pages: u16},
 
     #[error(transparent)]
-    SearchByIdError(#[from] SearchByIdError),
+    SearchById(#[from] SearchByIdError),
 
     #[error("Loading hentai tags from database failed with: {0}")]
     Sqlx(#[from] sqlx::Error),

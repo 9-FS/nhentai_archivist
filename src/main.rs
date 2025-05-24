@@ -84,7 +84,6 @@ fn main() -> std::process::ExitCode
                                 log::error!("Are \"CF_CLEARANCE\", \"CSRFTOKEN\", and \"USER_AGENT\" set and current?"); // add hint
                             }
                         }
-                        Error::Sqlx(_) => log::error!("Have you created the database directory? By default, that's \"./db/\"."), // add hint
                         _ => {},
                     }
                     return std::process::ExitCode::FAILURE;
