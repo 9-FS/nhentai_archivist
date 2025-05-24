@@ -161,13 +161,14 @@ impl Hentai
     ///
     /// # Arguments
     /// - `http_client`: reqwest http client
-    /// - `db`: database connectionc
+    /// - `download_workers`: number of workers for parallel downloads, if 0: error
+    /// - `circumvent_load_balancer`: if nhentai.net's load balancer should be circumvented and directly use random media server, only use if load balancer is broken
+    /// - `cleanup_temporary_files`: if temporary files should be cleaned up after download, if false: temporary images and ComicInfo.xml remain in library
     ///
     /// # Returns
     /// - nothing or error
-    pub async fn download(&self, http_client: &reqwest::Client, cleanup_temporary_files: bool) -> Result<(), HentaiDownloadError>
+    pub async fn download(&self, http_client: &reqwest::Client, download_workers: usize, circumvent_load_balancer: bool, cleanup_temporary_files: bool) -> Result<(), HentaiDownloadError>
     {
-        const WORKERS: usize = 5; // number of parallel workers
         let cbz_final_filepath: String; //filepath to final cbz in library
         let cbz_temp_filepath: String = format!("{}{}/{}.temp", self.library_path, self.id, self.id); //filepath to temporary cbz, cbz is created here and when finished moved to final location, roundabout way over temporary cbz filepath in case program gets stopped while creating cbz, so no half finished cbz remains in library, don't use real filename because appending "".temp" might then bust length limit
         let comicinfoxml_filepath: String = format!("{}{}/ComicInfo.xml", self.library_path, self.id); // filepath to metadata file if cleanup_temporary_files is false
@@ -176,7 +177,7 @@ impl Hentai
             .set_rounding(scaler::Rounding::Magnitude(0)); // formatter
         let mut image_download_success: bool = true; // if all images were downloaded successfully, redundant initialisation here because of stupid error message
         let mut handles: Vec<tokio::task::JoinHandle<Option<()>>>; // list of handles to download_image
-        let worker_sem: std::sync::Arc<tokio::sync::Semaphore> = std::sync::Arc::new(tokio::sync::Semaphore::new(WORKERS)); // limit number of concurrent workers otherwise api enforces rate limit
+        let worker_sem: std::sync::Arc<tokio::sync::Semaphore> = std::sync::Arc::new(tokio::sync::Semaphore::new(download_workers)); // limit number of concurrent workers otherwise api enforces rate limit
         let mut zip_writer: zip::ZipWriter<std::fs::File>; // write to zip file
 
 
@@ -218,7 +219,7 @@ impl Hentai
                 handles.push(tokio::spawn(async move
                 {
                     let result: Option<()>;
-                    match Self::download_image(&http_client_clone, &image_url_clone, &image_filepath).await // download image
+                    match Self::download_image(&http_client_clone, &image_url_clone, circumvent_load_balancer, &image_filepath).await // download image
                     {
                         Ok(_) =>
                         {
@@ -344,11 +345,12 @@ impl Hentai
     /// # Arguments
     /// - `http_client`: reqwest http client
     /// - `image_url`: url of the image to download
+    /// - `circumvent_load_balancer`: if nhentai.net's load balancer should be circumvented and directly use random media server, only use if load balancer is broken
     /// - `image_filepath`: path to save the image to
     ///
     /// # Returns
     /// - nothing or error
-    async fn download_image(http_client: &reqwest::Client, image_url: &str, image_filepath: &str) -> Result<(), HentaiDownloadImageError>
+    async fn download_image(http_client: &reqwest::Client, image_url: &str, circumvent_load_balancer: bool, image_filepath: &str) -> Result<(), HentaiDownloadImageError>
     {
         const MEDIA_SERVERS: [&str; 4] = ["2", "3", "5", "7"]; // media servers to try if image not found, general first, after that explicit
         let mut media_servers_randomised: Vec<&str>; // media servers in random order for load balancing
@@ -362,8 +364,10 @@ impl Hentai
 
         media_servers_randomised = MEDIA_SERVERS.to_vec();
         media_servers_randomised.shuffle(&mut rand::thread_rng()); // shuffle media server order
-        media_servers_randomised.insert(0, ""); // prepend "" to always try general media server first with nhentai's own load balancing
-
+        if !circumvent_load_balancer // if load balancer should not be circumvented
+        {
+            media_servers_randomised.insert(0, ""); // prepend "" to always try general media server first with nhentai's own load balancing
+        }
 
         let mut r: reqwest::Response = reqwest::Response::from(http::Response::new("")); // response to store image, initialised with empty dummy response so borrow checker stops complaining about r possibly not being initialised even though it is guaranteed it is
         for (i, media_server) in media_servers_randomised.iter().enumerate() // try all media servers

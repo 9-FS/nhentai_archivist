@@ -8,10 +8,12 @@
 pub struct Config
 {
     pub CF_CLEARANCE: Option<String>, // bypass bot protection
+    pub CIRCUMVENT_LOAD_BALANCER: Option<bool>, // circumvent nhentai.net's load balancer at i.nhentai.net and directly use random media server, only use if load balancer is broken
     pub CLEANUP_TEMPORARY_FILES: Option<bool>, // clean up temporary files after downloading? some prefer off for deduplication or compatibility with other tools
     pub CSRFTOKEN: Option<String>, // bypass bot protection
     pub DEBUG: Option<bool>, // debug mode?
     pub DONTDOWNLOADME_FILEPATH: Option<String>, // path to file containing hentai ID to not download, blacklist
+    pub DOWNLOAD_WORKERS: Option<usize>, // number of download workers for parallel image downloads
     pub DOWNLOADME_FILEPATH: Option<String>, // path to file containing hentai ID to download
     pub FILENAME_TITLE_TYPE: Option<TitleType>, // which title to use for filenames: English,Japanese,Pretty
     pub LIBRARY_PATH: String, // path to download hentai to
@@ -28,10 +30,12 @@ impl Default for Config
         Self
         {
             CF_CLEARANCE: None,
+            CIRCUMVENT_LOAD_BALANCER: None, // no entry in default config, defaults to false
             CLEANUP_TEMPORARY_FILES: None,
             CSRFTOKEN: Some("".to_owned()),
             DEBUG: None, // no entry in default config, defaults to false
             DONTDOWNLOADME_FILEPATH: Some("./config/dontdownloadme.txt".to_owned()),
+            DOWNLOAD_WORKERS: None, // no entry in default config, defaults to 5
             DOWNLOADME_FILEPATH: Some("./config/downloadme.txt".to_owned()),
             FILENAME_TITLE_TYPE: None, // no entry in default config, defaults to English
             LIBRARY_PATH: "./hentai/".to_owned(),
