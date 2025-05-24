@@ -165,7 +165,7 @@ impl TagSearchResponse
         let mut rows_affected: u64 = 0; // number of rows affected by query
 
 
-        db_tx = db.begin().await?; // start transaction
+        db_tx = db.begin_with("PRAGMA foreign_keys = OFF; BEGIN TRANSACTION;").await?; // start transaction, disable foreign key checks for performance
 
         let mut query: sqlx::query_builder::QueryBuilder<sqlx::Sqlite> = sqlx::query_builder::QueryBuilder::new(HENTAI_QUERY_STRING); // query for Hentai table
         query.push_values
