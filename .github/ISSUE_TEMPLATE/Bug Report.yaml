@@ -1,0 +1,51 @@
+name: File a Bug Report
+description: Fill out this template when submitting a bug report.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please make sure you check the "I have read the readme" checkbox before submitting your issue.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: I have read the readme
+      description: Due to many requests / issues already explained in the README file, please make sure you studied it carefully. 
+      options:
+        - label: I did read the readme file to my best understanding.
+          required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also describe the expected behavior.
+      placeholder: Explain the issue you are facing.
+      value: "I didn't expect that to happen!"
+    validations:
+      required: true
+  # A text field to fill in the version number
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version are you running?
+      placeholder: ex. 2022.1.1
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: What platform are you seeing the problem on?
+      multiple: false
+      options:
+        - Windows 
+        - MacOS
+        - Linux
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+  
