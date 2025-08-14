@@ -77,11 +77,11 @@ fn main() -> std::process::ExitCode
                     log::error!("{e}"); // log error
                     match e
                     {
-                        Error::ReqwestStatus {status, ..} =>
+                        Error::WreqStatus {status, ..} =>
                         {
-                            if status == reqwest::StatusCode::FORBIDDEN // if status is forbidden
+                            if status == wreq::StatusCode::FORBIDDEN // if status is forbidden
                             {
-                                log::error!("Are \"CF_CLEARANCE\", \"CSRFTOKEN\", and \"USER_AGENT\" set and current?"); // add hint
+                                log::error!("Are \"COOKIE\" and \"USER_AGENT\" set and current?"); // add hint
                             }
                         }
                         _ => {},

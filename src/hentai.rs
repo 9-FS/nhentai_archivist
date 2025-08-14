@@ -45,7 +45,7 @@ impl Hentai
     /// # Arguments
     /// - `id`: hentai ID
     /// - `db`: database connection
-    /// - `http_client`: reqwest http client
+    /// - `http_client`: wreq http client
     /// - `nhentai_hentai_search_url`: nhentai.net hentai search API URL
     /// - `filename_title_type`: which title to use for filenames
     /// - `library_path`: path to local hentai library
@@ -53,7 +53,7 @@ impl Hentai
     ///
     /// # Returns
     /// - created hentai or error
-    pub async fn new(id: u32, db: &sqlx::sqlite::SqlitePool, http_client: &reqwest::Client, nhentai_hentai_search_url: &str, filename_title_type: &TitleType, library_path: &str, library_split: u32) -> Result<Self, HentaiNewError>
+    pub async fn new(id: u32, db: &sqlx::sqlite::SqlitePool, http_client: &wreq::Client, nhentai_hentai_search_url: &str, filename_title_type: &TitleType, library_path: &str, library_split: u32) -> Result<Self, HentaiNewError>
     {
         const FILENAME_SIZE_MAX: u16 = 255; // maximum filename size [B]
         const TITLE_CHARACTERS_FORBIDDEN: &str = "\\/:*?\"<>|\t\n"; // forbidden characters in Windows file names
@@ -160,14 +160,14 @@ impl Hentai
     /// Downloads all images of the hentai and combines them into a cbz file.
     ///
     /// # Arguments
-    /// - `http_client`: reqwest http client
+    /// - `http_client`: wreq http client
     /// - `download_workers`: number of workers for parallel downloads, if 0: error
     /// - `circumvent_load_balancer`: if nhentai.net's load balancer should be circumvented and directly use random media server, only use if load balancer is broken
     /// - `cleanup_temporary_files`: if temporary files should be cleaned up after download, if false: temporary images and ComicInfo.xml remain in library
     ///
     /// # Returns
     /// - nothing or error
-    pub async fn download(&self, http_client: &reqwest::Client, download_workers: usize, circumvent_load_balancer: bool, cleanup_temporary_files: bool) -> Result<(), HentaiDownloadError>
+    pub async fn download(&self, http_client: &wreq::Client, download_workers: usize, circumvent_load_balancer: bool, cleanup_temporary_files: bool) -> Result<(), HentaiDownloadError>
     {
         let cbz_final_filepath: String; //filepath to final cbz in library
         let cbz_temp_filepath: String = format!("{}{}/{}.temp", self.library_path, self.id, self.id); //filepath to temporary cbz, cbz is created here and when finished moved to final location, roundabout way over temporary cbz filepath in case program gets stopped while creating cbz, so no half finished cbz remains in library, don't use real filename because appending "".temp" might then bust length limit
@@ -210,7 +210,7 @@ impl Hentai
             for i in 0..self.images_url.len() // for each page
             {
                 let f_clone: scaler::Formatter = f.clone();
-                let http_client_clone: reqwest::Client = http_client.clone();
+                let http_client_clone: wreq::Client = http_client.clone();
                 let image_filepath: String = format!("{}{}/{}", self.library_path, self.id, self.images_filename.get(i).expect("Index out of bounds even though should have same size as images_url."));
                 let image_url_clone: String = self.images_url.get(i).expect("Index out of bounds even though checked before that it fits.").clone();
                 let num_pages_clone: u16 = self.num_pages;
@@ -343,14 +343,14 @@ impl Hentai
     /// Downloads an image from `image_url` and saves it to `image_filepath`. If confronted with an error 404, retries other media servers before giving up and forwarding the error.
     ///
     /// # Arguments
-    /// - `http_client`: reqwest http client
+    /// - `http_client`: wreq http client
     /// - `image_url`: url of the image to download
     /// - `circumvent_load_balancer`: if nhentai.net's load balancer should be circumvented and directly use random media server, only use if load balancer is broken
     /// - `image_filepath`: path to save the image to
     ///
     /// # Returns
     /// - nothing or error
-    async fn download_image(http_client: &reqwest::Client, image_url: &str, circumvent_load_balancer: bool, image_filepath: &str) -> Result<(), HentaiDownloadImageError>
+    async fn download_image(http_client: &wreq::Client, image_url: &str, circumvent_load_balancer: bool, image_filepath: &str) -> Result<(), HentaiDownloadImageError>
     {
         const MEDIA_SERVERS: [&str; 4] = ["2", "3", "5", "7"]; // media servers to try if image not found, general first, after that explicit
         let mut media_servers_randomised: Vec<&str>; // media servers in random order for load balancing
@@ -369,7 +369,7 @@ impl Hentai
             media_servers_randomised.insert(0, ""); // prepend "" to always try general media server first with nhentai's own load balancing
         }
 
-        let mut r: reqwest::Response = reqwest::Response::from(http::Response::new("")); // response to store image, initialised with empty dummy response so borrow checker stops complaining about r possibly not being initialised even though it is guaranteed it is
+        let mut r: wreq::Response = wreq::Response::from(http::Response::new("")); // response to store image, initialised with empty dummy response so borrow checker stops complaining about r possibly not being initialised even though it is guaranteed it is
         for (i, media_server) in media_servers_randomised.iter().enumerate() // try all media servers
         {
             log::debug!("{}", image_url.replace("i.nhentai.net", format!("i{media_server}.nhentai.net").as_str()));
@@ -379,13 +379,13 @@ impl Hentai
                 Err(e) =>
                 {
                     log::debug!("{e}");
-                    if i == media_servers_randomised.len() - 1 {return Err(HentaiDownloadImageError::ReqwestStatus {url: image_url.to_owned(), status: r.status()});} // if not ok and last media server: something went wrong, give up
+                    if i == media_servers_randomised.len() - 1 {return Err(HentaiDownloadImageError::WreqStatus {url: image_url.to_owned(), status: r.status()});} // if not ok and last media server: something went wrong, give up
                     else {continue;} // if not ok: try next media server
                 },
             }
             log::debug!("{}", r.status());
-            if r.status() == reqwest::StatusCode::OK {break;} // if ok: stop trying out media servers
-            else if i == media_servers_randomised.len() - 1 {return Err(HentaiDownloadImageError::ReqwestStatus {url: image_url.to_owned(), status: r.status()});} // if not ok and last media server: something went wrong, give up
+            if r.status() == wreq::StatusCode::OK {break;} // if ok: stop trying out media servers
+            else if i == media_servers_randomised.len() - 1 {return Err(HentaiDownloadImageError::WreqStatus {url: image_url.to_owned(), status: r.status()});} // if not ok and last media server: something went wrong, give up
         }
 
         let mut file: tokio::fs::File;

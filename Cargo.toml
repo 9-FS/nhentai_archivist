@@ -19,10 +19,8 @@ load_config = { git = "https://github.com/9-FS/load_config", tag = "1.2.1", feat
 ] }
 log = "^0.4.0"
 rand = { version = "^0.9.0" }
-reqwest = { version = "^0.12.0", default-features = false, features = [
-    "cookies",
-    "rustls-tls",
-] }
+wreq = { version = "5", features = ["cookies"] }
+wreq-util = "2"
 scaler = "^1.0.0"
 serde = { version = "^1.0.0", features = ["derive"] }
 serde-xml-rs = "^0.8.0"
