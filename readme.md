@@ -23,22 +23,7 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 
 1. Execute the program once to create a default `./config/.env`.\
     This means that in the directory of the executable, there should now be a directory called "config" containing a file called ".env". You might need to enable seeing hidden files in the file explorer.
-1. I recommend setting the `CSRFTOKEN` cookie and `USER_AGENT`. If you start having problems with nHentai's bot protection (error 403), setting these is mandatory. If a `CF_CLEARANCE` cookie is available, it should be set as well.
-    - Mozilla Firefox
-        1. Go to https://nhentai.net/. Clear the Cloudflare prompt.
-        1. Open the developer console with F12.
-        1. Go to the tab "Storage". On the left side expand "Cookies". Click on "https://nhentai.net".
-        1. Copy the cookie values into `./config/.env`.
-        1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `./config/.env`.
-    - Google Chrome
-        1. Go to https://nhentai.net/. Clear the cloudflare prompt.
-        1. Open the developer console with F12.
-        1. Go to the tab "Application". On the left side under "Storage", expand "Cookies". Click on "https://nhentai.net".
-        1. Copy the cookie values into `./config/.env`.
-        1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `./config/.env`.
-
-> [!NOTE]
-> If nHentai has "under attack" mode enabled, clearing the Cloudflare prompt and updating `CF_CLEARANCE` seem to be required daily.
+1. I recommend updating the `USER_AGENT` to your system's specific user agent. You can go to https://www.whatismybrowser.com/detect/ and copy your user agent into there.
 
 ## Further Settings
 - `CIRCUMVENT_LOAD_BALANCER`, optional, defaults to `false`
@@ -138,7 +123,6 @@ LIBRARY_PATH = "./hentai/"
 Example `./config/.env`:
 
 ```TOML
-CSRFTOKEN = "your token here"
 DONTDOWNLOADME_FILEPATH = "./config/dontdownloadme.txt"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"
@@ -156,8 +140,6 @@ USER_AGENT = "your user agent here"
 Example `./config/.env`:
 
 ```TOML
-CF_CLEARANCE = ""
-CSRFTOKEN = "your token here"
 DONTDOWNLOADME_FILEPATH = "./config/dontdownloadme.txt"
 DOWNLOADME_FILEPATH = "./config/downloadme.txt"
 LIBRARY_PATH = "./hentai/"

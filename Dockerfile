@@ -3,6 +3,7 @@ ARG RUST_VERSION="1.86"
 FROM rust:$RUST_VERSION AS builder
 WORKDIR "/app/"
 COPY "." "."
+RUN apt update && apt install -y clang cmake
 RUN cargo build --release
 
 FROM gcr.io/distroless/cc

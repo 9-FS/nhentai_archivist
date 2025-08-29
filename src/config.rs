@@ -38,7 +38,7 @@ impl Default for Config
             LIBRARY_SPLIT: None, // no entry in default config, defaults to 0
             NHENTAI_TAGS: None,
             SLEEP_INTERVAL: Some(50000),
-            USER_AGENT: Some("".to_owned()),
+            USER_AGENT: Some("Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0".to_owned()),
         }
     }
 }
