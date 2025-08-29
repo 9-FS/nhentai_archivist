@@ -369,7 +369,7 @@ impl Hentai
             media_servers_randomised.insert(0, ""); // prepend "" to always try general media server first with nhentai's own load balancing
         }
 
-        let mut r: wreq::Response = wreq::Response::from(http::Response::new("")); // response to store image, initialised with empty dummy response so borrow checker stops complaining about r possibly not being initialised even though it is guaranteed it is
+        let mut r = wreq::Response::from(http::Response::new("")); // response to store image, initialised with empty dummy response so borrow checker stops complaining about r possibly not being initialised even though it is guaranteed it is
         for (i, media_server) in media_servers_randomised.iter().enumerate() // try all media servers
         {
             log::debug!("{}", image_url.replace("i.nhentai.net", format!("i{media_server}.nhentai.net").as_str()));

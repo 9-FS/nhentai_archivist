@@ -20,7 +20,7 @@ pub async fn search_by_id(http_client: &wreq::Client, nhentai_hentai_search_url:
     let r_serialised: HentaiSearchResponse; // response in json format
 
 
-    let r: wreq::Response = http_client.get(format!("{nhentai_hentai_search_url}{id}").as_str()).send().await?; // search hentai
+    let r = http_client.get(format!("{nhentai_hentai_search_url}{id}").as_str()).send().await?; // search hentai
     log::debug!("{}", r.status());
     if r.status() != wreq::StatusCode::OK {return Err(SearchByIdError::WreqStatus {url: r.url().to_string(), status: r.status()});} // if status is not ok: something went wrong
     // response in json format
@@ -68,7 +68,7 @@ pub async fn search_by_tag(http_client: &wreq::Client, nhentai_tag_search_url: &
     let worker_sem: std::sync::Arc<tokio::sync::Semaphore> = std::sync::Arc::new(tokio::sync::Semaphore::new(WORKERS)); // limit number of concurrent workers otherwise api enforces rate limit
 
 
-    let mut page_no: u32 = 1;
+    let mut page_no= 1;
     while page_no <= 10 // search first pages sequentially to try to get total number of pages
     {
         match search_by_tag_on_page(http_client.clone(), nhentai_tag_search_url.to_owned(), nhentai_tags.clone(), page_no, num_pages, db.clone()).await

@@ -4,6 +4,12 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error
 {
+    #[error("{reason}")]
+    SettingInvalid {reason: String},
+
+    #[error("Connecting to database failed with: {0}")]
+    Sqlx(#[from] sqlx::Error),
+
     #[error("Test connecting to \"{}\" failed with: {}", .0.url().map_or_else(|| "<unknown>", |o| o.as_str()), .0)]
     Wreq(#[from] wreq::Error),
 
@@ -12,12 +18,6 @@ pub enum Error
 
     #[error("Test connecting to \"{url}\" failed with status code {status}.")]
     WreqStatus {url: String, status: wreq::StatusCode},
-
-    #[error("{reason}")]
-    SettingInvalid {reason: String},
-
-    #[error("Connecting to database failed with: {0}")]
-    Sqlx(#[from] sqlx::Error),
 }
 
 

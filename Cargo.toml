@@ -9,7 +9,7 @@ license     = "MIT"
 name        = "nhentai_archivist"
 readme      = "readme.md"
 repository  = "https://github.com/9-FS/nhentai_archivist"
-version     = "3.9.0"
+version     = "3.10.0"
 
 [dependencies]
 chrono = { version = "^0.4.0", features = ["serde"] }
@@ -19,8 +19,6 @@ load_config = { git = "https://github.com/9-FS/load_config", tag = "1.2.1", feat
 ] }
 log = "^0.4.0"
 rand = { version = "^0.9.0" }
-wreq = { version = "5", features = ["cookies"] }
-wreq-util = "2"
 scaler = "^1.0.0"
 serde = { version = "^1.0.0", features = ["derive"] }
 serde-xml-rs = "^0.8.0"
@@ -34,6 +32,8 @@ sqlx = { version = "^0.8.0", features = [
 thiserror = "^2.0.0"
 tokio = { version = "^1.0.0", features = ["rt-multi-thread"] }
 unicode-segmentation = "^1.0.0"
+wreq = { version = "^5.0.0", features = ["cookies"] }
+wreq-util = "^2.0.0"
 zip = "^4.0.0"
 
 [lints.clippy]

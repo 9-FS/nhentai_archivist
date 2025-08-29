@@ -7,7 +7,6 @@
 #[allow(non_snake_case)]
 pub struct Config
 {
-    pub COOKIE: Option<String>, // bypass bot protection
     pub CIRCUMVENT_LOAD_BALANCER: Option<bool>, // circumvent nhentai.net's load balancer at i.nhentai.net and directly use random media server, only use if load balancer is broken
     pub CLEANUP_TEMPORARY_FILES: Option<bool>, // clean up temporary files after downloading? some prefer off for deduplication or compatibility with other tools
     pub DEBUG: Option<bool>, // debug mode?
@@ -28,7 +27,6 @@ impl Default for Config
     {
         Self
         {
-            COOKIE: Some("".to_owned()),
             CIRCUMVENT_LOAD_BALANCER: None, // no entry in default config, defaults to false
             CLEANUP_TEMPORARY_FILES: None,
             DEBUG: None, // no entry in default config, defaults to false
