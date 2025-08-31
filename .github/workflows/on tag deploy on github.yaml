@@ -136,11 +136,11 @@ jobs:
                     target: ${{matrix.os}}
                     toolchain: ${{env.RUST_VERSION}}
 
-            -   name: "Install cross"   # install cross for cross-compilation
-                run: "cargo install cross"
+            -   name: "Install Build Tools"
+                run: "sudo apt update && sudo apt install -y gcc-mingw-w64-x86-64-posix g++-mingw-w64-x86-64-posix nasm"
 
             -   name: "Compile"
-                run: "cross build --release --target ${{matrix.os}}"
+                run: "cargo build --release --target ${{matrix.os}}"
 
             -   name: "Cache Executable"
                 if: ${{matrix.os != 'x86_64-pc-windows-gnu'}}
